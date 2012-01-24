@@ -32,6 +32,11 @@ public class AbstractExcerptImpl extends AbstractExcerpt {
         e.finish();
     }
 
+    @Override
+    public void readFully(byte[] b, int off, int len) {
+        e.readFully(b, off, len);
+    }
+
     public byte readByte() {
         return e.readByte();
     }

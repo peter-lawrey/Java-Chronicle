@@ -62,10 +62,6 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void readFully(byte[] b, int off, int len) {
-    }
-
-    @Override
     public int skipBytes(int n) {
         int position = position();
         int n2 = Math.min(n, capacity - position);
