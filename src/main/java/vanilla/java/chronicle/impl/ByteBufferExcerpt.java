@@ -317,28 +317,65 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
-    public void readAscii(ByteString as) {
-        throw new UnsupportedOperationException();
+    public void readByteString(ByteString as) {
+        as.clear();
+        int len = readByte() & 0xFF;
+        for (int i = 0; i < len; i++)
+            as.append(readByte());
     }
 
     @Override
-    public int readAscii(int offset, ByteString as) {
-        throw new UnsupportedOperationException();
+    public int readByteString(int offset, ByteString as) {
+        as.clear();
+        int len = readByte(offset) & 0xFF;
+        for (int i = 1; i <= len; i++)
+            as.append(readByte(offset + i));
+        return offset + len + 1;
     }
 
     @Override
-    public void readAscii(StringBuilder sb) {
-        throw new UnsupportedOperationException();
+    public void readByteString(StringBuilder sb) {
+        sb.setLength(0);
+        int len = readByte() & 0xFF;
+        for (int i = 0; i < len; i++)
+            sb.append(readByte());
     }
 
     @Override
-    public int readAscii(int offset, StringBuilder sb) {
-        throw new UnsupportedOperationException();
+    public int readByteString(int offset, StringBuilder sb) {
+        sb.setLength(0);
+        int len = readByte(offset) & 0xFF;
+        for (int i = 1; i <= len; i++)
+            sb.append(readByte(offset + i));
+        return offset + len + 1;
     }
 
     @Override
-    public String readAscii() {
-        throw new UnsupportedOperationException();
+    public String readByteString() {
+        int len = readByte() & 0xFF;
+        if (len == 0) return "";
+        byte[] bytes = new byte[len];
+        for (int i = 0; i < len; i++)
+            bytes[i] = readByte();
+        return new String(bytes, 0);
+    }
+
+    @Override
+    public void readChars(StringBuffer sb) {
+        int len = readChar();
+        sb.setLength(0);
+        for (int i = 0; i < len; i++)
+            sb.append(readChar());
+    }
+
+    @Override
+    public String readChars() {
+        int len = readChar();
+        if (len == 0) return "";
+        char[] chars = new char[len];
+        for (int i = 0; i < len; i++)
+            chars[i] = readChar();
+        return new String(chars);
     }
 
     //// RandomOutputStream
@@ -364,14 +401,22 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     @Override
     public void writeBytes(CharSequence s) {
-        for (int i = 0, len = s.length(); i < len; i++)
+        int len = s.length();
+        if (len > 255) throw new IllegalArgumentException("Len cannot be " + len + " > 255");
+        write(len);
+        for (int i = 0; i < len; i++)
             write(s.charAt(i));
     }
 
     @Override
     public void writeBytes(int offset, CharSequence s) {
-        for (int i = 0, len = s.length(); i < len; i++)
-            write(offset + i, s.charAt(i));
+        int len = s.length();
+        if (len > 255) throw new IllegalArgumentException("Len cannot be " + len + " > 255");
+        write(offset, len);
+        for (int i = 0; i < len; i++)
+            write(s.charAt(i));
+        for (int i = 0; i < len; i++)
+            write(offset + 1 + i, s.charAt(i));
     }
 
     @Override
@@ -381,14 +426,20 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     @Override
     public void writeChars(CharSequence s) {
-        for (int i = 0, len = s.length(); i < len; i++)
+        int len = s.length();
+        if (len > 65535) throw new IllegalArgumentException("Len cannot be " + len + " > 65535");
+        writeChar(len);
+        for (int i = 0; i < len; i++)
             writeChar(s.charAt(i));
     }
 
     @Override
     public void writeChars(int offset, CharSequence s) {
-        for (int i = 0, len = s.length(); i < len; i++)
-            writeChar(offset + i, s.charAt(i));
+        int len = s.length();
+        if (len > 65535) throw new IllegalArgumentException("Len cannot be " + len + " > 65535");
+        writeChar(offset + len);
+        for (int i = 0; i < len; i++)
+            writeChar(offset + 2 + i, s.charAt(i));
     }
 
     static final Method writeUTFMethod;

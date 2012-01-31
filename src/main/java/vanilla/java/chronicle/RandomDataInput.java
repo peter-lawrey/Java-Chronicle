@@ -85,15 +85,19 @@ public interface RandomDataInput extends DataInput, RandomAccess {
     @Override
     String readLine();
 
-    void readAscii(ByteString as);
+    void readByteString(ByteString as);
 
-    int readAscii(int offset, ByteString as);
+    int readByteString(int offset, ByteString as);
 
-    void readAscii(StringBuilder sb);
+    void readByteString(StringBuilder sb);
 
-    int readAscii(int offset, StringBuilder sb);
+    int readByteString(int offset, StringBuilder sb);
 
-    String readAscii();
+    String readByteString();
+
+    void readChars(StringBuffer sb);
+
+    String readChars();
 
     @Override
     String readUTF();

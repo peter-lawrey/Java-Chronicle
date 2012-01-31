@@ -79,4 +79,16 @@ public class ByteString implements CharSequence, Cloneable {
         int len = length();
         return new String(data, 0, 1, len);
     }
+
+    public void clear() {
+        data[0] = 0;
+    }
+
+    public void append(byte b) {
+        int len = length();
+        if (len >= 255)
+            throw new IndexOutOfBoundsException("Cannot append len=" + len);
+        data[len] = b;
+        data[0]++;
+    }
 }
