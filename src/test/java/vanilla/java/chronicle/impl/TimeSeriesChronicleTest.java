@@ -35,7 +35,7 @@ public class TimeSeriesChronicleTest {
 
         int counter = 0;
         for (int i = 0; i < 1024; i++) {
-            excerpt.startExcerpt((short) i, 129);
+            excerpt.startExcerpt((char) i, 129);
             for (int j = 0; j < 128; j += 8)
                 excerpt.writeLong(counter++);
             excerpt.write(-1);

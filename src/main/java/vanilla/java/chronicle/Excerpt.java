@@ -59,12 +59,12 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput {
      *
      * @param type of except to change this excerpt to.
      */
-    void type(short type);
+    void type(char type);
 
     /**
      * @return the type of excerpt.
      */
-    short type();
+    char type();
 
     /**
      * @return the capacity of the excerpt.
@@ -77,7 +77,7 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput {
      * @param type     of excerpt
      * @param capacity minimum capacity to allow for.
      */
-    void startExcerpt(short type, int capacity);
+    void startExcerpt(char type, int capacity);
 
     /**
      * Finish a record.  The record is not available until this is called.

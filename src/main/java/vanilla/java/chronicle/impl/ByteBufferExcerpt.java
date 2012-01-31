@@ -41,7 +41,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     protected long index;
     private int start = 0;
     private int position = 0;
-    protected short type = 0;
+    protected char type = 0;
     private int capacity = 0;
     private int limit = 0;
 
@@ -69,14 +69,14 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
         long indexData = chronicle.getIndexData(index);
         long startPosition = indexData & POSITION_MASK;
         int capacity = (int) (endPosition - startPosition);
-        type = (short) (indexData >>> POSITION_BITS);
+        type = (char) (indexData >>> POSITION_BITS);
         endPosition &= POSITION_MASK;
         index0(index, indexData, capacity, startPosition, endPosition);
         return true;
     }
 
     @Override
-    public void startExcerpt(short type, int capacity) {
+    public void startExcerpt(char type, int capacity) {
         long indexData = chronicle.startExcerpt(capacity);
         this.type = type;
         long startPosition = indexData & POSITION_MASK;
@@ -107,7 +107,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
-    public void type(short type) {
+    public void type(char type) {
         if (type != this.type)
             chronicle.setIndexData(index, ((long) type << POSITION_BITS) | startPosition);
         this.type = type;
@@ -131,7 +131,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
-    public short type() {
+    public char type() {
         return type;
     }
 
