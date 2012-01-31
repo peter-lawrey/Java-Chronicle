@@ -280,7 +280,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     @Override
     public int readInt() {
-        int i = buffer.getInt();
+        int i = buffer.getInt(position);
         position += 4;
         return i;
     }
@@ -304,7 +304,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     @Override
     public float readFloat() {
-        float f = buffer.getFloat();
+        float f = buffer.getFloat(position);
         position += 4;
         return f;
     }
@@ -371,7 +371,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
-    public void readChars(StringBuffer sb) {
+    public void readChars(StringBuilder sb) {
         int len = readChar();
         sb.setLength(0);
         for (int i = 0; i < len; i++)

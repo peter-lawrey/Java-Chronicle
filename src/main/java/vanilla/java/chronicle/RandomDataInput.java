@@ -95,7 +95,7 @@ public interface RandomDataInput extends DataInput, RandomAccess {
 
     String readByteString();
 
-    void readChars(StringBuffer sb);
+    void readChars(StringBuilder sb);
 
     String readChars();
 
