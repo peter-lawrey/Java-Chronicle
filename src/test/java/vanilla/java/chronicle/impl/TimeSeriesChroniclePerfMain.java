@@ -25,14 +25,30 @@ import java.io.FileNotFoundException;
  * @author peter.lawrey
  */
 public class TimeSeriesChroniclePerfMain {
-    public static void main(String... args) throws FileNotFoundException {
+    public static void main(String... args) throws FileNotFoundException, InterruptedException {
         String basePath = "/tmp/deleteme";
         deleteOnExit(basePath);
 
-        TimeSeriesChronicle tsc = new TimeSeriesChronicle(basePath, 24);
+        final TimeSeriesChronicle tsc = new TimeSeriesChronicle(basePath, 26);
         tsc.clear();
+        final int runs = 20 * 1000 * 1000;
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                StringBuffer sb = new StringBuffer();
+                Excerpt excerpt = tsc.createExcerpt();
+                for (int i = 0; i < runs; i++) {
+                    while (!excerpt.index(i)) ;
+                    excerpt.readChars(sb);
+                    excerpt.readInt();
+                    excerpt.readLong();
+                    excerpt.readDouble();
+                    excerpt.finish();
+                }
+            }
+        });
+        t.start();
         Excerpt excerpt = tsc.createExcerpt();
-        int runs = 10 * 1000 * 1000;
         long start = System.nanoTime();
         for (int i = 0; i < runs; i++) {
             excerpt.startExcerpt('T', 32);
@@ -42,18 +58,10 @@ public class TimeSeriesChroniclePerfMain {
             excerpt.writeDouble(0.0);
             excerpt.finish();
         }
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < runs; i++) {
-            excerpt.index(i);
-            excerpt.readChars(sb);
-            excerpt.readInt();
-            excerpt.readLong();
-            excerpt.readDouble();
-            excerpt.finish();
-        }
+        t.join();
         tsc.close();
         long time = System.nanoTime() - start;
-        System.out.printf("Took %.3f seconds to write/read %,d entries%n", time / 1e9, runs);
+        System.out.printf("Took %.3f seconds to write/read %,d entries, rate was %.1f M records/sec%n", time / 1e9, runs, runs * 1e3 / time);
     }
 
     private static void deleteOnExit(String basePath) {

@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author peter.lawrey
@@ -63,6 +64,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     public boolean index(long index) throws IndexOutOfBoundsException {
         long endPosition = chronicle.getIndexData(index + 1);
         if (endPosition == 0) {
+            barrier.get();
             buffer = null;
             return false;
         }
@@ -100,10 +102,18 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
         if (position > limit)
             throw new IllegalStateException("Capacity allowed: " + capacity + " data read/written: " + position);
         if (index == chronicle.size()) {
+            memoryBarrier();
             chronicle.setIndexData(index, ((long) type << POSITION_BITS) | startPosition);
             chronicle.setIndexData(index + 1, startPosition + (position - start));
             chronicle.incrSize();
+            memoryBarrier();
         }
+    }
+
+    final AtomicBoolean barrier = new AtomicBoolean();
+
+    private void memoryBarrier() {
+        barrier.lazySet(true);
     }
 
     @Override
