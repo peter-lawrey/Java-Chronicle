@@ -14,10 +14,25 @@
  * limitations under the License.
  */
 
-package vanilla.java.chronicle;
+package vanilla.java.chronicle.impl;
+
+import vanilla.java.chronicle.Chronicle;
+
+import java.nio.ByteBuffer;
 
 /**
  * @author peter.lawrey
  */
-public interface Narrative extends Chronicle {
+public interface DirectChronicle extends Chronicle {
+    public long getIndexData(long indexId);
+
+    ByteBuffer acquireDataBuffer(long startPosition);
+
+    int positionInBuffer(long startPosition);
+
+    void setIndexData(long indexId, long indexData);
+
+    long startExcerpt(int capacity);
+
+    void incrSize();
 }

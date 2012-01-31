@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package vanilla.java.chronicle;
+package vanilla.java.chronicle.impl;
 
 /**
  * @author peter.lawrey
  */
-public interface Narrative extends Chronicle {
+public abstract class AbstractChronicle implements DirectChronicle {
+    protected long size = 0;
+
+    @Override
+    public long size() {
+        return size;
+    }
 }

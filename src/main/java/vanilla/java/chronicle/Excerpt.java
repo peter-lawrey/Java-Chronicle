@@ -1,7 +1,20 @@
-package vanilla.java.chronicle;
+/*
+ * Copyright 2011 Peter Lawrey
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.io.DataInput;
-import java.io.DataOutput;
+package vanilla.java.chronicle;
 
 /**
  * An extracted record within a Chronicle.  This record refers to one entry.
@@ -13,6 +26,7 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput {
      * @return the chronicle this is an excerpt for.
      */
     Chronicle chronicle();
+
     /**
      * Attempt to set the index to this number.  The method is re-tryable as another thread or process could be writing to this Chronicle.
      *
@@ -29,6 +43,7 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput {
 
     /**
      * Set the position within this except.
+     *
      * @param position to move to.
      * @return this
      */
@@ -38,7 +53,7 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput {
      * @return the position within this excerpt
      */
     int position();
-    
+
     /**
      * Change the type of the excerpt
      *
@@ -66,7 +81,7 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput {
 
     /**
      * Finish a record.  The record is not available until this is called.
-     * 
+     * <p/>
      * When the method is called the first time, the excerpt is shrink wrapped to the size actually used. i.e. where the position is.
      */
     void finish();
