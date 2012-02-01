@@ -1,13 +1,26 @@
 
-Version 0.1 - Can read/write all basic data types. 7.5 M/second multi-threaded.
+Version 0.1 - Can read/write all basic data types. 26 M/second (max) multi-threaded.
+
+It uses memory mapped file to store "excerpts" of a "chronicle"  Initially it only supports an indexed array of data.
+
+It is very fast, persisted, uses almost no heap, no Full GC impact, only limited by the size of your disk (can be much larger than your physical memory size). and can be shared *between processes* with more than 10x lower latency than using Sockets.
+It can change the way you design your system because it allows you to have independent processes which can be running or not at the same time (as no messages are lost)  This is useful for restarting services and testing your services from canned data. e.g. like sub-microsecond durable messaging.
+You can attach any number of readers, including tools to see the exact state of the data externally. e.g. I use; od -t cx1 {file}  to see the current state.
 
 ===================================
 Throughput Test - IndexedChronicleThroughputMain
 ===================================
+https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/IndexedChronicleThroughputMain.java
 
-On a 4.6 GHz, i7-2600
-Took 9.499 seconds to write/read 200,000,000 entries, rate was 21.1 M entries/sec - ByteBuffer (tmpfs)
-Took 7.359 seconds to write/read 200,000,000 entries, rate was 27.2 M entries/sec - Using Unsafe (tmpfs)
+On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
 
-Took 21.729 seconds to write/read 400,000,000 entries, rate was 18.4 M entries/sec - ByteBuffer (ext4)
-Took 15.266 seconds to write/read 400,000,000 entries, rate was 26.2 M entries/sec - Using Unsafe (ext4)
+ Took 12.416 seconds to write/read 200,000,000 entries, rate was 16.1 M entries/sec - ByteBuffer (tmpfs)
+ Took 9.185 seconds to write/read 200,000,000 entries, rate was 21.8 M entries/sec- Using Unsafe (tmpfs)
+
+ Took 25.693 seconds to write/read 400,000,000 entries, rate was 15.6 M entries/sec - ByteBuffer (ext4)
+ Took 19.522 seconds to write/read 400,000,000 entries, rate was 20.5 M entries/sec - Using Unsafe (ext4)
+
+ Took 71.458 seconds to write/read 1,000,000,000 entries, rate was 14.0 M entries/sec - Using Unsafe (ext4)
+ Took 141.424 seconds to write/read 2,000,000,000 entries, rate was 14.1 M entries/sec - Using Unsafe (ext4)
+
+ Note: in the last test, it is using 112 GB! of dense virtual memory in Java without showing a dramatic slow down or performance hit.

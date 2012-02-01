@@ -30,19 +30,23 @@ import static junit.framework.Assert.assertEquals;
  * @author peter.lawrey
  *         <p/>
  *         on a 4.6 GHz, i7-2600
- *         Took 9.499 seconds to write/read 200,000,000 entries, rate was 21.1 M entries/sec - ByteBuffer (tmpfs)
- *         Took 7.359 seconds to write/read 200,000,000 entries, rate was 27.2 M entries/sec - Using Unsafe (tmpfs)
+ *         Took 12.416 seconds to write/read 200,000,000 entries, rate was 16.1 M entries/sec - ByteBuffer (tmpfs)
+ *         Took 9.185 seconds to write/read 200,000,000 entries, rate was 21.8 M entries/sec- Using Unsafe (tmpfs)
  *         <p/>
- *         Took 21.729 seconds to write/read 400,000,000 entries, rate was 18.4 M entries/sec - ByteBuffer (ext4)
- *         Took 15.266 seconds to write/read 400,000,000 entries, rate was 26.2 M entries/sec - Using Unsafe (ext4)
+ *         Took 25.693 seconds to write/read 400,000,000 entries, rate was 15.6 M entries/sec - ByteBuffer (ext4)
+ *         Took 19.522 seconds to write/read 400,000,000 entries, rate was 20.5 M entries/sec - Using Unsafe (ext4)
+ *         <p/>
+ *         Took 71.458 seconds to write/read 1,000,000,000 entries, rate was 14.0 M entries/sec - Using Unsafe (ext4)
+ *         Took 141.424 seconds to write/read 2,000,000,000 entries, rate was 14.1 M entries/sec - Using Unsafe (ext4)
  */
 public class IndexedChronicleThroughputMain {
 
-    public static final int DATA_BIT_SIZE_HINT = 26;
+    public static final int DATA_BIT_SIZE_HINT = 24;
     public static final boolean USE_UNSAFE = true;
+    public static final String base = "/tmp/deleteme.";
+    public static final int runs = 100 * 1000 * 1000;
 
     public static void main(String... args) throws IOException, InterruptedException {
-        final String base = "deleteme.";
         final String basePath = base + "request";
         final String basePath2 = base + "response";
         deleteOnExit(basePath);
@@ -53,7 +57,6 @@ public class IndexedChronicleThroughputMain {
         IndexedChronicle tsc2 = new IndexedChronicle(basePath2, DATA_BIT_SIZE_HINT);
         tsc2.useUnsafe(USE_UNSAFE);
         tsc.clear();
-        final int runs = 200 * 1000 * 1000;
 
         AffinityLock al = AffinityLock.acquireLock(false);
         final AffinityLock al2 = al.acquireLock(AffinityStrategies.DIFFERENT_CORE);
@@ -105,6 +108,7 @@ public class IndexedChronicleThroughputMain {
         Excerpt excerpt = tsc.createExcerpt();
         Excerpt excerpt2 = tsc2.createExcerpt();
         long start = System.nanoTime();
+        int i2 = 0;
         for (int i = 0; i < runs; i++) {
             excerpt.startExcerpt(34);
             excerpt.writeChar('T');
@@ -113,17 +117,28 @@ public class IndexedChronicleThroughputMain {
             excerpt.writeLong(0L);
             excerpt.writeDouble(0.0);
             excerpt.finish();
+
+            while (excerpt2.index(i2)) {
+                char type = excerpt2.readChar();
+                if ('R' != type)
+                    assertEquals('R', type);
+                int n = excerpt2.readInt();
+                if (i2 != n)
+                    assertEquals(i2, n);
+                excerpt2.finish();
+                i2++;
+            }
         }
 
-        for (int i = 0; i < runs; i++) {
-            while (!excerpt2.index(i))
+        for (; i2 < runs; i2++) {
+            while (!excerpt2.index(i2))
                 BusyWaiter.pause();
             char type = excerpt2.readChar();
             if ('R' != type)
                 assertEquals('R', type);
             int n = excerpt2.readInt();
-            if (i != n)
-                assertEquals(i, n);
+            if (i2 != n)
+                assertEquals(i2, n);
             excerpt2.finish();
         }
 
