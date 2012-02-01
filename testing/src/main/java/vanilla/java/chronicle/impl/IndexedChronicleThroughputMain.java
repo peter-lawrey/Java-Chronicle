@@ -16,10 +16,13 @@
 
 package vanilla.java.chronicle.impl;
 
+import vanilla.java.affinity.AffinityLock;
+import vanilla.java.affinity.AffinityStrategies;
+import vanilla.java.busywaiting.BusyWaiter;
 import vanilla.java.chronicle.Excerpt;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -28,9 +31,9 @@ import static junit.framework.Assert.assertEquals;
  */
 public class IndexedChronicleThroughputMain {
 
-    public static final int DATA_BIT_SIZE_HINT = 24;
+    public static final int DATA_BIT_SIZE_HINT = 26;
 
-    public static void main(String... args) throws FileNotFoundException, InterruptedException {
+    public static void main(String... args) throws IOException, InterruptedException {
         final String basePath = "/tmp/deleteme.request";
         final String basePath2 = "/tmp/deleteme.response";
         deleteOnExit(basePath);
@@ -39,10 +42,15 @@ public class IndexedChronicleThroughputMain {
         IndexedChronicle tsc = new IndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
         IndexedChronicle tsc2 = new IndexedChronicle(basePath2, DATA_BIT_SIZE_HINT);
         tsc.clear();
-        final int runs = 25 * 1000 * 1000;
+        final int runs = 100 * 1000 * 1000;
+
+        AffinityLock al = AffinityLock.acquireLock(false);
+        final AffinityLock al2 = al.acquireLock(AffinityStrategies.DIFFERENT_CORE);
+
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
+                al2.bind();
                 try {
                     StringBuilder sb = new StringBuilder();
                     final IndexedChronicle tsc = new IndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
@@ -50,7 +58,9 @@ public class IndexedChronicleThroughputMain {
                     Excerpt excerpt = tsc.createExcerpt();
                     Excerpt excerpt2 = tsc2.createExcerpt();
                     for (int i = 0; i < runs; i++) {
-                        while (!excerpt.index(i)) ;
+                        while (!excerpt.index(i))
+                            BusyWaiter.pause();
+
                         char type = excerpt.readChar();
                         if ('T' != type)
                             assertEquals('T', type);
@@ -67,12 +77,16 @@ public class IndexedChronicleThroughputMain {
                         excerpt2.writeInt(n);
                         excerpt2.finish();
                     }
-                } catch (FileNotFoundException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    al2.release();
                 }
             }
         });
         t.start();
+
+        al.bind();
         Excerpt excerpt = tsc.createExcerpt();
         Excerpt excerpt2 = tsc2.createExcerpt();
         long start = System.nanoTime();
@@ -87,7 +101,8 @@ public class IndexedChronicleThroughputMain {
         }
 
         for (int i = 0; i < runs; i++) {
-            while (!excerpt2.index(i)) ;
+            while (!excerpt2.index(i))
+                BusyWaiter.pause();
             char type = excerpt2.readChar();
             if ('R' != type)
                 assertEquals('R', type);
@@ -101,7 +116,8 @@ public class IndexedChronicleThroughputMain {
         tsc.close();
         tsc2.close();
         long time = System.nanoTime() - start;
-        System.out.printf("Took %.3f seconds to write/read %,d entries, rate was %.1f M records/sec%n", time / 1e9, 2 * runs, 2 * runs * 1e3 / time);
+        System.out.printf("Took %.3f seconds to write/read %,d entries, rate was %.1f M entries/sec%n", time / 1e9, 2 * runs, 2 * runs * 1e3 / time);
+        al.release();
     }
 
     private static void deleteOnExit(String basePath) {

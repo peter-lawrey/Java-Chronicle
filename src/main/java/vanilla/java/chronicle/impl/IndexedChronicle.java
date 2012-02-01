@@ -54,6 +54,7 @@ public class IndexedChronicle extends AbstractChronicle {
         indexChannel = new RandomAccessFile(basePath + ".index", "rw").getChannel();
         dataChannel = new RandomAccessFile(basePath + ".data", "rw").getChannel();
 
+        // find the last record.
         long indexSize = indexChannel.size() >>> 3;
         if (indexSize > 0) {
             while (--indexSize > 0 && getIndexData(indexSize) == 0) ;
