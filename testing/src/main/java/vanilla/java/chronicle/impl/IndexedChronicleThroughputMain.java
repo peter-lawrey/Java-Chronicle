@@ -28,21 +28,32 @@ import static junit.framework.Assert.assertEquals;
 
 /**
  * @author peter.lawrey
+ *         <p/>
+ *         on a 4.6 GHz, i7-2600
+ *         Took 9.499 seconds to write/read 200,000,000 entries, rate was 21.1 M entries/sec - ByteBuffer (tmpfs)
+ *         Took 7.359 seconds to write/read 200,000,000 entries, rate was 27.2 M entries/sec - Using Unsafe (tmpfs)
+ *         <p/>
+ *         Took 21.729 seconds to write/read 400,000,000 entries, rate was 18.4 M entries/sec - ByteBuffer (ext4)
+ *         Took 15.266 seconds to write/read 400,000,000 entries, rate was 26.2 M entries/sec - Using Unsafe (ext4)
  */
 public class IndexedChronicleThroughputMain {
 
     public static final int DATA_BIT_SIZE_HINT = 26;
+    public static final boolean USE_UNSAFE = true;
 
     public static void main(String... args) throws IOException, InterruptedException {
-        final String basePath = "/tmp/deleteme.request";
-        final String basePath2 = "/tmp/deleteme.response";
+        final String base = "deleteme.";
+        final String basePath = base + "request";
+        final String basePath2 = base + "response";
         deleteOnExit(basePath);
         deleteOnExit(basePath2);
 
         IndexedChronicle tsc = new IndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
+        tsc.useUnsafe(USE_UNSAFE);
         IndexedChronicle tsc2 = new IndexedChronicle(basePath2, DATA_BIT_SIZE_HINT);
+        tsc2.useUnsafe(USE_UNSAFE);
         tsc.clear();
-        final int runs = 100 * 1000 * 1000;
+        final int runs = 200 * 1000 * 1000;
 
         AffinityLock al = AffinityLock.acquireLock(false);
         final AffinityLock al2 = al.acquireLock(AffinityStrategies.DIFFERENT_CORE);
@@ -54,7 +65,11 @@ public class IndexedChronicleThroughputMain {
                 try {
                     StringBuilder sb = new StringBuilder();
                     final IndexedChronicle tsc = new IndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
+                    tsc.useUnsafe(USE_UNSAFE);
                     final IndexedChronicle tsc2 = new IndexedChronicle(basePath2, DATA_BIT_SIZE_HINT);
+                    tsc2.useUnsafe(USE_UNSAFE);
+                    tsc2.clear();
+
                     Excerpt excerpt = tsc.createExcerpt();
                     Excerpt excerpt2 = tsc2.createExcerpt();
                     for (int i = 0; i < runs; i++) {

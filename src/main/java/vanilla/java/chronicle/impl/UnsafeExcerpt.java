@@ -16,6 +16,8 @@
 
 package vanilla.java.chronicle.impl;
 
+import sun.misc.Unsafe;
+import sun.nio.ch.DirectBuffer;
 import vanilla.java.chronicle.ByteString;
 import vanilla.java.chronicle.Chronicle;
 import vanilla.java.chronicle.Excerpt;
@@ -24,6 +26,7 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -32,20 +35,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author peter.lawrey
  */
-public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
+public class UnsafeExcerpt<C extends DirectChronicle> implements Excerpt {
     protected final C chronicle;
     protected long index;
-    private int start = 0;
-    private int position = 0;
+    private long start = 0;
+    private long position = 0;
     private int capacity = 0;
-    private int limit = 0;
+    private long limit = 0;
 
-    protected long startPosition;
+    private long startPosition;
     protected ByteBuffer buffer;
     private boolean forWrite = false;
 
 
-    protected ByteBufferExcerpt(C chronicle) {
+    protected UnsafeExcerpt(C chronicle) {
         this.chronicle = chronicle;
     }
 
@@ -82,9 +85,12 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
         this.index = index;
         this.capacity = capacity;
         this.startPosition = startPosition;
+
         buffer = chronicle.acquireDataBuffer(startPosition);
-        start = position = chronicle.positionInBuffer(startPosition);
-        limit = chronicle.positionInBuffer(endPosition - 1) + 1;
+
+        long address = ((DirectBuffer) buffer).address();
+        start = position = address + chronicle.positionInBuffer(startPosition);
+        limit = address + chronicle.positionInBuffer(endPosition - 1) + 1;
         assert limit > start;
         assert position < limit;
         assert endPosition > startPosition;
@@ -122,7 +128,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     @Override
     public int position() {
-        return position - start;
+        return (int) (position - start);
     }
 
     @Override
@@ -215,7 +221,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     @Override
     public String readUTF(int offset) {
-        int oldPosition = position;
+        long oldPosition = position;
         position = offset;
         try {
             return readUTF();
@@ -226,84 +232,84 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     @Override
     public byte readByte() {
-        return buffer.get(position++);
+        return UNSAFE.getByte(position++);
     }
 
     @Override
     public byte readByte(int offset) {
-        return buffer.get(start + offset);
+        return UNSAFE.getByte(start + offset);
     }
 
     @Override
     public short readShort() {
-        short s = buffer.getShort(position);
+        short s = UNSAFE.getShort(position);
         position += 2;
         return s;
     }
 
     @Override
     public short readShort(int offset) {
-        return buffer.getShort(start + offset);
+        return UNSAFE.getShort(start + offset);
     }
 
     @Override
     public char readChar() {
-        char ch = buffer.getChar(position);
+        char ch = UNSAFE.getChar(position);
         position += 2;
         return ch;
     }
 
     @Override
     public char readChar(int offset) {
-        return buffer.getChar(start + offset);
+        return UNSAFE.getChar(start + offset);
     }
 
     @Override
     public int readInt() {
-        int i = buffer.getInt(position);
+        int i = UNSAFE.getInt(position);
         position += 4;
         return i;
     }
 
     @Override
     public int readInt(int offset) {
-        return buffer.getInt(start + offset);
+        return UNSAFE.getInt(start + offset);
     }
 
     @Override
     public long readLong() {
-        long l = buffer.getLong(position);
+        long l = UNSAFE.getLong(position);
         position += 8;
         return l;
     }
 
     @Override
     public long readLong(int offset) {
-        return buffer.getLong(start + offset);
+        return UNSAFE.getLong(start + offset);
     }
 
     @Override
     public float readFloat() {
-        float f = buffer.getFloat(position);
+        float f = UNSAFE.getFloat(position);
         position += 4;
         return f;
     }
 
     @Override
     public float readFloat(int offset) {
-        return buffer.getFloat(start + offset);
+        return UNSAFE.getFloat(start + offset);
     }
 
     @Override
     public double readDouble() {
-        double d = buffer.getDouble(position);
+        double d = UNSAFE.getDouble(position);
         position += 8;
         return d;
     }
 
     @Override
     public double readDouble(int offset) {
-        return buffer.getDouble(start + offset);
+        return UNSAFE.getDouble(start + offset);
     }
 
     @Override
@@ -457,7 +463,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     @Override
     public void write(int b) {
-        buffer.put(position++, (byte) b);
+        UNSAFE.putByte(position++, (byte) b);
     }
 
     @Override
@@ -467,7 +473,7 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     @Override
     public void write(int offset, int b) {
-        buffer.put(start + offset, (byte) b);
+        UNSAFE.putByte(start + offset, (byte) b);
     }
 
     @Override
@@ -484,67 +490,79 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     @Override
     public void writeShort(int v) {
-        buffer.putShort(position, (short) v);
+        UNSAFE.putShort(position, (short) v);
         position += 2;
     }
 
     @Override
     public void writeShort(int offset, int v) {
-        buffer.putShort(start + offset, (short) v);
+        UNSAFE.putShort(start + offset, (short) v);
     }
 
     @Override
     public void writeChar(int v) {
-        buffer.putChar(position, (char) v);
+        UNSAFE.putChar(position, (char) v);
         position += 2;
     }
 
     @Override
     public void writeChar(int offset, int v) {
-        buffer.putChar(start + offset, (char) v);
+        UNSAFE.putChar(start + offset, (char) v);
     }
 
     @Override
     public void writeInt(int v) {
-        buffer.putInt(position, v);
+        UNSAFE.putInt(position, v);
         position += 4;
     }
 
     @Override
     public void writeInt(int offset, int v) {
-        buffer.putInt(start + offset, v);
+        UNSAFE.putInt(start + offset, v);
     }
 
     @Override
     public void writeLong(long v) {
-        buffer.putLong(position, v);
+        UNSAFE.putLong(position, v);
         position += 8;
     }
 
     @Override
     public void writeLong(int offset, long v) {
-        buffer.putLong(start + offset, v);
+        UNSAFE.putLong(start + offset, v);
     }
 
     @Override
     public void writeFloat(float v) {
-        buffer.putFloat(position, v);
+        UNSAFE.putFloat(position, v);
         position += 4;
     }
 
     @Override
     public void writeFloat(int offset, float v) {
-        buffer.putFloat(start + offset, v);
+        UNSAFE.putFloat(start + offset, v);
     }
 
     @Override
     public void writeDouble(double v) {
-        buffer.putDouble(position, v);
+        UNSAFE.putDouble(position, v);
         position += 8;
     }
 
     @Override
     public void writeDouble(int offset, double v) {
-        buffer.putDouble(start + offset, v);
+        UNSAFE.putDouble(start + offset, v);
+    }
+
+    private static final Unsafe UNSAFE;
+
+    static {
+        try {
+            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+            theUnsafe.setAccessible(true);
+            UNSAFE = (Unsafe) theUnsafe.get(null);
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
     }
 }

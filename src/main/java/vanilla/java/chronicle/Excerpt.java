@@ -21,11 +21,11 @@ package vanilla.java.chronicle;
  *
  * @author peter.lawrey
  */
-public interface Excerpt extends RandomDataInput, RandomDataOutput {
+public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDataOutput {
     /**
      * @return the chronicle this is an excerpt for.
      */
-    Chronicle chronicle();
+    C chronicle();
 
     /**
      * Attempt to set the index to this number.  The method is re-tryable as another thread or process could be writing to this Chronicle.
@@ -47,7 +47,7 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput {
      * @param position to move to.
      * @return this
      */
-    Excerpt position(int position);
+    Excerpt<C> position(int position);
 
     /**
      * @return the position within this excerpt

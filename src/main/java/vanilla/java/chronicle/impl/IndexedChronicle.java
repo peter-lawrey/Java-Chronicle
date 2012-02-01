@@ -41,6 +41,7 @@ public class IndexedChronicle extends AbstractChronicle {
     private final int dataLowMask;
     private final FileChannel indexChannel;
     private final FileChannel dataChannel;
+    private boolean useUnsafe = false;
 
     public IndexedChronicle(String basePath, int dataBitSizeHint) throws IOException {
         indexBitSize = Math.min(30, Math.max(12, dataBitSizeHint - 4));
@@ -65,9 +66,13 @@ public class IndexedChronicle extends AbstractChronicle {
         }
     }
 
+    public void useUnsafe(boolean useUnsafe) {
+        this.useUnsafe = useUnsafe;
+    }
+
     @Override
-    public Excerpt createExcerpt() {
-        return new ByteBufferExcerpt(this);
+    public Excerpt<IndexedChronicle> createExcerpt() {
+        return useUnsafe ? new UnsafeExcerpt<IndexedChronicle>(this) : new ByteBufferExcerpt<IndexedChronicle>(this);
     }
 
     @Override

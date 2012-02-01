@@ -30,8 +30,14 @@ import static junit.framework.Assert.*;
 public class IndexedChronicleTest {
     @Test
     public void rewritibleEntries() throws IOException {
+        doRewriteableEntries(false);
+        doRewriteableEntries(true);
+    }
+
+    private void doRewriteableEntries(boolean useUnsafe) throws IOException {
         String basePath = "/tmp/deleteme";
         IndexedChronicle tsc = new IndexedChronicle(basePath, 12);
+        tsc.useUnsafe(useUnsafe);
         deleteOnExit(basePath);
 
         tsc.clear();

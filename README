@@ -1,2 +1,13 @@
 
 Version 0.1 - Can read/write all basic data types. 7.5 M/second multi-threaded.
+
+===================================
+Throughput Test - IndexedChronicleThroughputMain
+===================================
+
+On a 4.6 GHz, i7-2600
+Took 9.499 seconds to write/read 200,000,000 entries, rate was 21.1 M entries/sec - ByteBuffer (tmpfs)
+Took 7.359 seconds to write/read 200,000,000 entries, rate was 27.2 M entries/sec - Using Unsafe (tmpfs)
+
+Took 21.729 seconds to write/read 400,000,000 entries, rate was 18.4 M entries/sec - ByteBuffer (ext4)
+Took 15.266 seconds to write/read 400,000,000 entries, rate was 26.2 M entries/sec - Using Unsafe (ext4)
