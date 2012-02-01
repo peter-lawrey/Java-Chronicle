@@ -34,8 +34,7 @@ public class ByteBufferExcerptTest {
         expect(dc.getIndexData(0)).andReturn(0L);
         expect(dc.acquireDataBuffer(0)).andReturn(ByteBuffer.wrap(new byte[]{-128}));
         expect(dc.positionInBuffer(0)).andReturn(0);
-        expect(dc.positionInBuffer(1)).andReturn(1);
-        expect(dc.size()).andReturn(1L);
+        expect(dc.positionInBuffer(0)).andReturn(0);
         replay(dc);
         ByteBufferExcerpt aei = new ByteBufferExcerpt(dc);
         aei.index(0);

@@ -20,7 +20,6 @@ import sun.nio.ch.DirectBuffer;
 import vanilla.java.chronicle.Excerpt;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -43,7 +42,7 @@ public class IndexedChronicle extends AbstractChronicle {
     private final FileChannel indexChannel;
     private final FileChannel dataChannel;
 
-    public IndexedChronicle(String basePath, int dataBitSizeHint) throws FileNotFoundException {
+    public IndexedChronicle(String basePath, int dataBitSizeHint) throws IOException {
         indexBitSize = Math.min(30, Math.max(12, dataBitSizeHint - 4));
         dataBitSize = Math.min(30, Math.max(12, dataBitSizeHint));
         indexLowMask = (1 << indexBitSize) - 1;
@@ -54,6 +53,15 @@ public class IndexedChronicle extends AbstractChronicle {
             parentFile.mkdirs();
         indexChannel = new RandomAccessFile(basePath + ".index", "rw").getChannel();
         dataChannel = new RandomAccessFile(basePath + ".data", "rw").getChannel();
+
+        long indexSize = indexChannel.size() >>> 3;
+        if (indexSize > 0) {
+            while (--indexSize > 0 && getIndexData(indexSize) == 0) ;
+            System.out.println(basePath + ", size=" + indexSize);
+            size = indexSize;
+        } else {
+            System.out.println(basePath + " created.");
+        }
     }
 
     @Override
@@ -116,7 +124,7 @@ public class IndexedChronicle extends AbstractChronicle {
     @Override
     public long startExcerpt(int capacity) {
         long startPosition = getIndexData(size);
-        assert size > 0 || startPosition != 0;
+        assert size == 0 || startPosition != 0;
         // does it overlap a ByteBuffer barrier.
         if ((startPosition & ~dataLowMask) != ((startPosition + capacity) & ~dataLowMask)) {
             // resize the previous entry.

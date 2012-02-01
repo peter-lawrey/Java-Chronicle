@@ -19,7 +19,8 @@ package vanilla.java.chronicle.impl;
 import org.junit.Test;
 import vanilla.java.chronicle.Excerpt;
 
-import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.IOException;
 
 import static junit.framework.Assert.*;
 
@@ -28,8 +29,11 @@ import static junit.framework.Assert.*;
  */
 public class IndexedChronicleTest {
     @Test
-    public void rewritibleEntries() throws FileNotFoundException {
-        IndexedChronicle tsc = new IndexedChronicle("/tmp/deleteme", 12);
+    public void rewritibleEntries() throws IOException {
+        String basePath = "/tmp/deleteme";
+        IndexedChronicle tsc = new IndexedChronicle(basePath, 12);
+        deleteOnExit(basePath);
+
         tsc.clear();
         Excerpt excerpt = tsc.createExcerpt();
 
@@ -56,5 +60,11 @@ public class IndexedChronicleTest {
         }
         assertFalse(excerpt.index(1024));
         tsc.close();
+    }
+
+
+    private static void deleteOnExit(String basePath) {
+        new File(basePath + ".data").deleteOnExit();
+        new File(basePath + ".index").deleteOnExit();
     }
 }
