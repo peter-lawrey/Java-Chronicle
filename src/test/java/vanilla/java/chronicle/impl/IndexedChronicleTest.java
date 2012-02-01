@@ -26,16 +26,16 @@ import static junit.framework.Assert.*;
 /**
  * @author peter.lawrey
  */
-public class TimeSeriesChronicleTest {
+public class IndexedChronicleTest {
     @Test
     public void rewritibleEntries() throws FileNotFoundException {
-        TimeSeriesChronicle tsc = new TimeSeriesChronicle("/tmp/deleteme", 12);
+        IndexedChronicle tsc = new IndexedChronicle("/tmp/deleteme", 12);
         tsc.clear();
         Excerpt excerpt = tsc.createExcerpt();
 
         int counter = 0;
         for (int i = 0; i < 1024; i++) {
-            excerpt.startExcerpt((char) i, 129);
+            excerpt.startExcerpt(129);
             for (int j = 0; j < 128; j += 8)
                 excerpt.writeLong(counter++);
             excerpt.write(-1);

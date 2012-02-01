@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * @author peter.lawrey
  */
-public class TimeSeriesChronicle extends AbstractChronicle {
+public class IndexedChronicle extends AbstractChronicle {
     private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
     private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();
     private final int indexBitSize;
@@ -43,7 +43,7 @@ public class TimeSeriesChronicle extends AbstractChronicle {
     private final FileChannel indexChannel;
     private final FileChannel dataChannel;
 
-    public TimeSeriesChronicle(String basePath, int dataBitSizeHint) throws FileNotFoundException {
+    public IndexedChronicle(String basePath, int dataBitSizeHint) throws FileNotFoundException {
         indexBitSize = Math.min(30, Math.max(12, dataBitSizeHint - 4));
         dataBitSize = Math.min(30, Math.max(12, dataBitSizeHint));
         indexLowMask = (1 << indexBitSize) - 1;

@@ -55,18 +55,6 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput {
     int position();
 
     /**
-     * Change the type of the excerpt
-     *
-     * @param type of except to change this excerpt to.
-     */
-    void type(char type);
-
-    /**
-     * @return the type of excerpt.
-     */
-    char type();
-
-    /**
      * @return the capacity of the excerpt.
      */
     int capacity();
@@ -74,10 +62,9 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput {
     /**
      * Start a new excerpt in the Chronicle.
      *
-     * @param type     of excerpt
      * @param capacity minimum capacity to allow for.
      */
-    void startExcerpt(char type, int capacity);
+    void startExcerpt(int capacity);
 
     /**
      * Finish a record.  The record is not available until this is called.

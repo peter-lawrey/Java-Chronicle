@@ -33,22 +33,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author peter.lawrey
  */
 public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
-    protected static final int POSITION_BITS = 48;
-    protected static final int TYPE_BITS = 16;
-    protected static final long POSITION_MASK = (1L << POSITION_BITS) - 1;
-    protected static final long TYPE_MASK = (1L << TYPE_BITS) - 1;
-
     protected final C chronicle;
     protected long index;
     private int start = 0;
     private int position = 0;
-    protected char type = 0;
     private int capacity = 0;
     private int limit = 0;
 
     protected long endPosition;
     protected long startPosition;
     protected ByteBuffer buffer;
+    private boolean forWrite = false;
 
 
     protected ByteBufferExcerpt(C chronicle) {
@@ -68,26 +63,23 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
             buffer = null;
             return false;
         }
-        long indexData = chronicle.getIndexData(index);
-        long startPosition = indexData & POSITION_MASK;
+        long startPosition = chronicle.getIndexData(index);
         int capacity = (int) (endPosition - startPosition);
-        type = (char) (indexData >>> POSITION_BITS);
-        endPosition &= POSITION_MASK;
-        index0(index, indexData, capacity, startPosition, endPosition);
+        index0(index, startPosition, endPosition);
+        forWrite = false;
         return true;
     }
 
     @Override
-    public void startExcerpt(char type, int capacity) {
-        long indexData = chronicle.startExcerpt(capacity);
-        this.type = type;
-        long startPosition = indexData & POSITION_MASK;
+    public void startExcerpt(int capacity) {
+        long startPosition = chronicle.startExcerpt(capacity);
         long endPosition = startPosition + capacity;
-        index0(chronicle.size(), indexData, capacity, startPosition, endPosition);
+        index0(chronicle.size(), startPosition, endPosition);
+        forWrite = true;
     }
 
 
-    private void index0(long index, long indexData, int capacity, long startPosition, long endPosition) {
+    private void index0(long index, long startPosition, long endPosition) {
         this.index = index;
         this.capacity = capacity;
         this.startPosition = startPosition;
@@ -95,15 +87,17 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
         buffer = chronicle.acquireDataBuffer(startPosition);
         start = position = chronicle.positionInBuffer(startPosition);
         limit = chronicle.positionInBuffer(endPosition - 1) + 1;
+        assert limit > start;
+        assert position < limit;
+        assert endPosition > startPosition;
     }
 
     @Override
     public void finish() {
         if (position > limit)
             throw new IllegalStateException("Capacity allowed: " + capacity + " data read/written: " + position);
-        if (index == chronicle.size()) {
+        if (forWrite) {
             memoryBarrier();
-            chronicle.setIndexData(index, ((long) type << POSITION_BITS) | startPosition);
             chronicle.setIndexData(index + 1, startPosition + (position - start));
             chronicle.incrSize();
             memoryBarrier();
@@ -114,13 +108,6 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
 
     private void memoryBarrier() {
         barrier.lazySet(true);
-    }
-
-    @Override
-    public void type(char type) {
-        if (type != this.type)
-            chronicle.setIndexData(index, ((long) type << POSITION_BITS) | startPosition);
-        this.type = type;
     }
 
     @Override
@@ -138,11 +125,6 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     @Override
     public int position() {
         return position;
-    }
-
-    @Override
-    public char type() {
-        return type;
     }
 
     @Override
