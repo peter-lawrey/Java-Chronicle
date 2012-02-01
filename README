@@ -3,9 +3,9 @@ Version 0.1 - Can read/write all basic data types. 26 M/second (max) multi-threa
 
 It uses memory mapped file to store "excerpts" of a "chronicle"  Initially it only supports an indexed array of data.
 
-It is very fast, persisted, uses almost no heap, no Full GC impact, only limited by the size of your disk (can be much larger than your physical memory size). and can be shared *between processes* with more than 10x lower latency than using Sockets.
-It can change the way you design your system because it allows you to have independent processes which can be running or not at the same time (as no messages are lost)  This is useful for restarting services and testing your services from canned data. e.g. like sub-microsecond durable messaging.
-You can attach any number of readers, including tools to see the exact state of the data externally. e.g. I use; od -t cx1 {file}  to see the current state.
+   It is very fast, persisted, uses almost no heap, trivial GC impact, can be much larger than your physical memory size (only limited by the size of your disk). and can be shared *between processes* with better than 1/10th latency of using Sockets over loopback.
+   It can change the way you design your system because it allows you to have independent processes which can be running or not at the same time (as no messages are lost)  This is useful for restarting services and testing your services from canned data. e.g. like sub-microsecond durable messaging.
+   You can attach any number of readers, including tools to see the exact state of the data externally. e.g. I use; od -t cx1 {file}  to see the current state.
 
 ===================================
 Throughput Test - IndexedChronicleThroughputMain
