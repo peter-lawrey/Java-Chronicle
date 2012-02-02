@@ -96,7 +96,8 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
             throw new IllegalStateException("Capacity allowed: " + capacity + " data read/written: " + position);
         if (forWrite) {
             memoryBarrier();
-            chronicle.setIndexData(index + 1, startPosition + (position - start));
+            final long endPosition = startPosition + (position - start);
+            chronicle.setIndexData(index + 1, endPosition);
             chronicle.incrSize();
             memoryBarrier();
         }

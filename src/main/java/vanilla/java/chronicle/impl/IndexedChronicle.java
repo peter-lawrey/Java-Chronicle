@@ -95,7 +95,10 @@ public class IndexedChronicle extends AbstractChronicle {
         if (buffer != null)
             return buffer;
         try {
+//            long start = System.nanoTime();
             MappedByteBuffer mbb = indexChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~indexLowMask, 1 << indexBitSize);
+//            long time = System.nanoTime() - start;
+//            System.out.println(Thread.currentThread().getName()+": map "+time);
             mbb.order(ByteOrder.nativeOrder());
             indexBuffers.set(indexBufferId, mbb);
             return mbb;
