@@ -30,13 +30,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The fastest and most extensible Chronicle.
+ *
  * @author peter.lawrey
  */
 public class IndexedChronicle extends AbstractChronicle {
     private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
     private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();
     private final int indexBitSize;
-    private final int indexLowMask;
+    protected final int indexLowMask;
     private final int dataBitSize;
     private final int dataLowMask;
     private final FileChannel indexChannel;
@@ -56,7 +58,7 @@ public class IndexedChronicle extends AbstractChronicle {
         dataChannel = new RandomAccessFile(basePath + ".data", "rw").getChannel();
 
         // find the last record.
-        long indexSize = indexChannel.size() >>> 3;
+        long indexSize = indexChannel.size() >>> indexBitSize();
         if (indexSize > 0) {
             while (--indexSize > 0 && getIndexData(indexSize) == 0) ;
             System.out.println(basePath + ", size=" + indexSize);
@@ -64,6 +66,10 @@ public class IndexedChronicle extends AbstractChronicle {
         } else {
             System.out.println(basePath + " created.");
         }
+    }
+
+    protected int indexBitSize() {
+        return 3;
     }
 
     public void useUnsafe(boolean useUnsafe) {
@@ -77,12 +83,12 @@ public class IndexedChronicle extends AbstractChronicle {
 
     @Override
     public long getIndexData(long indexId) {
-        long indexOffset = indexId << 3;
+        long indexOffset = indexId << indexBitSize();
         ByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
         return indexBuffer.getLong((int) (indexOffset & indexLowMask));
     }
 
-    private ByteBuffer acquireIndexBuffer(long startPosition) {
+    protected ByteBuffer acquireIndexBuffer(long startPosition) {
         int indexBufferId = (int) (startPosition >> indexBitSize);
         while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
         ByteBuffer buffer = indexBuffers.get(indexBufferId);
@@ -122,7 +128,7 @@ public class IndexedChronicle extends AbstractChronicle {
 
     @Override
     public void setIndexData(long indexId, long indexData) {
-        long indexOffset = indexId << 3;
+        long indexOffset = indexId << indexBitSize();
         ByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
         indexBuffer.putLong((int) (indexOffset & indexLowMask), indexData);
     }
