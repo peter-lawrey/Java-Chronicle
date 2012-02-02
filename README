@@ -14,7 +14,8 @@ Throughput Test - IndexedChronicleThroughputMain
 ===================================
 https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/IndexedChronicleLatencyMain.java
 
-on a 4.6 GHz, i7-2600
+On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
+
 The average RTT latency was 175 ns. The 50/99 / 99.9/99.99%tile latencies were 16/19 / 287/361 - ByteBuffer (tmpfs)
 The average RTT latency was 172 ns. The 50/99 / 99.9/99.99%tile latencies were 16/19 / 278/352 - Using Unsafe (tmpfs)
 
