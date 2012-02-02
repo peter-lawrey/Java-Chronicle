@@ -27,6 +27,8 @@ On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
 
  Note: in the last test, it is using 112 GB! of dense virtual memory in Java without showing a dramatic slow down or performance hit.
 
+ The 14.1 M entries/sec is close to the maximum write speed of the SSD as each entry is an average of 28 bytes (with the index) => ~ 400 MB/s
+
  ===================================
  More compact Index for less than 4 GB of data
  ===================================
