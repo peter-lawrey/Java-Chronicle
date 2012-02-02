@@ -1,4 +1,6 @@
 
+Version 0.2 - Add support for a 32-bit unsigned index. IntIndexedChronicle. This is slighlty slower on a 64-bit JVM, but more compact. Useful if you don't need more than 4 GB of data.
+
 Version 0.1 - Can read/write all basic data types. 26 M/second (max) multi-threaded.
 
 It uses memory mapped file to store "excerpts" of a "chronicle"  Initially it only supports an indexed array of data.
@@ -15,7 +17,7 @@ https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java
 On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
 
  Took 12.416 seconds to write/read 200,000,000 entries, rate was 16.1 M entries/sec - ByteBuffer (tmpfs)
- Took 9.185 seconds to write/read 200,000,000 entries, rate was 21.8 M entries/sec- Using Unsafe (tmpfs)
+ Took 9.185 seconds to write/read 200,000,000 entries, rate was 21.8 M entries/sec - Using Unsafe (tmpfs)
 
  Took 25.693 seconds to write/read 400,000,000 entries, rate was 15.6 M entries/sec - ByteBuffer (ext4)
  Took 19.522 seconds to write/read 400,000,000 entries, rate was 20.5 M entries/sec - Using Unsafe (ext4)
@@ -24,3 +26,15 @@ On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
  Took 141.424 seconds to write/read 2,000,000,000 entries, rate was 14.1 M entries/sec - Using Unsafe (ext4)
 
  Note: in the last test, it is using 112 GB! of dense virtual memory in Java without showing a dramatic slow down or performance hit.
+
+ ===================================
+ More compact Index for less than 4 GB of data
+ ===================================
+ https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/IntIndexedChronicleThroughputMain.java
+
+on a 4.6 GHz, i7-2600
+Took 6.325 seconds to write/read 100,000,000 entries, rate was 15.8 M entries/sec - ByteBuffer (tmpfs)
+Took 4.590 seconds to write/read 100,000,000 entries, rate was 21.8 M entries/sec - Using Unsafe (tmpfs)
+
+Took 7.352 seconds to write/read 100,000,000 entries, rate was 13.6 M entries/sec - ByteBuffer (ext4)
+Took 5.283 seconds to write/read 100,000,000 entries, rate was 18.9 M entries/sec - Using Unsafe (ext4)
