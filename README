@@ -1,4 +1,4 @@
-This library is an ultra low latency, high throughput, persisted, messaging and event driven in memory database.  The typical latency is as low at 16 nano-seconds, supporting throughputs over 5-20 million messages per second.
+This library is an ultra low latency, high throughput, persisted, messaging and event driven in memory database.  The typical latency is as low at 16 nano-seconds, supporting throughputs of 5-20 million messages per second.
 
 It uses almost no heap, trivial GC impact, can be much larger than your physical memory size (only limited by the size of your disk). and can be shared *between processes* with better than 1/10th latency of using Sockets over loopback.
 It can change the way you design your system because it allows you to have independent processes which can be running or not at the same time (as no messages are lost)  This is useful for restarting services and testing your services from canned data. e.g. like sub-microsecond durable messaging.
