@@ -34,7 +34,7 @@ public class IntIndexedChronicleTest {
         doRewriteableEntries(true);
     }
 
-    private void doRewriteableEntries(boolean useUnsafe) throws IOException {
+    private static void doRewriteableEntries(boolean useUnsafe) throws IOException {
         String basePath = "/tmp/deleteme.iict";
         IndexedChronicle tsc = new IntIndexedChronicle(basePath, 12);
         tsc.useUnsafe(useUnsafe);
