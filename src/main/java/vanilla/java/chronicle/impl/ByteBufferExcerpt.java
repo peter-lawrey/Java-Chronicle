@@ -247,6 +247,35 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
         return buffer.getShort(start + offset);
     }
 
+    private static final byte BYTE_MIN_VALUE = Byte.MIN_VALUE;
+    private static final byte BYTE_EXTENDED = Byte.MIN_VALUE + 1;
+    private static final byte BYTE_MAX_VALUE = Byte.MIN_VALUE + 2;
+
+    private static final short UBYTE_EXTENDED = 0xff;
+
+    @Override
+    public short readCompactShort() {
+        byte b = readByte();
+        switch (b) {
+            case BYTE_MIN_VALUE:
+                return Short.MIN_VALUE;
+            case BYTE_MAX_VALUE:
+                return Short.MAX_VALUE;
+            case BYTE_EXTENDED:
+                return readShort();
+            default:
+                return b;
+        }
+    }
+
+    @Override
+    public int readCompactUnsignedShort() {
+        int b = readUnsignedByte();
+        if (b == UBYTE_EXTENDED)
+            return readUnsignedShort();
+        return b;
+    }
+
     @Override
     public char readChar() {
         char ch = buffer.getChar(position);
@@ -272,6 +301,46 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
+    public long readUnsignedInt() {
+        return readInt() & 0xFFFFFFFFL;
+    }
+
+    @Override
+    public long readUnsignedInt(int offset) {
+        return readInt(offset) & 0xFFFFFFFFL;
+    }
+
+    private static final short SHORT_MIN_VALUE = Short.MIN_VALUE;
+    private static final short SHORT_EXTENDED = Short.MIN_VALUE + 1;
+    private static final short SHORT_MAX_VALUE = Short.MIN_VALUE + 2;
+
+    private static final int USHORT_EXTENDED = 0xFFFF;
+
+    @Override
+    public int readCompactInt() {
+        short b = readShort();
+        switch (b) {
+            case SHORT_MIN_VALUE:
+                return Integer.MIN_VALUE;
+            case SHORT_MAX_VALUE:
+                return Integer.MAX_VALUE;
+            case SHORT_EXTENDED:
+                return readInt();
+            default:
+                return b;
+        }
+    }
+
+
+    @Override
+    public long readCompactUnsignedInt() {
+        int b = readUnsignedByte();
+        if (b == USHORT_EXTENDED)
+            return readUnsignedInt();
+        return b;
+    }
+
+    @Override
     public long readLong() {
         long l = buffer.getLong(position);
         position += 8;
@@ -281,6 +350,25 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     @Override
     public long readLong(int offset) {
         return buffer.getLong(start + offset);
+    }
+
+    private static final int INT_MIN_VALUE = Integer.MIN_VALUE;
+    private static final int INT_EXTENDED = Integer.MIN_VALUE + 1;
+    private static final int INT_MAX_VALUE = Integer.MIN_VALUE + 2;
+
+    @Override
+    public long readCompactLong() {
+        int b = readInt();
+        switch (b) {
+            case INT_MIN_VALUE:
+                return Long.MIN_VALUE;
+            case INT_MAX_VALUE:
+                return Long.MAX_VALUE;
+            case INT_EXTENDED:
+                return readLong();
+            default:
+                return b;
+        }
     }
 
     @Override
@@ -305,6 +393,14 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     @Override
     public double readDouble(int offset) {
         return buffer.getDouble(start + offset);
+    }
+
+    @Override
+    public double readCompactDouble() {
+        float f = readFloat();
+        if (Float.isNaN(f))
+            return readDouble();
+        return f;
     }
 
     @Override
@@ -467,6 +563,11 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
+    public void writeUnsignedByte(int v) {
+        writeByte(v);
+    }
+
+    @Override
     public void write(int offset, int b) {
         buffer.put(start + offset, (byte) b);
     }
@@ -495,6 +596,44 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
+    public void writeUnsignedShort(int v) {
+        writeShort(v);
+    }
+
+    @Override
+    public void writeUnsignedShort(int offset, int v) {
+        writeUnsignedShort(offset, v);
+    }
+
+    @Override
+    public void writeCompactShort(int v) {
+        if (v > BYTE_MAX_VALUE && v <= Byte.MAX_VALUE)
+            writeByte(v);
+        else switch (v) {
+            case Short.MIN_VALUE:
+                writeByte(BYTE_MIN_VALUE);
+                break;
+            case Short.MAX_VALUE:
+                writeByte(BYTE_MAX_VALUE);
+                break;
+            default:
+                writeByte(BYTE_EXTENDED);
+                writeShort(v);
+                break;
+        }
+    }
+
+    @Override
+    public void writeCompactUnsignedShort(int v) {
+        if (v >= 0 && v < USHORT_EXTENDED) {
+            writeByte(v);
+        } else {
+            writeUnsignedShort(USHORT_EXTENDED);
+            writeUnsignedShort(v);
+        }
+    }
+
+    @Override
     public void writeChar(int v) {
         buffer.putChar(position, (char) v);
         position += 2;
@@ -517,6 +656,45 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
+    public void writeUnsignedInt(long v) {
+        writeInt((int) v);
+    }
+
+    @Override
+    public void writeUnsignedInt(int offset, long v) {
+        writeInt(offset, (int) v);
+    }
+
+    @Override
+    public void writeCompactInt(int v) {
+        if (v > SHORT_MAX_VALUE && v <= Short.MAX_VALUE)
+            writeShort(v);
+        else switch (v) {
+            case Integer.MIN_VALUE:
+                writeShort(SHORT_MIN_VALUE);
+                break;
+            case Integer.MAX_VALUE:
+                writeShort(SHORT_MAX_VALUE);
+                break;
+            default:
+                writeShort(BYTE_EXTENDED);
+                writeInt(v);
+                break;
+        }
+    }
+
+
+    @Override
+    public void writeCompactUnsignedInt(long v) {
+        if (v >= 0 && v < USHORT_EXTENDED) {
+            writeShort((int) v);
+        } else {
+            writeShort(USHORT_EXTENDED);
+            writeUnsignedInt(v);
+        }
+    }
+
+    @Override
     public void writeLong(long v) {
         buffer.putLong(position, v);
         position += 8;
@@ -525,6 +703,24 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     @Override
     public void writeLong(int offset, long v) {
         buffer.putLong(start + offset, v);
+    }
+
+    @Override
+    public void writeCompactLong(long v) {
+        if (v > INT_MAX_VALUE && v <= Integer.MAX_VALUE) {
+            writeInt((int) v);
+
+        } else if (v == Long.MIN_VALUE) {
+            writeInt(BYTE_MIN_VALUE);
+
+        } else if (v == Long.MAX_VALUE) {
+            writeInt(BYTE_MAX_VALUE);
+
+        } else {
+            writeInt(BYTE_EXTENDED);
+            writeLong(v);
+
+        }
     }
 
     @Override
@@ -547,5 +743,16 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     @Override
     public void writeDouble(int offset, double v) {
         buffer.putDouble(start + offset, v);
+    }
+
+    @Override
+    public void writeCompactDouble(double v) {
+        float f = (float) v;
+        if (f == v) {
+            writeFloat(f);
+        } else {
+            writeFloat(Float.NaN);
+            writeDouble(v);
+        }
     }
 }

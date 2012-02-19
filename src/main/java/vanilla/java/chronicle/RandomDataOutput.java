@@ -29,6 +29,8 @@ public interface RandomDataOutput extends DataOutput, RandomAccess {
     @Override
     public void writeByte(int v);
 
+    public void writeUnsignedByte(int v);
+
     void write(int offset, int b);
 
     @Override
@@ -49,6 +51,14 @@ public interface RandomDataOutput extends DataOutput, RandomAccess {
 
     void writeShort(int offset, int v);
 
+    void writeUnsignedShort(int v);
+
+    void writeUnsignedShort(int offset, int v);
+
+    void writeCompactShort(int v);
+
+    void writeCompactUnsignedShort(int v);
+
     @Override
     void writeChar(int v);
 
@@ -59,10 +69,20 @@ public interface RandomDataOutput extends DataOutput, RandomAccess {
 
     void writeInt(int offset, int v);
 
+    void writeUnsignedInt(long v);
+
+    void writeUnsignedInt(int offset, long v);
+
+    void writeCompactInt(int v);
+
+    void writeCompactUnsignedInt(long v);
+
     @Override
     void writeLong(long v);
 
     void writeLong(int offset, long v);
+
+    void writeCompactLong(long v);
 
     @Override
     void writeFloat(float v);
@@ -73,6 +93,8 @@ public interface RandomDataOutput extends DataOutput, RandomAccess {
     void writeDouble(double v);
 
     void writeDouble(int offset, double v);
+
+    void writeCompactDouble(double v);
 
     @Override
     void writeBytes(String s);

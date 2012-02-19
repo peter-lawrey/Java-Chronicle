@@ -29,12 +29,12 @@
         <dependency>
             <groupId>vanilla.java</groupId>
             <artifactId>chronicle</artifactId>
-            <version>0.2</version>
+            <version>0.3</version>
         </dependency>
         <dependency>
             <groupId>vanilla.java</groupId>
             <artifactId>affinity</artifactId>
-            <version>1.5.1</version>
+            <version>1.5.2</version>
         </dependency>
     </dependencies>
 </project>

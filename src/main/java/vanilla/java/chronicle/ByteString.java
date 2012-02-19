@@ -17,6 +17,10 @@
 package vanilla.java.chronicle;
 
 /**
+ * A String of bytes.  This is a mutable (not thread safe) array of up to 255 bytes.
+ * <p/>
+ * It is intended to be used for ASCII text based protocols with limited field lengths.  It perform no character encoding and has trivial Serialization, and De-serialization overhead.
+ *
  * @author peter.lawrey
  */
 public class ByteString implements CharSequence, Cloneable {

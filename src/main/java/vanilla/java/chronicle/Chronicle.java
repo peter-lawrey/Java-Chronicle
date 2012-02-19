@@ -34,5 +34,8 @@ public interface Chronicle extends Closeable {
      */
     long size();
 
+    /**
+     * Close this resource.
+     */
     void close();
 }

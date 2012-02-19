@@ -57,6 +57,10 @@ public interface RandomDataInput extends DataInput, RandomAccess {
 
     int readUnsignedShort(int offset);
 
+    short readCompactShort();
+
+    int readCompactUnsignedShort();
+
     @Override
     char readChar();
 
@@ -67,10 +71,20 @@ public interface RandomDataInput extends DataInput, RandomAccess {
 
     int readInt(int offset);
 
+    long readUnsignedInt();
+
+    long readUnsignedInt(int offset);
+
+    int readCompactInt();
+
+    long readCompactUnsignedInt();
+
     @Override
     long readLong();
 
     long readLong(int offset);
+
+    long readCompactLong();
 
     @Override
     float readFloat();
@@ -81,6 +95,8 @@ public interface RandomDataInput extends DataInput, RandomAccess {
     double readDouble();
 
     double readDouble(int offset);
+
+    double readCompactDouble();
 
     @Override
     String readLine();
