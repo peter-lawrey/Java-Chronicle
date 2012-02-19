@@ -8,7 +8,7 @@ You can attach any number of readers, including tools to see the exact state of 
 Version History
 ===================================
 
-Version 0.3 - Add support for unsigned byte, short and int. Add support for compacted short, int, long and double types. (Type will use half the size for small values otherwise 50% more)
+Version 0.3 - Add support for unsigned byte, short and int. Add support for compacted short, unsigned short, int, unsigned int, long and double types. (Type will use half the size for small values otherwise 50% more)
 
 Version 0.2 - Add support for a 32-bit unsigned index. IntIndexedChronicle. This is slightly slower on a 64-bit JVM, but more compact. Useful if you don't need more than 4 GB of data.
 
