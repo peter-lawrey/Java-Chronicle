@@ -66,6 +66,17 @@ public interface RandomDataInput extends DataInput, RandomAccess {
 
     char readChar(int offset);
 
+    /**
+     * @return a 24-bit integer value.
+     */
+    int readInt24();
+
+    /**
+     * @param offset of start.
+     * @return a 24-bit integer value.
+     */
+    int readInt24(int offset);
+
     @Override
     int readInt();
 
@@ -83,6 +94,16 @@ public interface RandomDataInput extends DataInput, RandomAccess {
     long readLong();
 
     long readLong(int offset);
+
+    /**
+     * @return read a 48 bit long value.
+     */
+    long readInt48();
+
+    /**
+     * @return read a 48 bit long value.
+     */
+    long readInt48(int offset);
 
     long readCompactLong();
 

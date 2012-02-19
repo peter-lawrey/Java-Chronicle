@@ -18,6 +18,7 @@ package vanilla.java.chronicle.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * Fast Chronicle with a compact index when you don't need more the 4 GB of data.
@@ -29,6 +30,10 @@ public class IntIndexedChronicle extends IndexedChronicle {
 
     public IntIndexedChronicle(String basePath, int dataBitSizeHint) throws IOException {
         super(basePath, dataBitSizeHint);
+    }
+
+    public IntIndexedChronicle(String basePath, int dataBitSizeHint, ByteOrder byteOrder) throws IOException {
+        super(basePath, dataBitSizeHint, byteOrder);
     }
 
     @Override

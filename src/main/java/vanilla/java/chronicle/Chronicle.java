@@ -17,6 +17,7 @@
 package vanilla.java.chronicle;
 
 import java.io.Closeable;
+import java.nio.ByteOrder;
 
 /**
  * Generic interface for all time-series, indexed data sets.
@@ -33,6 +34,11 @@ public interface Chronicle extends Closeable {
      * @return The size of this Chronicle.
      */
     long size();
+
+    /**
+     * @return The byte order of the index and data in the chronicle.
+     */
+    ByteOrder byteOrder();
 
     /**
      * Close this resource.

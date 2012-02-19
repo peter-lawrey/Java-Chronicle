@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -82,7 +83,9 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
         this.index = index;
         this.capacity = capacity;
         this.startPosition = startPosition;
+
         buffer = chronicle.acquireDataBuffer(startPosition);
+
         start = position = chronicle.positionInBuffer(startPosition);
         limit = chronicle.positionInBuffer(endPosition - 1) + 1;
         assert limit > start;
@@ -289,6 +292,22 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
+    public int readInt24() {
+        if (chronicle.byteOrder() == ByteOrder.BIG_ENDIAN)
+            return (readUnsignedByte() << 24 + readUnsignedShort() << 8) >> 8;
+        // extra shifting to get sign extension.
+        return (readUnsignedByte() << 8 + readUnsignedShort() << 16) >> 8;
+    }
+
+    @Override
+    public int readInt24(int offset) {
+        if (chronicle.byteOrder() == ByteOrder.BIG_ENDIAN)
+            return (readUnsignedByte(offset) << 24 + readUnsignedShort(offset + 1) << 8) >> 8;
+        // extra shifting to get sign extension.
+        return (readUnsignedByte(offset) << 8 + readUnsignedShort(offset + 1) << 16) >> 8;
+    }
+
+    @Override
     public int readInt() {
         int i = buffer.getInt(position);
         position += 4;
@@ -338,6 +357,22 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
         if (b == USHORT_EXTENDED)
             return readUnsignedInt();
         return b;
+    }
+
+    @Override
+    public long readInt48() {
+        if (chronicle.byteOrder() == ByteOrder.BIG_ENDIAN)
+            return ((long) readUnsignedShort() << 48 + readUnsignedInt() << 16) >> 16;
+        // extra shifting to get sign extension.
+        return (readUnsignedShort() << 16 + readUnsignedInt() << 32) >> 8;
+    }
+
+    @Override
+    public long readInt48(int offset) {
+        if (chronicle.byteOrder() == ByteOrder.BIG_ENDIAN)
+            return ((long) readUnsignedShort(offset) << 48 + readUnsignedInt(offset + 2) << 16) >> 16;
+        // extra shifting to get sign extension.
+        return (readUnsignedShort(offset) << 16 + readUnsignedInt(offset + 2) << 32) >> 16;
     }
 
     @Override
@@ -573,6 +608,11 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
+    public void writeUnsignedByte(int offset, int v) {
+        write(offset, v);
+    }
+
+    @Override
     public void write(int offset, byte[] b) {
         for (int i = 0; i < b.length; i++)
             write(offset + i, b[i]);
@@ -645,6 +685,28 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
     }
 
     @Override
+    public void writeInt24(int v) {
+        if (chronicle.byteOrder() == ByteOrder.BIG_ENDIAN) {
+            writeUnsignedByte(v >>> 16);
+            writeUnsignedShort(v);
+        } else {
+            writeUnsignedByte(v);
+            writeUnsignedShort(v >>> 8);
+        }
+    }
+
+    @Override
+    public void writeInt24(int offset, int v) {
+        if (chronicle.byteOrder() == ByteOrder.BIG_ENDIAN) {
+            writeUnsignedByte(offset, v >>> 16);
+            writeUnsignedShort(offset + 1, v);
+        } else {
+            writeUnsignedByte(offset, v);
+            writeUnsignedShort(offset + 1, v >>> 8);
+        }
+    }
+
+    @Override
     public void writeInt(int v) {
         buffer.putInt(position, v);
         position += 4;
@@ -691,6 +753,28 @@ public class ByteBufferExcerpt<C extends DirectChronicle> implements Excerpt {
         } else {
             writeShort(USHORT_EXTENDED);
             writeUnsignedInt(v);
+        }
+    }
+
+    @Override
+    public void writeInt48(long v) {
+        if (chronicle.byteOrder() == ByteOrder.BIG_ENDIAN) {
+            writeUnsignedShort((int) (v >>> 32));
+            writeUnsignedInt(v);
+        } else {
+            writeUnsignedShort((int) v);
+            writeUnsignedInt(v >>> 16);
+        }
+    }
+
+    @Override
+    public void writeInt48(int offset, long v) {
+        if (chronicle.byteOrder() == ByteOrder.BIG_ENDIAN) {
+            writeUnsignedShort(offset, (int) (v >>> 32));
+            writeUnsignedInt(offset + 2, v);
+        } else {
+            writeUnsignedShort(offset, (int) v);
+            writeUnsignedInt(offset + 2, v >>> 16);
         }
     }
 

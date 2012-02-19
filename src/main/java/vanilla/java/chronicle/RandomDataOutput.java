@@ -33,6 +33,8 @@ public interface RandomDataOutput extends DataOutput, RandomAccess {
 
     void write(int offset, int b);
 
+    public void writeUnsignedByte(int offset, int v);
+
     @Override
     void write(byte[] b);
 
@@ -64,6 +66,13 @@ public interface RandomDataOutput extends DataOutput, RandomAccess {
 
     void writeChar(int offset, int v);
 
+    /**
+     * @param v 24-bit integer to write
+     */
+    void writeInt24(int v);
+
+    void writeInt24(int offset, int v);
+
     @Override
     void writeInt(int v);
 
@@ -76,6 +85,13 @@ public interface RandomDataOutput extends DataOutput, RandomAccess {
     void writeCompactInt(int v);
 
     void writeCompactUnsignedInt(long v);
+
+    /**
+     * @param v 48-bit long to write
+     */
+    void writeInt48(long v);
+
+    void writeInt48(int offset, long v);
 
     @Override
     void writeLong(long v);

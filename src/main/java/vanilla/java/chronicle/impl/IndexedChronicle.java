@@ -44,8 +44,14 @@ public class IndexedChronicle extends AbstractChronicle {
     private final FileChannel indexChannel;
     private final FileChannel dataChannel;
     private boolean useUnsafe = false;
+    private final ByteOrder byteOrder;
 
     public IndexedChronicle(String basePath, int dataBitSizeHint) throws IOException {
+        this(basePath, dataBitSizeHint, ByteOrder.nativeOrder());
+    }
+
+    public IndexedChronicle(String basePath, int dataBitSizeHint, ByteOrder byteOrder) throws IOException {
+        this.byteOrder = byteOrder;
         indexBitSize = Math.min(30, Math.max(12, dataBitSizeHint - 4));
         dataBitSize = Math.min(30, Math.max(12, dataBitSizeHint));
         indexLowMask = (1 << indexBitSize) - 1;
@@ -73,7 +79,15 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     public void useUnsafe(boolean useUnsafe) {
-        this.useUnsafe = useUnsafe;
+        this.useUnsafe = useUnsafe && byteOrder == ByteOrder.nativeOrder();
+    }
+
+    public boolean useUnsafe() {
+        return useUnsafe;
+    }
+
+    public ByteOrder byteOrder() {
+        return byteOrder;
     }
 
     @Override
@@ -99,7 +113,7 @@ public class IndexedChronicle extends AbstractChronicle {
             MappedByteBuffer mbb = indexChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~indexLowMask, 1 << indexBitSize);
 //            long time = System.nanoTime() - start;
 //            System.out.println(Thread.currentThread().getName()+": map "+time);
-            mbb.order(ByteOrder.nativeOrder());
+            mbb.order(byteOrder);
             indexBuffers.set(indexBufferId, mbb);
             return mbb;
         } catch (IOException e) {

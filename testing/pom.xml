@@ -29,7 +29,7 @@
         <dependency>
             <groupId>vanilla.java</groupId>
             <artifactId>chronicle</artifactId>
-            <version>0.3</version>
+            <version>0.3.1</version>
         </dependency>
         <dependency>
             <groupId>vanilla.java</groupId>
