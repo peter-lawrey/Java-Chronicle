@@ -64,7 +64,6 @@ public class IndexedChronicleLatencyMain {
             public void run() {
                 al2.bind();
                 try {
-                    StringBuilder sb = new StringBuilder();
                     final IndexedChronicle tsc = new IndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
                     tsc.useUnsafe(USE_UNSAFE);
                     final IndexedChronicle tsc2 = new IndexedChronicle(basePath2, DATA_BIT_SIZE_HINT);
@@ -96,9 +95,9 @@ public class IndexedChronicleLatencyMain {
         al.bind();
         Excerpt excerpt = tsc.createExcerpt();
         Excerpt excerpt2 = tsc2.createExcerpt();
-        long start = System.nanoTime();
+
         Histogram hist = new Histogram(100000, 10);
-        long totalTime = 0;
+        long totalTime = 0, longDelays = 0;
         for (int i = 0; i < runs; i++) {
             excerpt.startExcerpt(8);
             excerpt.writeLong(ClockSupport.nanoTime());
@@ -112,8 +111,10 @@ public class IndexedChronicleLatencyMain {
             excerpt2.finish();
             if (i >= WARMUP) {
                 final long latency = time1 - time0;
-                if (latency > 100000)
+                if (latency > 100000) {
+                    longDelays++;
                     System.out.println(latency);
+                }
                 hist.sample(latency);
                 totalTime += latency;
             }
@@ -122,9 +123,9 @@ public class IndexedChronicleLatencyMain {
         t.join();
         tsc.close();
         tsc2.close();
-        long time = System.nanoTime() - start;
-        System.out.printf("The average RTT latency was %,d ns. The 50/99 / 99.9/99.99%%tile latencies were %,d/%,d / %,d/%,d%n",
-                totalTime / runs, hist.percentile(0.5), hist.percentile(0.99), hist.percentile(0.999), hist.percentile(0.9999));
+
+        System.out.printf("The average RTT latency was %,d ns. The 50/99 / 99.9/99.99%%tile latencies were %,d/%,d / %,d/%,d. There were %,d delays over 100 μs%n",
+                totalTime / runs, hist.percentile(0.5), hist.percentile(0.99), hist.percentile(0.999), hist.percentile(0.9999), longDelays);
         al.release();
     }
 

@@ -21,9 +21,12 @@ import vanilla.java.chronicle.Chronicle;
 import java.nio.ByteBuffer;
 
 /**
+ * All Chronicle must actually implement this interface, however these method are intended for internal use only.
+ *
  * @author peter.lawrey
  */
 public interface DirectChronicle extends Chronicle {
+
     public long getIndexData(long indexId);
 
     ByteBuffer acquireDataBuffer(long startPosition);
