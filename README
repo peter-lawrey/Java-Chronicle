@@ -21,6 +21,7 @@ It uses memory mapped file to store "excerpts" of a "chronicle"  Initially it on
 ===================================
 Throughput Test - IndexedChronicleThroughputMain
 ===================================
+
 https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/IndexedChronicleLatencyMain.java
 
 On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
