@@ -34,7 +34,17 @@
         <dependency>
             <groupId>vanilla.java</groupId>
             <artifactId>affinity</artifactId>
-            <version>1.5.2</version>
+            <version>1.5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>3.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>platform</artifactId>
+            <version>3.4.0</version>
         </dependency>
     </dependencies>
 </project>

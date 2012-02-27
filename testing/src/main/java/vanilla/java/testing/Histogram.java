@@ -45,7 +45,7 @@ public class Histogram {
             return Integer.MAX_VALUE;
         for (int i = count.length - 1; i > 0; i--)
             if ((num -= count[i]) <= 0)
-                return i;
+                return i * factor;
         return 0;
     }
 }
