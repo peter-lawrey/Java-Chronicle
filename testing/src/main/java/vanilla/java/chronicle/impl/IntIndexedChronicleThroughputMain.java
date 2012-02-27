@@ -147,7 +147,7 @@ public class IntIndexedChronicleThroughputMain {
         al.release();
     }
 
-    private static void deleteOnExit(String basePath) {
+    static void deleteOnExit(String basePath) {
         new File(basePath + ".data").deleteOnExit();
         new File(basePath + ".index").deleteOnExit();
     }
