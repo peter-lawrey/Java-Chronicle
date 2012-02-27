@@ -8,6 +8,8 @@ You can attach any number of readers, including tools to see the exact state of 
 Version History
 ===================================
 
+Version 0.4 - Add support for writing text to the log file without creating garbage via vanilla.java.chronicle.ByteStringAppender interface. Useful for text logs.
+
 Version 0.3.1 - Add support for 24-bit int and 48-bit long values.
 
 Version 0.3 - Add support for unsigned byte, short and int. Add support for compacted short, unsigned short, int, unsigned int, long and double types. (Type will use half the size for small values otherwise 50% more)

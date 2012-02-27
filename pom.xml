@@ -23,7 +23,7 @@
     <groupId>vanilla.java</groupId>
     <artifactId>chronicle</artifactId>
     <packaging>jar</packaging>
-    <version>0.3.1</version>
+    <version>0.4</version>
 
     <dependencies>
         <dependency>

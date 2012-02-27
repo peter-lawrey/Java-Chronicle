@@ -21,7 +21,7 @@ package vanilla.java.chronicle;
  *
  * @author peter.lawrey
  */
-public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDataOutput {
+public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDataOutput, ByteStringAppender {
     /**
      * @return the chronicle this is an excerpt for.
      */

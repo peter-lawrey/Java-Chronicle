@@ -42,4 +42,52 @@ public class ByteBufferExcerptTest {
         aei.finish();
         verify(dc);
     }
+
+    @Test
+    public void testAppendDouble() {
+        ByteBuffer bb = ByteBuffer.allocate(8 * 1024);
+
+        DirectChronicle dc = createMock(DirectChronicle.class);
+        expect(dc.getIndexData(1)).andReturn(1L);
+        expect(dc.getIndexData(0)).andReturn(0L);
+        expect(dc.acquireDataBuffer(0)).andReturn(bb);
+        expect(dc.positionInBuffer(0)).andReturn(0);
+        expect(dc.positionInBuffer(0)).andReturn(0);
+        replay(dc);
+        ByteBufferExcerpt aei = new ByteBufferExcerpt(dc);
+        aei.index(0);
+        double d = 0.001;
+        for (int i = 0; i < 200; i++)
+            aei.append(d *= 1.1).append('\n');
+        String text = new String(bb.array(), 0, aei.position());
+        double d2 = 0.001;
+        for (String value : text.split("\n")) {
+            d2 *= 1.1;
+            assertEquals(d2, Double.parseDouble(value));
+        }
+    }
+
+    @Test
+    public void testAppendDoublePrecision() {
+        ByteBuffer bb = ByteBuffer.allocate(8 * 1024);
+
+        DirectChronicle dc = createMock(DirectChronicle.class);
+        expect(dc.getIndexData(1)).andReturn(1L);
+        expect(dc.getIndexData(0)).andReturn(0L);
+        expect(dc.acquireDataBuffer(0)).andReturn(bb);
+        expect(dc.positionInBuffer(0)).andReturn(0);
+        expect(dc.positionInBuffer(0)).andReturn(0);
+        replay(dc);
+        ByteBufferExcerpt aei = new ByteBufferExcerpt(dc);
+        aei.index(0);
+        double d = 0.001;
+        for (int i = 0; i < 200; i++)
+            aei.append(d *= 1.1, 6).append('\n');
+        String text = new String(bb.array(), 0, aei.position());
+        double d2 = 0.001;
+        for (String value : text.split("\n")) {
+            d2 *= 1.1;
+            assertEquals(d2, Double.parseDouble(value), 0.5e-6);
+        }
+    }
 }

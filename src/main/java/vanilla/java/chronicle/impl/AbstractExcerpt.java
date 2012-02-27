@@ -17,6 +17,7 @@
 package vanilla.java.chronicle.impl;
 
 import vanilla.java.chronicle.ByteString;
+import vanilla.java.chronicle.ByteStringAppender;
 import vanilla.java.chronicle.Chronicle;
 import vanilla.java.chronicle.Excerpt;
 
@@ -28,6 +29,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -45,6 +47,11 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
 
     protected ByteBuffer buffer;
     private boolean forWrite = false;
+
+    private static final byte[] MIN_VALUE_TEXT = ("" + Long.MIN_VALUE).getBytes();
+    private static final byte[] Infinity = "Infinity".getBytes();
+    private static final byte[] NaN = "NaN".getBytes();
+    private static final long MAX_VALUE_DIVIDE_5 = Long.MAX_VALUE / 5;
 
     protected AbstractExcerpt(C chronicle) {
         this.chronicle = (DirectChronicle) chronicle;
@@ -672,5 +679,313 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
             writeFloat(Float.NaN);
             writeDouble(v);
         }
+    }
+
+    //// ByteStringAppender
+
+    @Override
+    public int length() {
+        return position();
+    }
+
+    @Override
+    public ByteStringAppender append(CharSequence s) {
+        for (int i = 0, len = s.length(); i < len; i++)
+            writeByte(s.charAt(i));
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender append(CharSequence s, int start, int end) {
+        for (int i = start, len = Math.min(end, s.length()); i < len; i++)
+            writeByte(s.charAt(i));
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender append(byte[] str) {
+        write(str);
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender append(byte[] str, int offset, int len) {
+        write(str, offset, len);
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender append(boolean b) {
+        append(b ? "true" : "false");
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender append(char c) {
+        writeByte(c);
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender append(int num) {
+        return append((long) num);
+    }
+
+    @Override
+    public ByteStringAppender append(long num) {
+        if (num < 0) {
+            if (num == Long.MIN_VALUE) {
+                append(MIN_VALUE_TEXT);
+                return this;
+            }
+            writeByte('-');
+            num = -num;
+        }
+        if (num == 0) {
+            writeByte('0');
+
+        } else {
+            appendLong0(num);
+        }
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender append(double d) {
+        long val = Double.doubleToRawLongBits(d);
+        int sign = (int) (val >>> 63);
+        int exp = (int) ((val >>> 52) & 2047);
+        long mantissa = val & ((1L << 52) - 1);
+        if (sign != 0) {
+            writeByte('-');
+        }
+        if (exp == 0 && mantissa == 0) {
+            writeByte('0');
+            return this;
+        } else if (exp == 2047) {
+            if (mantissa == 0) {
+                buffer.put(Infinity);
+            } else {
+                buffer.put(NaN);
+            }
+            return this;
+        } else if (exp > 0) {
+            mantissa += 1L << 52;
+        }
+        final int shift = (1023 + 52) - exp;
+        if (shift > 0) {
+            // integer and faction
+            if (shift < 53) {
+                long intValue = mantissa >> shift;
+                appendLong0(intValue);
+                mantissa -= intValue << shift;
+                if (mantissa > 0) {
+                    writeByte('.');
+                    mantissa <<= 1;
+                    mantissa++;
+                    int precision = shift + 1;
+                    long error = 1;
+
+                    long value = intValue;
+                    int decimalPlaces = 0;
+                    while (mantissa > error) {
+                        // times 5*2 = 10
+                        mantissa *= 5;
+                        error *= 5;
+                        precision--;
+                        long num = (mantissa >> precision);
+                        value = value * 10 + num;
+                        writeByte((char) ('0' + num));
+                        mantissa -= num << precision;
+
+                        final double parsedValue = asDouble(value, 0, sign != 0, ++decimalPlaces);
+                        if (parsedValue == d)
+                            break;
+                    }
+                }
+                return this;
+
+            } else {
+                // faction.
+                writeByte('0');
+                writeByte('.');
+                mantissa <<= 6;
+                mantissa += (1 << 5);
+                int precision = shift + 6;
+
+                long error = (1 << 5);
+
+                long value = 0;
+                int decimalPlaces = 0;
+                while (mantissa > error) {
+                    while (mantissa > MAX_VALUE_DIVIDE_5) {
+                        mantissa >>>= 1;
+                        error = (error + 1) >>> 1;
+                        precision--;
+                    }
+                    // times 5*2 = 10
+                    mantissa *= 5;
+                    error *= 5;
+                    precision--;
+                    if (precision >= 64) {
+                        decimalPlaces++;
+                        writeByte('0');
+                        continue;
+                    }
+                    long num = (mantissa >>> precision);
+                    value = value * 10 + num;
+                    final char c = (char) ('0' + num);
+                    assert !(c < '0' || c > '9');
+                    writeByte(c);
+                    mantissa -= num << precision;
+                    final double parsedValue = asDouble(value, 0, sign != 0, ++decimalPlaces);
+                    if (parsedValue == d)
+                        break;
+                }
+                return this;
+            }
+        }
+        // large number
+        mantissa <<= 10;
+        int precision = -10 - shift;
+        int digits = 0;
+        while ((precision > 53 || mantissa > Long.MAX_VALUE >> precision) && precision > 0) {
+            digits++;
+            precision--;
+            long mod = mantissa % 5;
+            mantissa /= 5;
+            int modDiv = 1;
+            while (mantissa < MAX_VALUE_DIVIDE_5 && precision > 1) {
+                precision -= 1;
+                mantissa <<= 1;
+                modDiv <<= 1;
+            }
+            mantissa += modDiv * mod / 5;
+        }
+        long val2 = precision > 0 ? mantissa << precision : mantissa >>> -precision;
+
+        appendLong0(val2);
+        for (int i = 0; i < digits; i++)
+            writeByte('0');
+
+        return this;
+    }
+
+    static double asDouble(long value, int exp, boolean negative, int decimalPlaces) {
+        if (decimalPlaces > 0 && value < Long.MAX_VALUE / 2) {
+            if (value < Long.MAX_VALUE / (1L << 32)) {
+                exp -= 32;
+                value <<= 32;
+            }
+            if (value < Long.MAX_VALUE / (1L << 16)) {
+                exp -= 16;
+                value <<= 16;
+            }
+            if (value < Long.MAX_VALUE / (1L << 8)) {
+                exp -= 8;
+                value <<= 8;
+            }
+            if (value < Long.MAX_VALUE / (1L << 4)) {
+                exp -= 4;
+                value <<= 4;
+            }
+            if (value < Long.MAX_VALUE / (1L << 2)) {
+                exp -= 2;
+                value <<= 2;
+            }
+            if (value < Long.MAX_VALUE / (1L << 1)) {
+                exp -= 1;
+                value <<= 1;
+            }
+        }
+        for (; decimalPlaces > 0; decimalPlaces--) {
+            exp--;
+            long mod = value % 5;
+            value /= 5;
+            int modDiv = 1;
+            if (value < Long.MAX_VALUE / (1L << 4)) {
+                exp -= 4;
+                value <<= 4;
+                modDiv <<= 4;
+            }
+            if (value < Long.MAX_VALUE / (1L << 2)) {
+                exp -= 2;
+                value <<= 2;
+                modDiv <<= 2;
+            }
+            if (value < Long.MAX_VALUE / (1L << 1)) {
+                exp -= 1;
+                value <<= 1;
+                modDiv <<= 1;
+            }
+            value += modDiv * mod / 5;
+        }
+        final double d = Math.scalb((double) value, exp);
+        return negative ? -d : d;
+    }
+
+
+    private void appendLong0(long num) {
+        // find the number of digits
+        long power10 = power10(num);
+        // starting from the end, write each digit
+        while (power10 > 0) {
+            // write the lowest digit.
+            writeByte((byte) (num / power10 % 10 + '0'));
+            // remove that digit.
+            power10 /= 10;
+        }
+    }
+
+    @Override
+    public ByteStringAppender append(double d, int precision) {
+        if (precision < 0) precision = 0;
+        if (precision >= TENS.length) precision = TENS.length - 1;
+        long power10 = TENS[precision];
+        if (d < 0) {
+            d = -d;
+            writeByte('-');
+        }
+        double d2 = d * power10;
+        if (d2 > Long.MAX_VALUE || d2 < Long.MIN_VALUE + 1)
+            return append(d);
+        long val = (long) (d2 + 0.5);
+        while (precision > 0 && val % 10 == 0) {
+            val /= 10;
+            precision--;
+        }
+        if (precision > 0)
+            appendDouble0(val, precision);
+        else
+            appendLong0(val);
+        return this;
+    }
+
+    private void appendDouble0(long num, int precision) {
+        // find the number of digits
+        long power10 = Math.max(TENS[precision], power10(num));
+        // starting from the end, write each digit
+        long decimalPoint = TENS[precision - 1];
+        while (power10 > 0) {
+            if (decimalPoint == power10)
+                writeByte('.');
+            // write the lowest digit.
+            writeByte((byte) (num / power10 % 10 + '0'));
+            // remove that digit.
+            power10 /= 10;
+        }
+    }
+
+    static final long[] TENS = new long[19];
+
+    static {
+        TENS[0] = 1;
+        for (int i = 1; i < TENS.length; i++)
+            TENS[i] = TENS[i - 1] * 10;
+    }
+
+    public static long power10(long l) {
+        int idx = Arrays.binarySearch(TENS, l);
+        return idx >= 0 ? TENS[idx] : TENS[~idx - 1];
     }
 }
