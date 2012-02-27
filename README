@@ -25,8 +25,9 @@ Throughput Test - FileLoggingMain
 ===================================
 https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/FileLoggingMain.java
 
-This test logs one million lines
-To log 1,000,000 messages took 0.234 and 6.797 seconds
+This test logs one million lines of text using Chronicle compared with Logger.
+
+To log 1,000,000 messages took 0.234 seconds using Chronicle and 7.347 seconds using Logger
 
 ===================================
 Throughput Test - IndexedChronicleThroughputMain
