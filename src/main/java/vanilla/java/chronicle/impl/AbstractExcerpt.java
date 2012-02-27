@@ -751,6 +751,31 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
     }
 
     @Override
+    public ByteStringAppender appendTime(long timeInMS) {
+        int hours = (int) (timeInMS / (60 * 60 * 1000));
+        if (hours > 99) {
+            appendLong0(hours); // can have over 24 hours.
+        } else {
+            writeByte((char) (hours / 10 + '0'));
+            writeByte((char) (hours % 10 + '0'));
+        }
+        writeByte(':');
+        int minutes = (int) ((timeInMS / (60 * 1000)) % 60);
+        writeByte((char) (minutes / 10 + '0'));
+        writeByte((char) (minutes % 10 + '0'));
+        writeByte(':');
+        int seconds = (int) ((timeInMS / 1000) % 60);
+        writeByte((char) (seconds / 10 + '0'));
+        writeByte((char) (seconds % 10 + '0'));
+        writeByte('.');
+        int millis = (int) (timeInMS % 1000);
+        writeByte((char) (millis / 100 + '0'));
+        writeByte((char) (millis / 10 % 10 + '0'));
+        writeByte((char) (millis % 10 + '0'));
+        return this;
+    }
+
+    @Override
     public ByteStringAppender append(double d) {
         long val = Double.doubleToRawLongBits(d);
         int sign = (int) (val >>> 63);

@@ -19,6 +19,9 @@ package vanilla.java.chronicle.impl;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.*;
@@ -88,6 +91,38 @@ public class ByteBufferExcerptTest {
         for (String value : text.split("\n")) {
             d2 *= 1.1;
             assertEquals(d2, Double.parseDouble(value), 0.5e-6);
+        }
+    }
+
+    @Test
+    public void testAppendTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+        ByteBuffer bb = ByteBuffer.allocate(8 * 1024);
+
+        DirectChronicle dc = createMock(DirectChronicle.class);
+        expect(dc.getIndexData(1)).andReturn(1L);
+        expect(dc.getIndexData(0)).andReturn(0L);
+        expect(dc.acquireDataBuffer(0)).andReturn(bb);
+        expect(dc.positionInBuffer(0)).andReturn(0);
+        expect(dc.positionInBuffer(0)).andReturn(0);
+        replay(dc);
+        ByteBufferExcerpt aei = new ByteBufferExcerpt(dc);
+        aei.index(0);
+        long time = 1000;
+        for (int i = 0; i < 1000; i++) {
+            time *= 1.05;
+            if (time >= 86400000)
+                break;
+            aei.appendTime(time).append('\n');
+        }
+        String text = new String(bb.array(), 0, aei.position());
+        long time2 = 1000, count = 0;
+        for (String value : text.split("\n")) {
+            time2 *= 1.05;
+            String expected = sdf.format(new Date(time2));
+            assertEquals("i= " + count++, expected, value);
         }
     }
 }

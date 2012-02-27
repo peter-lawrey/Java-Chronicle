@@ -40,6 +40,8 @@ public interface ByteStringAppender extends Appendable {
 
     ByteStringAppender append(long l);
 
+    ByteStringAppender appendTime(long timeInMS);
+
 // TODO
 //   ByteStringAppender append(float f);
 
