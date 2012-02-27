@@ -19,7 +19,7 @@ public class FileLoggingMain {
         int count = 1000000;
         long time1 = timeLogToChronicle(count);
         long time2 = timeLogToLogger(count);
-        System.out.printf("To log %,d messages took %.3f and %.3f seconds%n", count, time1 / 1e9, time2 / 1e9);
+        System.out.printf("To log %,d messages took %.3f seconds using Chronicle and %.3f seconds using Logger%n", count, time1 / 1e9, time2 / 1e9);
     }
 
     private static long timeLogToChronicle(int count) throws IOException {

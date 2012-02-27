@@ -21,6 +21,14 @@ Version 0.1 - Can read/write all basic data types. 26 M/second (max) multi-threa
 It uses memory mapped file to store "excerpts" of a "chronicle"  Initially it only supports an indexed array of data.
 
 ===================================
+Throughput Test - FileLoggingMain
+===================================
+https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/FileLoggingMain.java
+
+This test logs one million lines
+To log 1,000,000 messages took 0.234 and 6.797 seconds
+
+===================================
 Throughput Test - IndexedChronicleThroughputMain
 ===================================
 
