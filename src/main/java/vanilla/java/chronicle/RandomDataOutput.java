@@ -17,6 +17,7 @@
 package vanilla.java.chronicle;
 
 import java.io.DataOutput;
+import java.nio.ByteBuffer;
 import java.util.RandomAccess;
 
 /**
@@ -128,4 +129,6 @@ public interface RandomDataOutput extends DataOutput, RandomAccess {
 
     @Override
     void writeUTF(String s);
+
+    void write(ByteBuffer bb);
 }

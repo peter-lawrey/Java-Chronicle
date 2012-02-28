@@ -17,6 +17,7 @@
 package vanilla.java.chronicle;
 
 import java.io.DataInput;
+import java.nio.ByteBuffer;
 import java.util.RandomAccess;
 
 /**
@@ -140,4 +141,6 @@ public interface RandomDataInput extends DataInput, RandomAccess {
     String readUTF();
 
     String readUTF(int offset);
+
+    void read(ByteBuffer bb);
 }

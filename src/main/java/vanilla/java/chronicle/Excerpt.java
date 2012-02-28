@@ -16,6 +16,8 @@
 
 package vanilla.java.chronicle;
 
+import java.nio.ByteOrder;
+
 /**
  * An extracted record within a Chronicle.  This record refers to one entry.
  *
@@ -58,6 +60,11 @@ public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDat
      * @return the capacity of the excerpt.
      */
     int capacity();
+
+    /**
+     * @return The byte order of this Excerpt
+     */
+    ByteOrder order();
 
     /**
      * Start a new excerpt in the Chronicle.

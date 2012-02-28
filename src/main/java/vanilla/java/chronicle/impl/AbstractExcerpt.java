@@ -415,6 +415,26 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
         return new String(chars);
     }
 
+    @Override
+    public ByteOrder order() {
+        return buffer.order();
+    }
+
+    @Override
+    public void read(ByteBuffer bb) {
+        int len = Math.min(bb.remaining(), length());
+        if (bb.order() == order()) {
+            while (len >= 8) {
+                bb.putLong(readLong());
+                len -= 8;
+            }
+        }
+        while (len > 0) {
+            bb.put(readByte());
+            len--;
+        }
+    }
+
     //// RandomOutputStream
     @Override
     public void write(byte[] b) {
@@ -679,6 +699,15 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
             writeFloat(Float.NaN);
             writeDouble(v);
         }
+    }
+
+    @Override
+    public void write(ByteBuffer bb) {
+        if (bb.order() == order())
+            while (bb.remaining() >= 8)
+                writeLong(bb.getLong());
+        while (bb.remaining() >= 1)
+            writeByte(bb.get());
     }
 
     //// ByteStringAppender
