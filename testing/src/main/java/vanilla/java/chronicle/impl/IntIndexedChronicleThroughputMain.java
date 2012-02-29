@@ -40,8 +40,8 @@ public class IntIndexedChronicleThroughputMain {
 
     public static final int DATA_BIT_SIZE_HINT = 24;
     public static final boolean USE_UNSAFE = false;
-    public static final String base = "/tmp/deleteme.";
-    public static final int runs = 50 * 1000 * 1000;
+    public static final String base = System.getProperty("java.io.tmpdir", "/tmp") + "/deleteme.iictm.";
+    public static final int runs = 30 * 1000 * 1000;
 
     public static void main(String... args) throws IOException, InterruptedException {
         final String basePath = base + "request";

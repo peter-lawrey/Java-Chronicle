@@ -25,7 +25,7 @@ public class FileLoggingMain {
     private static long timeLogToChronicle(int count) throws IOException {
         long start = System.nanoTime();
 
-        final String basePath = "my.logger.log";
+        final String basePath = System.getProperty("java.io.tmpdir", "/tmp") + "/my.logger.log";
         deleteOnExit(basePath);
 
         IntIndexedChronicle tsc = new IntIndexedChronicle(basePath, DATA_BIT_SIZE_HINT);

@@ -39,8 +39,8 @@ import java.io.IOException;
 public class IndexedChronicleLatencyMain {
     public static final int DATA_BIT_SIZE_HINT = 30;
     public static final boolean USE_UNSAFE = true;
-    public static final String base = "deleteme.";
-    public static final int runs = 25 * 1000 * 1000;
+    public static final String base = System.getProperty("java.io.tmpdir", "/tmp") + "/deleteme.iclm.";
+    public static final int runs = 30 * 1000 * 1000;
     private static final int WARMUP = 11 * 1000;
 
     public static void main(String... args) throws IOException, InterruptedException {
