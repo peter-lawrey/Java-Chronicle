@@ -26,6 +26,11 @@ import java.nio.ByteOrder;
  */
 public interface Chronicle extends Closeable {
     /**
+     * @return A name for logging purposes for this Chronicle.
+     */
+    String name();
+
+    /**
      * @return a new Excerpt of this Chronicle
      */
     Excerpt createExcerpt();

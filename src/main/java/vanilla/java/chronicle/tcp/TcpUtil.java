@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package vanilla.java.chronicle.impl;
+package vanilla.java.chronicle.tcp;
+
+import vanilla.java.chronicle.Chronicle;
+
+import java.nio.ByteBuffer;
 
 /**
  * @author peter.lawrey
  */
-public abstract class AbstractChronicle implements DirectChronicle {
-    protected final String name;
-    protected long size = 0;
+enum TcpUtil {
+    ;
+    static final int HEADER_SIZE = 16;
+    static final int INITIAL_BUFFER_SIZE = 64 * 1024;
 
-    protected AbstractChronicle(String name) {
-        this.name = name;
-    }
-
-    public String name() {
-        return name;
-    }
-
-    @Override
-    public long size() {
-        return size;
+    public static ByteBuffer createBuffer(int minSize, Chronicle chronicle) {
+        int newSize = (minSize + INITIAL_BUFFER_SIZE - 1) / INITIAL_BUFFER_SIZE * INITIAL_BUFFER_SIZE;
+        return ByteBuffer.allocateDirect(newSize).order(chronicle.byteOrder());
     }
 }

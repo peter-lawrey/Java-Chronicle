@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * @author peterlawrey
+ * @author peter.lawrey
  */
 public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C> {
     protected final DirectChronicle chronicle;
@@ -125,7 +125,12 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
 
     @Override
     public int capacity() {
-        return capacity;
+        return (int) (limit - start);
+    }
+
+    @Override
+    public int remaining() {
+        return (int) (limit - position);
     }
 
     @Override

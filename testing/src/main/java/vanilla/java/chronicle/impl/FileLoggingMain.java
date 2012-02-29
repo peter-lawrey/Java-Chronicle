@@ -9,7 +9,7 @@ import java.util.logging.*;
 import static vanilla.java.chronicle.impl.IntIndexedChronicleThroughputMain.deleteOnExit;
 
 /**
- * @author peterlawrey
+ * @author peter.lawrey
  */
 public class FileLoggingMain {
     private static final int DATA_BIT_SIZE_HINT = 24;

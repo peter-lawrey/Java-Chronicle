@@ -26,7 +26,6 @@ public class ByteBufferExcerpt<C extends DirectChronicle> extends AbstractExcerp
 
     protected void index0(long index, long startPosition, long endPosition) {
         this.index = index;
-        this.capacity = capacity;
         this.startPosition = startPosition;
 
         buffer = chronicle.acquireDataBuffer(startPosition);

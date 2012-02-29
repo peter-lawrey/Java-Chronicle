@@ -35,6 +35,7 @@ import java.util.List;
  * @author peter.lawrey
  */
 public class IndexedChronicle extends AbstractChronicle {
+    public static final long MAX_VIRTUAL_ADDRESS = 1L << 48;
     private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
     private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();
     private final int indexBitSize;
@@ -51,6 +52,8 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     public IndexedChronicle(String basePath, int dataBitSizeHint, ByteOrder byteOrder) throws IOException {
+        super(extractName(basePath));
+
         this.byteOrder = byteOrder;
         indexBitSize = Math.min(30, Math.max(12, dataBitSizeHint - 4));
         dataBitSize = Math.min(30, Math.max(12, dataBitSizeHint));
@@ -72,6 +75,19 @@ public class IndexedChronicle extends AbstractChronicle {
         } else {
             System.out.println(basePath + " created.");
         }
+    }
+
+    private static String extractName(String basePath) {
+        File file = new File(basePath);
+        String name = file.getName();
+        if (name != null && name.length() > 0)
+            return name;
+        file = file.getParentFile();
+        if (file == null) return "chronicle";
+        name = file.getName();
+        if (name != null && name.length() > 0)
+            return name;
+        return "chronicle";
     }
 
     protected int indexBitSize() {
@@ -103,6 +119,8 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     protected ByteBuffer acquireIndexBuffer(long startPosition) {
+        if (startPosition >= MAX_VIRTUAL_ADDRESS)
+            throw new IllegalStateException("ByteOrder is incorrect.");
         int indexBufferId = (int) (startPosition >> indexBitSize);
         while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
         ByteBuffer buffer = indexBuffers.get(indexBufferId);
@@ -123,6 +141,8 @@ public class IndexedChronicle extends AbstractChronicle {
 
     @Override
     public ByteBuffer acquireDataBuffer(long startPosition) {
+        if (startPosition >= MAX_VIRTUAL_ADDRESS)
+            throw new IllegalStateException("ByteOrder is incorrect.");
         int dataBufferId = (int) (startPosition >> dataBitSize);
         while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
         ByteBuffer buffer = dataBuffers.get(dataBufferId);

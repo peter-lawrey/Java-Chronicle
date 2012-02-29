@@ -17,7 +17,7 @@
 package vanilla.java.chronicle;
 
 /**
- * @author peterlawrey
+ * @author peter.lawrey
  */
 public interface ByteStringAppender extends Appendable {
     int length();

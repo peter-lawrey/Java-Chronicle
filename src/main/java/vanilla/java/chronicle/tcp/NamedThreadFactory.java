@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package vanilla.java.chronicle.impl;
+package vanilla.java.chronicle.tcp;
+
+import java.util.concurrent.ThreadFactory;
 
 /**
  * @author peter.lawrey
  */
-public abstract class AbstractChronicle implements DirectChronicle {
-    protected final String name;
-    protected long size = 0;
+class NamedThreadFactory implements ThreadFactory {
+    private final String name;
+    private int id = 0;
 
-    protected AbstractChronicle(String name) {
+    public NamedThreadFactory(String name) {
         this.name = name;
     }
 
-    public String name() {
-        return name;
-    }
-
     @Override
-    public long size() {
-        return size;
+    public Thread newThread(Runnable r) {
+        return new Thread(r, name + '-' + id++);
     }
 }

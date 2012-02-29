@@ -14,25 +14,14 @@
  * limitations under the License.
  */
 
-package vanilla.java.chronicle.impl;
+package vanilla.java.chronicle.tcp;
+
+import vanilla.java.chronicle.Chronicle;
+import vanilla.java.chronicle.Excerpt;
 
 /**
  * @author peter.lawrey
  */
-public abstract class AbstractChronicle implements DirectChronicle {
-    protected final String name;
-    protected long size = 0;
-
-    protected AbstractChronicle(String name) {
-        this.name = name;
-    }
-
-    public String name() {
-        return name;
-    }
-
-    @Override
-    public long size() {
-        return size;
-    }
+public interface ExcerptListener<C extends Chronicle> {
+    public void onExcerpt(Excerpt<C> excerpt);
 }

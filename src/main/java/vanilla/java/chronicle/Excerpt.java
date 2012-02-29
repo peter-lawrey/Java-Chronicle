@@ -62,6 +62,11 @@ public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDat
     int capacity();
 
     /**
+     * @return the number fo bytes unread.
+     */
+    int remaining();
+
+    /**
      * @return The byte order of this Excerpt
      */
     ByteOrder order();
