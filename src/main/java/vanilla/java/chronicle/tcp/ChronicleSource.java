@@ -58,7 +58,7 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
         this.chronicle = chronicle;
         this.delayNS = delayNS;
         server = ServerSocketChannel.open();
-        server.bind(new InetSocketAddress(port));
+        server.socket().bind(new InetSocketAddress(port));
         name = chronicle.name() + "@" + port;
         logger = Logger.getLogger(getClass().getName() + "." + name);
         service = Executors.newCachedThreadPool(new NamedThreadFactory(name));
