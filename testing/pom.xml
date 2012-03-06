@@ -23,13 +23,13 @@
 
     <artifactId>chronicle-testing</artifactId>
     <groupId>vanilla.java</groupId>
-    <version>0.4</version>
+    <version>0.5</version>
 
     <dependencies>
         <dependency>
             <groupId>vanilla.java</groupId>
             <artifactId>chronicle</artifactId>
-            <version>0.4</version>
+            <version>0.5</version>
         </dependency>
         <dependency>
             <groupId>vanilla.java</groupId>
@@ -45,6 +45,16 @@
             <groupId>net.java.dev.jna</groupId>
             <artifactId>platform</artifactId>
             <version>3.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.9</version>
         </dependency>
     </dependencies>
 </project>
