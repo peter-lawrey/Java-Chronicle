@@ -1,22 +1,39 @@
+/*
+ * Copyright 2011 Peter Lawrey
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package vanilla.java.chronicle.impl;
 
 import vanilla.java.chronicle.Excerpt;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.logging.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
-import static vanilla.java.chronicle.impl.IntIndexedChronicleThroughputMain.deleteOnExit;
+import static vanilla.java.chronicle.impl.GlobalSettings.*;
 
 /**
- * @author peter.lawrey
+ * To log 2,000,000 messages took 0.416 seconds using Chronicle and 15.507 seconds using Logger
  */
 public class FileLoggingMain {
-    private static final int DATA_BIT_SIZE_HINT = 24;
-    private static final boolean USE_UNSAFE = true;
-
     public static void main(String... args) throws IOException {
-        int count = 1000000;
+        int count = 2 * 1000 * 1000;
         long time1 = timeLogToChronicle(count);
         long time2 = timeLogToLogger(count);
         System.out.printf("To log %,d messages took %.3f seconds using Chronicle and %.3f seconds using Logger%n", count, time1 / 1e9, time2 / 1e9);

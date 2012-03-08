@@ -21,31 +21,23 @@ import vanilla.java.affinity.AffinityStrategies;
 import vanilla.java.busywaiting.BusyWaiter;
 import vanilla.java.chronicle.Excerpt;
 
-import java.io.File;
 import java.io.IOException;
 
 import static junit.framework.Assert.assertEquals;
+import static vanilla.java.chronicle.impl.GlobalSettings.*;
 
 /**
  * @author peter.lawrey
  *         <p/>
- *         on a 4.6 GHz, i7-2600
+ *         on a 4.6 GHz, i7-2600, Centos 6.2
  *         Took 6.325 seconds to write/read 100,000,000 entries, rate was 15.8 M entries/sec - ByteBuffer (tmpfs)
- *         Took 4.590 seconds to write/read 100,000,000 entries, rate was 21.8 M entries/sec - Using Unsafe (tmpfs)
- *         <p/>
- *         Took 7.352 seconds to write/read 100,000,000 entries, rate was 13.6 M entries/sec - ByteBuffer (ext4)
- *         Took 5.283 seconds to write/read 100,000,000 entries, rate was 18.9 M entries/sec- Using Unsafe (ext4)
+ *         Took 9.593 seconds to write/read 200,000,000 entries, rate was 20.8 M entries/sec - Using Unsafe (tmpfs)
  */
 public class IntIndexedChronicleThroughputMain {
 
-    public static final int DATA_BIT_SIZE_HINT = 24;
-    public static final boolean USE_UNSAFE = false;
-    public static final String base = System.getProperty("java.io.tmpdir", "/tmp") + "/deleteme.iictm.";
-    public static final int runs = 30 * 1000 * 1000;
-
     public static void main(String... args) throws IOException, InterruptedException {
-        final String basePath = base + "request";
-        final String basePath2 = base + "response";
+        final String basePath = BASE_DIR + "request";
+        final String basePath2 = BASE_DIR + "response";
         deleteOnExit(basePath);
         deleteOnExit(basePath2);
 
@@ -72,7 +64,7 @@ public class IntIndexedChronicleThroughputMain {
 
                     Excerpt excerpt = tsc.createExcerpt();
                     Excerpt excerpt2 = tsc2.createExcerpt();
-                    for (int i = 0; i < runs; i++) {
+                    for (int i = 0; i < RUNS; i++) {
                         while (!excerpt.index(i))
                             BusyWaiter.pause();
 
@@ -106,7 +98,7 @@ public class IntIndexedChronicleThroughputMain {
         Excerpt excerpt2 = tsc2.createExcerpt();
         long start = System.nanoTime();
         int i2 = 0;
-        for (int i = 0; i < runs; i++) {
+        for (int i = 0; i < RUNS; i++) {
             excerpt.startExcerpt(34);
             excerpt.writeChar('T');
             excerpt.writeInt(i);
@@ -127,7 +119,7 @@ public class IntIndexedChronicleThroughputMain {
             }
         }
 
-        for (; i2 < runs; i2++) {
+        for (; i2 < RUNS; i2++) {
             while (!excerpt2.index(i2))
                 BusyWaiter.pause();
             char type = excerpt2.readChar();
@@ -143,12 +135,7 @@ public class IntIndexedChronicleThroughputMain {
         tsc.close();
         tsc2.close();
         long time = System.nanoTime() - start;
-        System.out.printf("Took %.3f seconds to write/read %,d entries, rate was %.1f M entries/sec%n", time / 1e9, 2 * runs, 2 * runs * 1e3 / time);
+        System.out.printf("Took %.3f seconds to write/read %,d entries, rate was %.1f M entries/sec%n", time / 1e9, 2 * RUNS, 2 * RUNS * 1e3 / time);
         al.release();
-    }
-
-    static void deleteOnExit(String basePath) {
-        new File(basePath + ".data").deleteOnExit();
-        new File(basePath + ".index").deleteOnExit();
     }
 }

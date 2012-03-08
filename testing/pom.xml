@@ -34,7 +34,7 @@
         <dependency>
             <groupId>vanilla.java</groupId>
             <artifactId>affinity</artifactId>
-            <version>1.6</version>
+            <version>1.6.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>net.java.dev.jna</groupId>

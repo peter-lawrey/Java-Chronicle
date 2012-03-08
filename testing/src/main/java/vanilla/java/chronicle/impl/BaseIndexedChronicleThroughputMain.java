@@ -18,34 +18,23 @@ package vanilla.java.chronicle.impl;
 
 import vanilla.java.chronicle.Excerpt;
 
-import java.io.File;
 import java.io.IOException;
 
 import static junit.framework.Assert.assertEquals;
+import static vanilla.java.chronicle.impl.GlobalSettings.*;
 
 /**
  * @author peter.lawrey
  *         <p/>
- *         on a 4.6 GHz, i7-2600
- *         Took 12.416 seconds to write/read 200,000,000 entries, rate was 16.1 M entries/sec - ByteBuffer (tmpfs)
- *         Took 9.185 seconds to write/read 200,000,000 entries, rate was 21.8 M entries/sec- Using Unsafe (tmpfs)
- *         <p/>
- *         Took 25.693 seconds to write/read 400,000,000 entries, rate was 15.6 M entries/sec - ByteBuffer (ext4)
- *         Took 19.522 seconds to write/read 400,000,000 entries, rate was 20.5 M entries/sec - Using Unsafe (ext4)
- *         <p/>
- *         Took 71.458 seconds to write/read 1,000,000,000 entries, rate was 14.0 M entries/sec - Using Unsafe (ext4)
- *         Took 141.424 seconds to write/read 2,000,000,000 entries, rate was 14.1 M entries/sec - Using Unsafe (ext4)
+ *         on a 4.6 GHz, i7-2600, Centos 6.2
+ *         Took 14.332 seconds to write/read 200,000,000 entries, rate was 14.0 M entries/sec - ByteBuffer (tmpfs)
+ *         Took 10.174 seconds to write/read 200,000,000 entries, rate was 19.7 M entries/sec - Using Unsafe (tmpfs)
  */
 public class BaseIndexedChronicleThroughputMain {
 
-    public static final int DATA_BIT_SIZE_HINT = 24;
-    public static final boolean USE_UNSAFE = true;
-    public static final String base = System.getProperty("java.io.tmpdir", "/tmp") + "/deleteme.ictm.";
-    public static final int runs = 30 * 1000 * 1000;
-
     public static void main(String... args) throws IOException, InterruptedException {
-        final String basePath = base + "request";
-        final String basePath2 = base + "response";
+        final String basePath = BASE_DIR + "request";
+        final String basePath2 = BASE_DIR + "response";
         deleteOnExit(basePath);
         deleteOnExit(basePath2);
 
@@ -68,7 +57,7 @@ public class BaseIndexedChronicleThroughputMain {
 
                     Excerpt excerpt = tsc.createExcerpt();
                     Excerpt excerpt2 = tsc2.createExcerpt();
-                    for (int i = 0; i < runs; i++) {
+                    for (int i = 0; i < RUNS; i++) {
                         while (!excerpt.index(i)) ;
 
                         char type = excerpt.readChar();
@@ -98,7 +87,7 @@ public class BaseIndexedChronicleThroughputMain {
         Excerpt excerpt2 = tsc2.createExcerpt();
         long start = System.nanoTime();
         int i2 = 0;
-        for (int i = 0; i < runs; i++) {
+        for (int i = 0; i < RUNS; i++) {
             excerpt.startExcerpt(34);
             excerpt.writeChar('T');
             excerpt.writeInt(i);
@@ -119,7 +108,7 @@ public class BaseIndexedChronicleThroughputMain {
             }
         }
 
-        for (; i2 < runs; i2++) {
+        for (; i2 < RUNS; i2++) {
             while (!excerpt2.index(i2)) ;
             char type = excerpt2.readChar();
             if ('R' != type)
@@ -134,11 +123,6 @@ public class BaseIndexedChronicleThroughputMain {
         tsc.close();
         tsc2.close();
         long time = System.nanoTime() - start;
-        System.out.printf("Took %.3f seconds to write/read %,d entries, rate was %.1f M entries/sec%n", time / 1e9, 2 * runs, 2 * runs * 1e3 / time);
-    }
-
-    private static void deleteOnExit(String basePath) {
-        new File(basePath + ".data").deleteOnExit();
-        new File(basePath + ".index").deleteOnExit();
+        System.out.printf("Took %.3f seconds to write/read %,d entries, rate was %.1f M entries/sec%n", time / 1e9, 2 * RUNS, 2 * RUNS * 1e3 / time);
     }
 }
