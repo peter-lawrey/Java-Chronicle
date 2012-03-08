@@ -32,7 +32,6 @@ public class UnsafeExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C>
 
     protected void index0(long index, long startPosition, long endPosition) {
         this.index = index;
-        this.capacity = capacity;
         this.startPosition = startPosition;
 
         buffer = chronicle.acquireDataBuffer(startPosition);
@@ -40,9 +39,8 @@ public class UnsafeExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C>
         long address = ((DirectBuffer) buffer).address();
         start = position = address + chronicle.positionInBuffer(startPosition);
         limit = address + chronicle.positionInBuffer(endPosition - 1) + 1;
-        assert limit > start;
-        assert position < limit;
-        assert endPosition > startPosition;
+
+        assert limit > start && position < limit && endPosition > startPosition;
     }
 
     // RandomDataInput

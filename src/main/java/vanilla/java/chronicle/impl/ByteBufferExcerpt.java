@@ -32,9 +32,8 @@ public class ByteBufferExcerpt<C extends DirectChronicle> extends AbstractExcerp
 
         start = position = chronicle.positionInBuffer(startPosition);
         limit = chronicle.positionInBuffer(endPosition - 1) + 1;
-        assert limit > start;
-        assert position < limit;
-        assert endPosition > startPosition;
+
+        assert limit > start && position < limit && endPosition > startPosition;
     }
 
     // RandomDataInput
