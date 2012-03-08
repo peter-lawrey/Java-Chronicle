@@ -8,6 +8,10 @@ You can attach any number of readers, including tools to see the exact state of 
 Version History
 ===================================
 
+Version 1.0 - First formal release available in /repository/
+
+Version 0.5.1 - Fix code to compile with Java 6 update 31. (Previously only Java 7 was used)
+
 Version 0.5 - Add support for replication of a Chronicle over TCP to any number of listeners, either as a component or stand alone/independent application. Uses ChronicleSource and ChronicleSink.
             Add ChronicleReader to read records as they are added as text. (like less)
 

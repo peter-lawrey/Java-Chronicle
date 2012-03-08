@@ -23,18 +23,18 @@
 
     <artifactId>chronicle-testing</artifactId>
     <groupId>vanilla.java</groupId>
-    <version>0.5</version>
+    <version>1.0</version>
 
     <dependencies>
         <dependency>
             <groupId>vanilla.java</groupId>
             <artifactId>chronicle</artifactId>
-            <version>0.5</version>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>vanilla.java</groupId>
             <artifactId>affinity</artifactId>
-            <version>1.5.3</version>
+            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>net.java.dev.jna</groupId>
