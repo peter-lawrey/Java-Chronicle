@@ -33,7 +33,7 @@ import static vanilla.java.chronicle.impl.GlobalSettings.*;
  *         Took 12.893 seconds to write/read 200,000,000 entries, rate was 15.5 M entries/sec - ByteBuffer (tmpfs)
  *         Took 10.005 seconds to write/read 200,000,000 entries, rate was 20.0 M entries/sec- Using Unsafe (tmpfs)
  *         </p>
- *         Took 25.734 seconds to write/read 400,000,000 entries, rate was 15.5 M entries/sec : -Dtest.size=200 (22 GB on a 16 GB machine)
+ *         Took 24.572 seconds to write/read 400,000,000 entries, rate was 16.3 M entries/sec : -Dtest.size=200 (22 GB on a 16 GB machine)
  *         Took 69.098 seconds to write/read 1,000,000,000 entries, rate was 14.5 M entries/sec -Dtest.size=500 (56 GB on a 16 GB machine)
  */
 public class IndexedChronicleThroughputMain {

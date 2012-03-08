@@ -29,6 +29,9 @@ import static vanilla.java.chronicle.impl.GlobalSettings.*;
  *         on a 4.6 GHz, i7-2600, Centos 6.2  -Dtest.size=100
  *         Took 14.332 seconds to write/read 200,000,000 entries, rate was 14.0 M entries/sec - ByteBuffer (tmpfs)
  *         Took 10.174 seconds to write/read 200,000,000 entries, rate was 19.7 M entries/sec - Using Unsafe (tmpfs)
+ *         </p>
+ *         Took 24.501 seconds to write/read 400,000,000 entries, rate was 16.3 M entries/sec : -Dtest.size=200 (22 GB on a 16 GB machine)
+ *         Took 73.016 seconds to write/read 1,000,000,000 entries, rate was 13.7 M entries/sec -Dtest.size=500 (56 GB on a 16 GB machine)
  */
 public class BaseIndexedChronicleThroughputMain {
 
