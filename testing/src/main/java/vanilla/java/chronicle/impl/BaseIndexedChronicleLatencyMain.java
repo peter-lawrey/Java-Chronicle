@@ -26,7 +26,7 @@ import static vanilla.java.chronicle.impl.GlobalSettings.*;
 /**
  * @author peter.lawrey
  *         <p/>
- *         on a 4.6 GHz, i7-2600, Centos 6.2
+ *         on a 4.6 GHz, i7-2600, Centos 6.2, -Dtest.size=100
  *         The average RTT latency was 200 ns. The 50/99 / 99.9/99.99%tile latencies were 190/220 / 2,850/4,320. There were 5 delays over 100 μs - ByteBuffer (tmpfs)
  *         The average RTT latency was 189 ns. The 50/99 / 99.9/99.99%tile latencies were 180/220 / 2,820/4,280. There were 2 delays over 100 μs- Using Unsafe (tmpfs)
  */

@@ -26,7 +26,7 @@ import static vanilla.java.chronicle.impl.GlobalSettings.*;
 /**
  * @author peter.lawrey
  *         <p/>
- *         on a 4.6 GHz, i7-2600, Centos 6.2
+ *         on a 4.6 GHz, i7-2600, Centos 6.2  -Dtest.size=100
  *         Took 14.332 seconds to write/read 200,000,000 entries, rate was 14.0 M entries/sec - ByteBuffer (tmpfs)
  *         Took 10.174 seconds to write/read 200,000,000 entries, rate was 19.7 M entries/sec - Using Unsafe (tmpfs)
  */
