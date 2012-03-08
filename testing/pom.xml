@@ -23,13 +23,13 @@
 
     <artifactId>chronicle-testing</artifactId>
     <groupId>vanilla.java</groupId>
-    <version>1.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
             <groupId>vanilla.java</groupId>
             <artifactId>chronicle</artifactId>
-            <version>1.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>vanilla.java</groupId>
