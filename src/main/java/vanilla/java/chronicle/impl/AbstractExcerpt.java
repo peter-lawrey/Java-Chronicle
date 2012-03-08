@@ -71,7 +71,6 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
             return false;
         }
         long startPosition = chronicle.getIndexData(index);
-        int capacity = (int) (endPosition - startPosition);
         index0(index, startPosition, endPosition);
         forWrite = false;
         return true;
