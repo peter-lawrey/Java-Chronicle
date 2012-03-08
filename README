@@ -8,7 +8,7 @@ You can attach any number of readers, including tools to see the exact state of 
 Version History
 ===================================
 
-Version 1.0 - First formal release available in /repository/
+Version 1.0 - First formal release available in https://github.com/peter-lawrey/Java-Chronicle/tree/master/repository
 
 Version 0.5.1 - Fix code to compile with Java 6 update 31. (Previously only Java 7 was used)
 
