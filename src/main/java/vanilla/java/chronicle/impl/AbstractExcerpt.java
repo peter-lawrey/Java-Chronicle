@@ -66,7 +66,7 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
     public boolean index(long index) throws IndexOutOfBoundsException {
         long endPosition = chronicle.getIndexData(index + 1);
         if (endPosition == 0) {
-            barrier.get();
+            readMemoryBarrier();
             buffer = null;
             return false;
         }
@@ -74,6 +74,10 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
         index0(index, startPosition, endPosition);
         forWrite = false;
         return true;
+    }
+
+    private boolean readMemoryBarrier() {
+        return barrier.get();
     }
 
     @Override
@@ -89,11 +93,10 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
         if (position > limit)
             throw new IllegalStateException("Capacity allowed: " + capacity + " data read/written: " + position);
         if (forWrite) {
-            memoryBarrier();
             final long endPosition = startPosition + (position - start);
             chronicle.setIndexData(index + 1, endPosition);
             chronicle.incrSize();
-            memoryBarrier();
+            writeMemoryBarrier();
         }
     }
 
@@ -101,7 +104,7 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
 
     final AtomicBoolean barrier = new AtomicBoolean();
 
-    private void memoryBarrier() {
+    private void writeMemoryBarrier() {
         barrier.lazySet(true);
     }
 
