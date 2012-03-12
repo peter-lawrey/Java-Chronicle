@@ -208,12 +208,18 @@ public class IndexedChronicle extends AbstractChronicle {
 
     private void clearAll(FileChannel channel, List<MappedByteBuffer> buffers) {
         try {
-            channel.close();
-        } catch (IOException ignored) {
-        }
-        for (MappedByteBuffer buffer : buffers) {
-            if (buffer instanceof DirectBuffer)
-                ((DirectBuffer) buffer).cleaner().clean();
+            for (MappedByteBuffer buffer : buffers) {
+                buffer.force();
+            }
+        } finally {
+            try {
+                channel.close();
+            } catch (IOException ignored) {
+            }
+            for (MappedByteBuffer buffer : buffers) {
+                if (buffer instanceof DirectBuffer)
+                    ((DirectBuffer) buffer).cleaner().clean();
+            }
         }
         buffers.clear();
     }
