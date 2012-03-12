@@ -45,6 +45,8 @@ To log 1,000,000 messages took 0.234 seconds using Chronicle and 7.347 seconds u
 Throughput Test - IndexedChronicleThroughputMain
 ===================================
 
+Note: These timings include Serialization.  This is important because many performance tests don't include Serialization even though it can be many times slower than the data store they are testing.
+
 https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/IndexedChronicleLatencyMain.java
 
 On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
