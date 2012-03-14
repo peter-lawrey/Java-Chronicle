@@ -64,16 +64,19 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
 
     @Override
     public boolean index(long index) throws IndexOutOfBoundsException {
+        readMemoryBarrier();
         long endPosition = chronicle.getIndexData(index + 1);
         if (endPosition == 0) {
-            readMemoryBarrier();
             buffer = null;
             return false;
         }
         long startPosition = chronicle.getIndexData(index);
+        capacity = (int) (endPosition - startPosition);
         index0(index, startPosition, endPosition);
         forWrite = false;
-        return true;
+        // TODO Assumes the start of the record won't be all 0's
+        // TODO Need to determine whether this is required as a safety check or not.
+        return readLong(0) != 0L;
     }
 
     private boolean readMemoryBarrier() {
@@ -82,6 +85,7 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
 
     @Override
     public void startExcerpt(int capacity) {
+        this.capacity = capacity;
         long startPosition = chronicle.startExcerpt(capacity);
         long endPosition = startPosition + capacity;
         index0(chronicle.size(), startPosition, endPosition);
@@ -91,7 +95,7 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
     @Override
     public void finish() {
         if (position > limit)
-            throw new IllegalStateException("Capacity allowed: " + capacity + " data read/written: " + position);
+            throw new IllegalStateException("Capacity allowed: " + capacity + " data read/written: " + (position - start));
         if (forWrite) {
             final long endPosition = startPosition + (position - start);
             chronicle.setIndexData(index + 1, endPosition);
