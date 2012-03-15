@@ -29,7 +29,7 @@ public enum GlobalSettings {
     public static final int RUNS = Integer.getInteger("test.size", 30) * 1000 * 1000;
     public static final int WARMUP = Integer.getInteger("test.warmup", 12 * 1000);
 
-    static void deleteOnExit(String basePath) {
+    public static void deleteOnExit(String basePath) {
         new File(basePath + ".data").deleteOnExit();
         new File(basePath + ".index").deleteOnExit();
     }

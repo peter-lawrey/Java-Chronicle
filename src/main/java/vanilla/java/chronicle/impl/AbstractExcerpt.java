@@ -25,6 +25,8 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -52,6 +54,8 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
     private static final byte[] Infinity = "Infinity".getBytes();
     private static final byte[] NaN = "NaN".getBytes();
     private static final long MAX_VALUE_DIVIDE_5 = Long.MAX_VALUE / 5;
+    private ExcerptInputStream inputStream = null;
+    private ExcerptOutputStream outputStream = null;
 
     protected AbstractExcerpt(C chronicle) {
         this.chronicle = (DirectChronicle) chronicle;
@@ -67,6 +71,7 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
         readMemoryBarrier();
         long endPosition = chronicle.getIndexData(index + 1);
         if (endPosition == 0) {
+            capacity = 0;
             buffer = null;
             return false;
         }
@@ -100,6 +105,7 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
             final long endPosition = startPosition + (position - start);
             chronicle.setIndexData(index + 1, endPosition);
             chronicle.incrSize();
+            capacity = (int) (position - start);
             writeMemoryBarrier();
         }
     }
@@ -1052,5 +1058,89 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
     public static long power10(long l) {
         int idx = Arrays.binarySearch(TENS, l);
         return idx >= 0 ? TENS[idx] : TENS[~idx - 1];
+    }
+
+    @Override
+    public InputStream inputStream() {
+        if (inputStream == null)
+            inputStream = new ExcerptInputStream();
+        return inputStream;
+    }
+
+    @Override
+    public OutputStream outputStream() {
+        if (outputStream == null)
+            outputStream = new ExcerptOutputStream();
+        return outputStream;
+    }
+
+    protected class ExcerptInputStream extends InputStream {
+        private int mark = 0;
+
+        @Override
+        public int available() throws IOException {
+            return remaining();
+        }
+
+        @Override
+        public void close() throws IOException {
+            finish();
+        }
+
+        @Override
+        public void mark(int readlimit) {
+            mark = position();
+        }
+
+        @Override
+        public boolean markSupported() {
+            return true;
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            AbstractExcerpt.this.readFully(b, off, len);
+            return len;
+        }
+
+        @Override
+        public void reset() throws IOException {
+            position(mark);
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            if (n > Integer.MAX_VALUE) throw new IOException("Skip too large");
+            return skipBytes((int) n);
+        }
+
+        @Override
+        public int read() throws IOException {
+            if (remaining() > 0)
+                return readUnsignedByte();
+            return -1;
+        }
+    }
+
+    protected class ExcerptOutputStream extends OutputStream {
+        @Override
+        public void close() throws IOException {
+            finish();
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException {
+            AbstractExcerpt.this.write(b);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            AbstractExcerpt.this.write(b, off, len);
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            writeUnsignedByte(b);
+        }
     }
 }
