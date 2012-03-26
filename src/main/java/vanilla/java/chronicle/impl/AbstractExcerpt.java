@@ -21,12 +21,7 @@ import vanilla.java.chronicle.ByteStringAppender;
 import vanilla.java.chronicle.Chronicle;
 import vanilla.java.chronicle.Excerpt;
 
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -126,7 +121,7 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
     @Override
     public Excerpt position(int position) {
         if (position < 0 || position >= capacity()) throw new IndexOutOfBoundsException();
-        this.position = position;
+        this.position = start + position; // start has to be added
         return this;
     }
 
