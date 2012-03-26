@@ -16,6 +16,8 @@
 
 package vanilla.java.chronicle;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteOrder;
 
 /**
@@ -84,4 +86,14 @@ public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDat
      * When the method is called the first time, the excerpt is shrink wrapped to the size actually used. i.e. where the position is.
      */
     void finish();
+
+    /**
+     * @return a wrapper for this excerpt as an InputStream
+     */
+    InputStream inputStream();
+
+    /**
+     * @return a wrapper for this excerpt as an OutputStream
+     */
+    OutputStream outputStream();
 }

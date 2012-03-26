@@ -199,18 +199,27 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     public void close() {
-        clearAll(indexChannel, indexBuffers);
-        clearAll(dataChannel, dataBuffers);
+        try {
+            clearAll(indexChannel, indexBuffers);
+        } finally {
+            clearAll(dataChannel, dataBuffers);
+        }
     }
 
     private void clearAll(FileChannel channel, List<MappedByteBuffer> buffers) {
         try {
-            indexChannel.close();
-        } catch (IOException ignored) {
-        }
-        for (MappedByteBuffer buffer : buffers) {
-            if (buffer instanceof DirectBuffer)
-                ((DirectBuffer) buffer).cleaner().clean();
+            for (MappedByteBuffer buffer : buffers) {
+                buffer.force();
+            }
+        } finally {
+            try {
+                channel.close();
+            } catch (IOException ignored) {
+            }
+            for (MappedByteBuffer buffer : buffers) {
+                if (buffer instanceof DirectBuffer)
+                    ((DirectBuffer) buffer).cleaner().clean();
+            }
         }
         buffers.clear();
     }
