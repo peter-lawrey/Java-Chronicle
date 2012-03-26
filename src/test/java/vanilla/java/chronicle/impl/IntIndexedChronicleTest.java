@@ -43,7 +43,7 @@ public class IntIndexedChronicleTest {
         tsc.clear();
         Excerpt excerpt = tsc.createExcerpt();
 
-        int counter = 0;
+        int counter = 1;
         for (int i = 0; i < 1024; i++) {
             excerpt.startExcerpt(129);
             for (int j = 0; j < 128; j += 8)
@@ -52,7 +52,7 @@ public class IntIndexedChronicleTest {
             excerpt.finish();
         }
 
-        counter = 0;
+        counter = 1;
         for (int i = 0; i < 1024; i++) {
             assertTrue(excerpt.index(i));
             for (int j = 0; j < 128; j += 8) {

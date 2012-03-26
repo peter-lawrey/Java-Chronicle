@@ -35,7 +35,7 @@ public class ByteBufferExcerptTest {
         DirectChronicle dc = createMock(DirectChronicle.class);
         expect(dc.getIndexData(1)).andReturn(1L);
         expect(dc.getIndexData(0)).andReturn(0L);
-        expect(dc.acquireDataBuffer(0)).andReturn(ByteBuffer.wrap(new byte[]{-128}));
+        expect(dc.acquireDataBuffer(0)).andReturn(ByteBuffer.wrap(new byte[]{-128, 0, 0, 0, 0, 0, 0, 0}));
         expect(dc.positionInBuffer(0)).andReturn(0);
         expect(dc.positionInBuffer(0)).andReturn(0);
         replay(dc);
