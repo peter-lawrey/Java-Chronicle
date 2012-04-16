@@ -48,7 +48,7 @@ public class IntIndexedChronicleThroughputMain {
         tsc.clear();
 
         AffinityLock al = AffinityLock.acquireLock(false);
-        final AffinityLock al2 = al.acquireLock(AffinityStrategies.DIFFERENT_CORE);
+        final AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET, AffinityStrategies.DIFFERENT_CORE);
 
         Thread t = new Thread(new Runnable() {
             @Override

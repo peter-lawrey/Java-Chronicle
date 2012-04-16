@@ -120,7 +120,8 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
 
     @Override
     public Excerpt<C> position(int position) {
-        if (position < 0 || position >= capacity()) throw new IndexOutOfBoundsException();
+        if (position < 0 || position > capacity())
+            throw new IndexOutOfBoundsException();
         this.position = start + position; // start has to be added
         return this;
     }

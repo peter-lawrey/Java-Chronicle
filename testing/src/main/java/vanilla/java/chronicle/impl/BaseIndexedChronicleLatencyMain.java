@@ -17,6 +17,7 @@
 package vanilla.java.chronicle.impl;
 
 import vanilla.java.chronicle.Excerpt;
+import vanilla.java.clock.ClockSupport;
 import vanilla.java.testing.Histogram;
 
 import java.io.IOException;
@@ -81,17 +82,17 @@ public class BaseIndexedChronicleLatencyMain {
         long totalTime = 0, longDelays = 0;
         for (int i = 0; i < RUNS; i++) {
             excerpt.startExcerpt(8);
-            excerpt.writeLong(System.nanoTime());
+            excerpt.writeLong(nanoTime());
             excerpt.finish();
 
             while (!excerpt2.index(i)) ;
 
-            long time1 = System.nanoTime();
+            long time1 = nanoTime();
             long time0 = excerpt2.readLong();
             excerpt2.finish();
             if (i >= WARMUP) {
                 final long latency = time1 - time0;
-                if (latency > 100000) {
+                if (latency < 0 || latency > 100000) {
                     longDelays++;
                     System.out.println(latency);
                 }
@@ -106,5 +107,10 @@ public class BaseIndexedChronicleLatencyMain {
 
         System.out.printf("The average RTT latency was %,d ns. The 50/99 / 99.9/99.99%%tile latencies were %,d/%,d / %,d/%,d. There were %,d delays over 100 μs%n",
                 totalTime / RUNS, hist.percentile(0.5), hist.percentile(0.99), hist.percentile(0.999), hist.percentile(0.9999), longDelays);
+    }
+
+    private static long nanoTime() {
+        // return System.nanoTime();
+        return ClockSupport.nanoTime();
     }
 }
