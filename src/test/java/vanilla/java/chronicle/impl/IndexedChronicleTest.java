@@ -68,6 +68,31 @@ public class IndexedChronicleTest {
         tsc.close();
     }
 
+    /**
+     * Tests that <code>IndexedChronicle.close()</code> does not blow up (anymore) when you
+     * reopen an existing chronicle due to the null data buffers created internally.
+     *
+     * @throws java.io.IOException if opening chronicle fails
+     */
+    @Test
+    public void testCloseWithNullBuffers() throws IOException {
+        String basePath = "/tmp/deleteme.ict";
+        IndexedChronicle tsc = new IndexedChronicle(basePath, 12);
+        deleteOnExit(basePath);
+
+        tsc.clear();
+        Excerpt excerpt = tsc.createExcerpt();
+        for (int i = 0; i < 512; i++) {
+            excerpt.startExcerpt(1);
+            excerpt.writeByte(1);
+            excerpt.finish();
+        }
+        tsc.close();
+
+        tsc = new IndexedChronicle(basePath, 12);
+        tsc.close();
+    }
+
 
     private static void deleteOnExit(String basePath) {
         new File(basePath + ".data").deleteOnExit();
