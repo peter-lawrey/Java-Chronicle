@@ -209,7 +209,9 @@ public class IndexedChronicle extends AbstractChronicle {
     private void clearAll(FileChannel channel, List<MappedByteBuffer> buffers) {
         try {
             for (MappedByteBuffer buffer : buffers) {
-                buffer.force();
+                if (buffer != null) {
+                    buffer.force();
+                }
             }
         } finally {
             try {
