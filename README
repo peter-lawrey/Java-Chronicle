@@ -13,6 +13,8 @@ https://groups.google.com/forum/?fromgroups#!forum/java-chronicle
 Version History
 ===================================
 
+Version 1.2 - Fixed a bug in the handling of writeBoolean.
+
 Version 1.1 - Add support for OutputStream and InputStream required by ObjectOutputStream and ObjectInputStream.  Using Java Serialization is not suggested as its relatively slow, but sometimes its your only option. ;)
 
 Version 1.0 - First formal release available in https://github.com/peter-lawrey/Java-Chronicle/tree/master/repository

@@ -455,12 +455,12 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
 
     @Override
     public void writeBoolean(boolean v) {
-        write(v ? 0 : -1);
+        write(v ? -1 : 0);
     }
 
     @Override
     public void writeBoolean(int offset, boolean v) {
-        write(offset, v ? 0 : -1);
+        write(offset, v ? -1 : 0);
     }
 
     @Override

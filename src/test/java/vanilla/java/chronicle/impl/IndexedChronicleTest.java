@@ -16,6 +16,7 @@
 
 package vanilla.java.chronicle.impl;
 
+import org.junit.Assert;
 import org.junit.Test;
 import vanilla.java.chronicle.Excerpt;
 
@@ -68,6 +69,35 @@ public class IndexedChronicleTest {
         tsc.close();
     }
 
+
+    /**
+     * https://github.com/peter-lawrey/Java-Chronicle/issues/9
+     *
+     * @author AndrasMilassin
+     */
+    @Test
+    public void test_boolean() throws Exception {
+        String testPath = "temp" + File.separator + "chroncle-bool-test";
+        IndexedChronicle tsc = new IndexedChronicle(testPath, 12);
+        tsc.useUnsafe(false);
+        deleteOnExit(testPath);
+
+        tsc.clear();
+
+        Excerpt<IndexedChronicle> excerpt = tsc.createExcerpt();
+        excerpt.startExcerpt(2);
+        excerpt.writeBoolean(false);
+        excerpt.writeBoolean(true);
+        excerpt.finish();
+
+        excerpt.index(0);
+        boolean one = excerpt.readBoolean();
+        boolean onetwo = excerpt.readBoolean();
+        tsc.close();
+
+        Assert.assertEquals(false, one);
+        Assert.assertEquals(true, onetwo);
+    }
 
     private static void deleteOnExit(String basePath) {
         new File(basePath + ".data").deleteOnExit();
