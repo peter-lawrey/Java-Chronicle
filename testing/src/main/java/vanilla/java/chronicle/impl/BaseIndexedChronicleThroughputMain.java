@@ -70,13 +70,12 @@ public class BaseIndexedChronicleThroughputMain {
                         if (i != n)
                             assertEquals(i, n);
                         excerpt.readChars(sb);
-                        excerpt.readLong();
-                        excerpt.readDouble();
                         excerpt.finish();
 
-                        excerpt2.startExcerpt(6);
+                        excerpt2.startExcerpt(8);
                         excerpt2.writeChar('R');
                         excerpt2.writeInt(n);
+                        excerpt2.writeShort(-1);
                         excerpt2.finish();
                     }
                 } catch (IOException e) {
@@ -91,12 +90,10 @@ public class BaseIndexedChronicleThroughputMain {
         long start = System.nanoTime();
         int i2 = 0;
         for (int i = 0; i < RUNS; i++) {
-            excerpt.startExcerpt(34);
+            excerpt.startExcerpt(32);
             excerpt.writeChar('T');
             excerpt.writeInt(i);
-            excerpt.writeChars("Hello");
-            excerpt.writeLong(0L);
-            excerpt.writeDouble(0.0);
+            excerpt.writeChars("Hello World!");
             excerpt.finish();
 
             while (excerpt2.index(i2)) {
@@ -123,9 +120,9 @@ public class BaseIndexedChronicleThroughputMain {
         }
 
         t.join();
+        long time = System.nanoTime() - start;
         tsc.close();
         tsc2.close();
-        long time = System.nanoTime() - start;
         System.out.printf("Took %.3f seconds to write/read %,d entries, rate was %.1f M entries/sec%n", time / 1e9, 2 * RUNS, 2 * RUNS * 1e3 / time);
     }
 }

@@ -25,7 +25,6 @@ import java.lang.reflect.Field;
  * @author peter.lawrey
  */
 public class UnsafeExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C> {
-
     protected UnsafeExcerpt(C chronicle) {
         super(chronicle);
     }
@@ -53,6 +52,12 @@ public class UnsafeExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C>
     @Override
     public byte readByte(int offset) {
         return UNSAFE.getByte(start + offset);
+    }
+
+    @Override
+    public void readFully(byte[] b, int off, int len) {
+        UNSAFE.copyMemory(null, position, b, BYTES_OFFSET + off, len);
+        position += len;
     }
 
     @Override
@@ -138,6 +143,18 @@ public class UnsafeExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C>
     }
 
     @Override
+    public void write(int offset, byte[] b) {
+        UNSAFE.copyMemory(b, BYTES_OFFSET, null, position, b.length);
+        position += b.length;
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) {
+        UNSAFE.copyMemory(b, BYTES_OFFSET + off, null, position, len);
+        position += len;
+    }
+
+    @Override
     public void writeShort(int v) {
         UNSAFE.putShort(position, (short) v);
         position += 2;
@@ -207,12 +224,14 @@ public class UnsafeExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C>
      * *** Access the Unsafe class *****
      */
     private static final Unsafe UNSAFE;
+    private static final int BYTES_OFFSET;
 
     static {
         try {
             Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
             theUnsafe.setAccessible(true);
             UNSAFE = (Unsafe) theUnsafe.get(null);
+            BYTES_OFFSET = UNSAFE.arrayBaseOffset(byte[].class);
         } catch (Exception e) {
             throw new AssertionError(e);
         }

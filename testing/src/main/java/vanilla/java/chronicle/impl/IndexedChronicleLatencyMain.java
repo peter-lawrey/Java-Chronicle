@@ -48,7 +48,7 @@ public class IndexedChronicleLatencyMain {
         tsc.clear();
 
         AffinityLock al = AffinityLock.acquireLock(false);
-        final AffinityLock al2 = al.acquireLock(AffinityStrategies.DIFFERENT_CORE);
+        final AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET, AffinityStrategies.DIFFERENT_CORE);
 
         Thread t = new Thread(new Runnable() {
             @Override
@@ -90,17 +90,17 @@ public class IndexedChronicleLatencyMain {
         long totalTime = 0, longDelays = 0;
         for (int i = 0; i < RUNS; i++) {
             excerpt.startExcerpt(8);
-            excerpt.writeLong(ClockSupport.nanoTime());
+            excerpt.writeLong(nanoTime());
             excerpt.finish();
 
             while (!excerpt2.index(i)) ;
 
-            long time1 = ClockSupport.nanoTime();
+            long time1 = nanoTime();
             long time0 = excerpt2.readLong();
             excerpt2.finish();
             if (i >= WARMUP) {
                 final long latency = time1 - time0;
-                if (latency > 100000) {
+                if (latency < 0 || latency > 100000) {
                     longDelays++;
                     System.out.println(latency);
                 }
@@ -116,5 +116,9 @@ public class IndexedChronicleLatencyMain {
         System.out.printf("The average RTT latency was %,d ns. The 50/99 / 99.9/99.99%%tile latencies were %,d/%,d / %,d/%,d. There were %,d delays over 100 μs%n",
                 totalTime / RUNS, hist.percentile(0.5), hist.percentile(0.99), hist.percentile(0.999), hist.percentile(0.9999), longDelays);
         al.release();
+    }
+
+    private static long nanoTime() {
+        return ClockSupport.nanoTime();
     }
 }

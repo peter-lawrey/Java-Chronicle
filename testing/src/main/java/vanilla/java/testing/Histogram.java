@@ -22,6 +22,7 @@ package vanilla.java.testing;
 public class Histogram {
     private final int[] count;
     private final int factor;
+    private int underflow;
     private int overflow;
     private long total = 0;
 
@@ -32,7 +33,9 @@ public class Histogram {
 
     public void sample(long n) {
         long bucket = (n + factor / 2) / factor;
-        if (bucket >= count.length)
+        if (bucket < 0)
+            underflow++;
+        else if (bucket >= count.length)
             overflow++;
         else
             count[((int) bucket)]++;
@@ -47,5 +50,13 @@ public class Histogram {
             if ((num -= count[i]) <= 0)
                 return i * factor;
         return 0;
+    }
+    
+    public long underflow() {
+        return underflow;
+    }
+    
+    public long overflow() {
+        return overflow;
     }
 }

@@ -51,7 +51,7 @@ public class IndexedChronicleThroughputMain {
         tsc.clear();
 
         AffinityLock al = AffinityLock.acquireLock(false);
-        final AffinityLock al2 = al.acquireLock(AffinityStrategies.DIFFERENT_CORE);
+        final AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET, AffinityStrategies.DIFFERENT_CORE);
 
         Thread t = new Thread(new Runnable() {
             @Override
@@ -69,7 +69,7 @@ public class IndexedChronicleThroughputMain {
                     Excerpt excerpt2 = tsc2.createExcerpt();
                     for (int i = 0; i < RUNS; i++) {
                         while (!excerpt.index(i))
-                            BusyWaiter.pause();
+                            pause();
 
                         char type = excerpt.readChar();
                         if ('T' != type)
@@ -122,7 +122,7 @@ public class IndexedChronicleThroughputMain {
 
         for (; i2 < RUNS; i2++) {
             while (!excerpt2.index(i2))
-                BusyWaiter.pause();
+                pause();
             char type = excerpt2.readChar();
             if ('R' != type)
                 assertEquals('R', type);
@@ -138,5 +138,9 @@ public class IndexedChronicleThroughputMain {
         tsc2.close();
         System.out.printf("Took %.3f seconds to write/read %,d entries, rate was %.1f M entries/sec%n", time / 1e9, 2 * RUNS, 2 * RUNS * 1e3 / time);
         al.release();
+    }
+
+    private static void pause() {
+        BusyWaiter.pause();
     }
 }
