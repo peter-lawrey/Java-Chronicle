@@ -185,12 +185,12 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
 
     @Override
     public int readUnsignedShort() {
-        return readShort() & 0xFF;
+        return readShort() & 0xFFFF;
     }
 
     @Override
     public int readUnsignedShort(int offset) {
-        return readShort(offset) & 0xFF;
+        return readShort(offset) & 0xFFFF;
     }
 
     @Override
@@ -570,7 +570,7 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
 
     @Override
     public void writeUnsignedShort(int offset, int v) {
-        writeUnsignedShort(offset, v);
+        writeShort(offset, v);
     }
 
     @Override
