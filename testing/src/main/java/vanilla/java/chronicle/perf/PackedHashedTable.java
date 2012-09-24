@@ -1,3 +1,18 @@
+/*
+ * Copyright 2011 Peter Lawrey
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package vanilla.java.chronicle.perf;
 
 import vanilla.java.chronicle.Chronicle;
@@ -21,13 +36,13 @@ public class PackedHashedTable {
     public PackedHashedTable(String basePath, int hashBucketBits, int hashCapacityBits, int maxRecordSize) throws IOException {
         this.basePath = basePath;
         this.maxRecordSize = maxRecordSize;
-        hash = new IntIndexedChronicle(basePath+".hash", Math.min(24, hashCapacityBits - 4));
+        hash = new IntIndexedChronicle(basePath + ".hash", Math.min(24, hashCapacityBits - 4));
         hashRecord = new HashRecord(hash.createExcerpt(), hashBucketBits, hashCapacityBits);
 
-        while(hash.size() < 1 << hashBucketBits)
+        while (hash.size() < 1 << hashBucketBits)
             hashRecord.addEntry();
 
-        records = new IntIndexedChronicle(basePath+".record", Math.min(26, hashCapacityBits-2));
+        records = new IntIndexedChronicle(basePath + ".record", Math.min(26, hashCapacityBits - 2));
         recordsExcerpt = records.createExcerpt();
     }
 
@@ -74,7 +89,7 @@ public class PackedHashedTable {
 
         HashRecord(Excerpt excerpt, int hashBucketBits, int hashCapacityBits) {
             this.excerpt = excerpt;
-            this.hashBucketMask = (1 << hashBucketBits) -1;
+            this.hashBucketMask = (1 << hashBucketBits) - 1;
 //            this.hashCapacityBits = hashCapacityBits;
 
             int hashBucketSizeBits = hashCapacityBits - hashBucketBits;
@@ -94,12 +109,12 @@ public class PackedHashedTable {
             excerpt.position(size * PER_ENTRY_SIZE + HEADER_SIZE);
             excerpt.writeInt(hashCode);
             excerpt.writeInt(index);
-            excerpt.writeInt(0, size+1);
+            excerpt.writeInt(0, size + 1);
         }
 
         private int bucket(int hashCode) {
 //            return ((hashCode >> 18) ^ (hashCode >> 9) ^ hashCode) & hashBucketMask;
-            return  hashCode & hashBucketMask;
+            return hashCode & hashBucketMask;
         }
 
         private int size() {
@@ -109,7 +124,7 @@ public class PackedHashedTable {
         public void lookup(int hashCode, Excerpt recordsExcerpt, HashRecordIterator iterator) {
             int bucket = bucket(hashCode);
             excerpt.index(bucket);
-            for(int i=0, size = size(); i < size;i++) {
+            for (int i = 0, size = size(); i < size; i++) {
                 excerpt.position(i * PER_ENTRY_SIZE + HEADER_SIZE);
                 int hashCode2 = excerpt.readInt();
                 if (hashCode != hashCode2)

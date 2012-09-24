@@ -22,7 +22,6 @@ import vanilla.java.chronicle.Chronicle;
 import vanilla.java.chronicle.Excerpt;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -215,12 +214,92 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
         return input.toString();
     }
 
+    private StringBuilder utfReader = null;
+
     @Override
     public String readUTF() {
+        if (utfReader == null) utfReader = new StringBuilder();
+        utfReader.setLength(0);
+        readUTF(utfReader);
+        return utfReader.toString();
+    }
+
+    @Override
+    public void readUTF(Appendable appendable) {
         try {
-            return DataInputStream.readUTF(this);
-        } catch (IOException e) {
-            throw new AssertionError(e);
+            readUTF0(appendable);
+        } catch (IOException unexpected) {
+            throw new AssertionError(unexpected);
+        }
+    }
+
+    private void readUTF0(Appendable appendable) throws IOException {
+        int utflen = readUnsignedShort();
+        int count = 0;
+        while (count < utflen) {
+            int c = readByte();
+            if (c < 0) {
+                position(position() - 1);
+                break;
+            }
+            count++;
+            appendable.append((char) c);
+        }
+
+        while (count < utflen) {
+            int c = readUnsignedByte();
+            switch (c >> 4) {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                    /* 0xxxxxxx*/
+                    count++;
+                    appendable.append((char) c);
+                    break;
+                case 12:
+                case 13: {
+                    /* 110x xxxx   10xx xxxx*/
+                    count += 2;
+                    if (count > utflen)
+                        throw new UTFDataFormatException(
+                                "malformed input: partial character at end");
+                    int char2 = readUnsignedByte();
+                    if ((char2 & 0xC0) != 0x80)
+                        throw new UTFDataFormatException(
+                                "malformed input around byte " + count);
+                    int c2 = (char) (((c & 0x1F) << 6) |
+                            (char2 & 0x3F));
+                    appendable.append((char) c2);
+                    break;
+                }
+                case 14: {
+                    /* 1110 xxxx  10xx xxxx  10xx xxxx */
+                    count += 3;
+                    if (count > utflen)
+                        throw new UTFDataFormatException(
+                                "malformed input: partial character at end");
+                    int char2 = readUnsignedByte();
+                    int char3 = readUnsignedByte();
+
+                    if (((char2 & 0xC0) != 0x80) || ((char3 & 0xC0) != 0x80))
+                        throw new UTFDataFormatException(
+                                "malformed input around byte " + (count - 1));
+                    int c3 = (char) (((c & 0x0F) << 12) |
+                            ((char2 & 0x3F) << 6) |
+                            (char3 & 0x3F));
+                    appendable.append((char) c3);
+                    break;
+                }
+                default:
+                    /* 10xx xxxx,  1111 xxxx */
+                    throw new UTFDataFormatException(
+                            "malformed input around byte " + count);
+            }
         }
     }
 
@@ -525,13 +604,57 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
 
     @Override
     public void writeUTF(String s) {
-        try {
-            writeUTFMethod.invoke(null, s, this);
-        } catch (IllegalAccessException e) {
-            throw new AssertionError(e);
-        } catch (InvocationTargetException e) {
-            // rethrow the orginal exception.
-            Thread.currentThread().stop(e.getCause());
+        writeUTF((CharSequence) s);
+    }
+
+    @Override
+    public void writeUTF(CharSequence str) {
+
+        int strlen = str.length();
+        int utflen = 0;
+        int c = 0;
+
+        /* use charAt instead of copying String to char array */
+        for (int i = 0; i < strlen; i++) {
+            c = str.charAt(i);
+            if ((c >= 0x0001) && (c <= 0x007F)) {
+                utflen++;
+            } else if (c > 0x07FF) {
+                utflen += 3;
+            } else {
+                utflen += 2;
+            }
+        }
+
+        if (utflen > 65535)
+            throw new IllegalArgumentException(new UTFDataFormatException(
+                    "encoded string too long: " + utflen + " bytes"));
+        if (utflen > remaining())
+            throw new IllegalArgumentException(
+                    "encoded string too long: " + utflen + " bytes, remaining=" + remaining());
+
+        writeUnsignedShort(utflen);
+
+        int i;
+        for (i = 0; i < strlen; i++) {
+            c = str.charAt(i);
+            if (!((c >= 0x0001) && (c <= 0x007F))) break;
+            write(c);
+        }
+
+        for (; i < strlen; i++) {
+            c = str.charAt(i);
+            if ((c >= 0x0001) && (c <= 0x007F)) {
+                write(c);
+
+            } else if (c > 0x07FF) {
+                write((byte) (0xE0 | ((c >> 12) & 0x0F)));
+                write((byte) (0x80 | ((c >> 6) & 0x3F)));
+                write((byte) (0x80 | (c & 0x3F)));
+            } else {
+                write((byte) (0xC0 | ((c >> 6) & 0x1F)));
+                write((byte) (0x80 | c & 0x3F));
+            }
         }
     }
 

@@ -140,6 +140,8 @@ public interface RandomDataInput extends DataInput, RandomAccess {
     @Override
     String readUTF();
 
+    void readUTF(Appendable appendable);
+
     String readUTF(int offset);
 
     void read(ByteBuffer bb);

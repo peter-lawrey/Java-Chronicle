@@ -130,5 +130,7 @@ public interface RandomDataOutput extends DataOutput, RandomAccess {
     @Override
     void writeUTF(String s);
 
+    void writeUTF(CharSequence s);
+
     void write(ByteBuffer bb);
 }
