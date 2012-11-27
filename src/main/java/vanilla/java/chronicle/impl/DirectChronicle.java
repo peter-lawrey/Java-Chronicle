@@ -17,6 +17,7 @@
 package vanilla.java.chronicle.impl;
 
 import vanilla.java.chronicle.Chronicle;
+import vanilla.java.chronicle.EnumeratedMarshaller;
 
 import java.nio.ByteBuffer;
 
@@ -38,4 +39,6 @@ public interface DirectChronicle extends Chronicle {
     long startExcerpt(int capacity);
 
     void incrSize();
+
+    <E> EnumeratedMarshaller<E> acquireMarshaller(Class<E> aClass);
 }

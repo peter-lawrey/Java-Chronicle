@@ -19,6 +19,9 @@ package vanilla.java.chronicle;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An extracted record within a Chronicle.  This record refers to one entry.
@@ -96,4 +99,19 @@ public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDat
      * @return a wrapper for this excerpt as an OutputStream
      */
     OutputStream outputStream();
+
+    //// Support for enumerated types.
+
+    <E> void writeEnum(E e);
+
+    <E> E readEnum(Class<E> eClass);
+
+    /// Support for Enum, String and generic collections
+    <E> void writeEnums(Collection<E> eList);
+
+    <K, V> void writeMap(Map<K, V> map);
+
+    <E> List<E> readEnums(Class<E> eClass);
+
+    <K, V> Map<K, V> readMap(Class<K> kClass, Class<V> vClass);
 }

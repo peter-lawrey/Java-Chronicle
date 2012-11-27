@@ -22,6 +22,8 @@ import vanilla.java.chronicle.Excerpt;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.AccessMode;
 
 import static junit.framework.Assert.*;
 
@@ -122,6 +124,52 @@ public class IndexedChronicleTest {
 
         Assert.assertEquals(false, one);
         Assert.assertEquals(true, onetwo);
+    }
+
+    @Test
+    public void testEnum() throws IOException {
+        String testPath = "temp" + File.separator + "chroncle-bool-enum";
+        IndexedChronicle tsc = new IndexedChronicle(testPath, 12);
+        tsc.useUnsafe(false);
+        deleteOnExit(testPath);
+
+        tsc.clear();
+
+        Excerpt<IndexedChronicle> excerpt = tsc.createExcerpt();
+        excerpt.startExcerpt(42);
+        excerpt.writeEnum(AccessMode.EXECUTE);
+        excerpt.writeEnum(AccessMode.READ);
+        excerpt.writeEnum(AccessMode.WRITE);
+        excerpt.writeEnum(BigInteger.ONE);
+        excerpt.writeEnum(BigInteger.TEN);
+        excerpt.writeEnum(BigInteger.ZERO);
+        excerpt.writeEnum(BigInteger.ONE);
+        excerpt.writeEnum(BigInteger.TEN);
+        excerpt.writeEnum(BigInteger.ZERO);
+        excerpt.finish();
+        System.out.println("size=" + excerpt.position());
+
+        excerpt.index(0);
+        AccessMode e = excerpt.readEnum(AccessMode.class);
+        AccessMode r = excerpt.readEnum(AccessMode.class);
+        AccessMode w = excerpt.readEnum(AccessMode.class);
+        BigInteger one = excerpt.readEnum(BigInteger.class);
+        BigInteger ten = excerpt.readEnum(BigInteger.class);
+        BigInteger zero = excerpt.readEnum(BigInteger.class);
+        BigInteger one2 = excerpt.readEnum(BigInteger.class);
+        BigInteger ten2 = excerpt.readEnum(BigInteger.class);
+        BigInteger zero2 = excerpt.readEnum(BigInteger.class);
+        tsc.close();
+
+        assertSame(AccessMode.EXECUTE, e);
+        assertSame(AccessMode.READ, r);
+        assertSame(AccessMode.WRITE, w);
+        assertEquals(BigInteger.ONE, one);
+        assertEquals(BigInteger.TEN, ten);
+        assertEquals(BigInteger.ZERO, zero);
+        assertSame(one, one2);
+        assertSame(ten, ten2);
+        assertSame(zero, zero2);
     }
 
     private static void deleteOnExit(String basePath) {

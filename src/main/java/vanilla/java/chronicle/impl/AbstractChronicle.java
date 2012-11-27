@@ -16,15 +16,23 @@
 
 package vanilla.java.chronicle.impl;
 
+import vanilla.java.chronicle.EnumeratedMarshaller;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * @author peter.lawrey
  */
 public abstract class AbstractChronicle implements DirectChronicle {
     protected final String name;
+    protected final Map<Class, EnumeratedMarshaller> marshallerMap = new LinkedHashMap<Class, EnumeratedMarshaller>();
+
     protected long size = 0;
 
     protected AbstractChronicle(String name) {
         this.name = name;
+        marshallerMap.put(String.class, new StringMarshaller(1024));
     }
 
     public String name() {
@@ -34,5 +42,21 @@ public abstract class AbstractChronicle implements DirectChronicle {
     @Override
     public long size() {
         return size;
+    }
+
+    @Override
+    public <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller) {
+        marshallerMap.put(marshaller.classMarshaled(), marshaller);
+    }
+
+    @Override
+    public <E> EnumeratedMarshaller<E> acquireMarshaller(Class<E> aClass) {
+        EnumeratedMarshaller<E> em = marshallerMap.get(aClass);
+        if (em == null)
+            if (aClass.isEnum())
+                marshallerMap.put(aClass, em = new VanillaEnumMarshaller(aClass, null));
+            else
+                marshallerMap.put(aClass, em = new GenericEnumMarshaller<E>(aClass, 1000));
+        return em;
     }
 }

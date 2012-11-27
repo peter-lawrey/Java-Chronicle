@@ -18,21 +18,21 @@ package vanilla.java.chronicle.impl;
 
 import vanilla.java.chronicle.ByteString;
 import vanilla.java.chronicle.ByteStringAppender;
-import vanilla.java.chronicle.Chronicle;
+import vanilla.java.chronicle.EnumeratedMarshaller;
 import vanilla.java.chronicle.Excerpt;
 
 import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author peter.lawrey
  */
-public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C> {
-    protected final DirectChronicle chronicle;
+public abstract class AbstractExcerpt<C extends DirectChronicle> implements Excerpt<C> {
+    protected final C chronicle;
     protected long index;
     protected long start = 0;
     protected long position = 0;
@@ -52,12 +52,12 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
     private ExcerptOutputStream outputStream = null;
 
     protected AbstractExcerpt(C chronicle) {
-        this.chronicle = (DirectChronicle) chronicle;
+        this.chronicle = chronicle;
     }
 
     @Override
     public C chronicle() {
-        return (C) chronicle;
+        return chronicle;
     }
 
     @Override
@@ -1261,5 +1261,53 @@ public abstract class AbstractExcerpt<C extends Chronicle> implements Excerpt<C>
         public void write(int b) throws IOException {
             writeUnsignedByte(b);
         }
+    }
+
+    @Override
+    public <E> void writeEnum(E e) {
+        EnumeratedMarshaller<E> em = chronicle().acquireMarshaller((Class) e.getClass());
+        em.write(this, e);
+    }
+
+    @Override
+    public <E> E readEnum(Class<E> eClass) {
+        EnumeratedMarshaller<E> em = chronicle().acquireMarshaller(eClass);
+        return em.read(this);
+    }
+
+    @Override
+    public <E> void writeEnums(Collection<E> eList) {
+        writeInt(eList.size());
+        for (E e : eList)
+            writeEnum(e);
+    }
+
+    @Override
+    public <K, V> void writeMap(Map<K, V> map) {
+        writeInt(map.size());
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            writeEnum(entry.getKey());
+            writeEnum(entry.getValue());
+        }
+    }
+
+    @Override
+    public <E> List<E> readEnums(Class<E> eClass) {
+        int len = readInt();
+        if (len == 0) return Collections.emptyList();
+        List<E> list = new ArrayList<E>(len);
+        for (int i = 0; i < len; i++)
+            list.add(readEnum(eClass));
+        return list;
+    }
+
+    @Override
+    public <K, V> Map<K, V> readMap(Class<K> kClass, Class<V> vClass) {
+        int len = readInt();
+        if (len == 0) return Collections.emptyMap();
+        Map<K, V> map = new LinkedHashMap<K, V>(len * 10 / 7);
+        for (int i = 0; i < len; i++)
+            map.put(readEnum(kClass), readEnum(vClass));
+        return map;
     }
 }

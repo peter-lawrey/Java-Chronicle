@@ -49,4 +49,10 @@ public interface Chronicle extends Closeable {
      * Close this resource.
      */
     void close();
+
+    /**
+     * @param marshaller to add for marshaled types.
+     * @param <E>        type marshaled.
+     */
+    <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller);
 }

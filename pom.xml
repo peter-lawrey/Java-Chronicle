@@ -22,8 +22,11 @@
 
     <groupId>vanilla.java</groupId>
     <artifactId>chronicle</artifactId>
-    <packaging>jar</packaging>
-    <version>1.3-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <version>1.4-SNAPSHOT</version>
+    <modules>
+        <module>extensions</module>
+    </modules>
 
     <dependencies>
         <dependency>
