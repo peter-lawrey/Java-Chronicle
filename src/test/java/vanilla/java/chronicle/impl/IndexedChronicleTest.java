@@ -23,7 +23,6 @@ import vanilla.java.chronicle.Excerpt;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.AccessMode;
 
 import static junit.framework.Assert.*;
 
@@ -31,6 +30,8 @@ import static junit.framework.Assert.*;
  * @author peter.lawrey
  */
 public class IndexedChronicleTest {
+    static final String TMP = System.getProperty("java.io.tmpdir");
+
     @Test
     public void rewritibleEntries() throws IOException {
         doRewriteableEntries(false);
@@ -38,7 +39,7 @@ public class IndexedChronicleTest {
     }
 
     private void doRewriteableEntries(boolean useUnsafe) throws IOException {
-        String basePath = "/tmp/deleteme.ict";
+        String basePath = TMP + File.separator + "deleteme.ict";
         IndexedChronicle tsc = new IndexedChronicle(basePath, 12);
         tsc.useUnsafe(useUnsafe);
         deleteOnExit(basePath);
@@ -79,7 +80,7 @@ public class IndexedChronicleTest {
      */
     @Test
     public void testCloseWithNullBuffers() throws IOException {
-        String basePath = "/tmp/deleteme.ict";
+        String basePath = TMP + File.separator + "deleteme.ict";
         IndexedChronicle tsc = new IndexedChronicle(basePath, 12);
         deleteOnExit(basePath);
 
@@ -104,7 +105,7 @@ public class IndexedChronicleTest {
      */
     @Test
     public void test_boolean() throws Exception {
-        String testPath = "temp" + File.separator + "chroncle-bool-test";
+        String testPath = TMP + File.separator + "chroncle-bool-test";
         IndexedChronicle tsc = new IndexedChronicle(testPath, 12);
         tsc.useUnsafe(false);
         deleteOnExit(testPath);
@@ -128,7 +129,7 @@ public class IndexedChronicleTest {
 
     @Test
     public void testEnum() throws IOException {
-        String testPath = "temp" + File.separator + "chroncle-bool-enum";
+        String testPath = TMP + File.separator + "chroncle-bool-enum";
         IndexedChronicle tsc = new IndexedChronicle(testPath, 12);
         tsc.useUnsafe(false);
         deleteOnExit(testPath);
