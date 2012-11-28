@@ -24,9 +24,6 @@
     <artifactId>chronicle</artifactId>
     <packaging>pom</packaging>
     <version>1.4-SNAPSHOT</version>
-    <modules>
-        <module>extensions</module>
-    </modules>
 
     <dependencies>
         <dependency>
