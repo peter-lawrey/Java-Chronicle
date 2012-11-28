@@ -25,16 +25,33 @@ public class StringMarshaller implements EnumeratedMarshaller<String> {
         excerpt.writeUTF(s);
     }
 
+    private final StringBuilder reader = new StringBuilder();
+
     @Override
     public String read(Excerpt excerpt) {
-        String s = excerpt.readUTF();
-        int h = s.hashCode();
+        reader.setLength(0);
+        excerpt.readUTF(reader);
+        int idx = hashFor(reader);
+        String s2 = interner[idx];
+        if (s2 != null && s2.length() == reader.length())
+            NOT_FOUND:{
+                for (int i = 0, len = s2.length(); i < len; i++) {
+                    if (s2.charAt(i) != reader.charAt(i))
+                        break NOT_FOUND;
+                }
+                return s2;
+            }
+        return interner[idx] = reader.toString();
+    }
+
+    private int hashFor(CharSequence cs) {
+        int h = 0;
+
+        for (int i = 0, length = cs.length(); i < length; i++)
+            h = 31 * h + cs.charAt(i);
+
         h ^= (h >>> 20) ^ (h >>> 12);
         h ^= (h >>> 7) ^ (h >>> 4);
-        int idx = h & (interner.length - 1);
-        String s2 = interner[idx];
-        if (s.equals(s2))
-            return s2;
-        return interner[idx] = s;
+        return h & (interner.length - 1);
     }
 }
