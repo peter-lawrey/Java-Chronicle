@@ -22,7 +22,7 @@
 
     <groupId>vanilla.java</groupId>
     <artifactId>chronicle</artifactId>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <version>1.4-SNAPSHOT</version>
 
     <dependencies>
@@ -54,6 +54,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>

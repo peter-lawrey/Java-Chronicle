@@ -60,6 +60,7 @@ public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarsh
 
     @Override
     public E read(Excerpt excerpt) {
+        reader.setLength(0);
         excerpt.readUTF(reader);
         int num = hashFor(reader);
         int idx = num & (interner.length - 1);
