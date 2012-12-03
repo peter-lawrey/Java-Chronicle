@@ -43,7 +43,6 @@ import java.util.logging.Logger;
  * @author peter.lawrey
  */
 public class ChronicleSource<C extends Chronicle> implements Closeable {
-
     private final C chronicle;
     private final ServerSocketChannel server;
     private final int delayNS;
@@ -70,7 +69,7 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
             System.err.println("Usage: java " + ChronicleSource.class.getName() + " {chronicle-base-path} {port} [delayNS]");
             System.exit(-1);
         }
-        int dataBitsHintSize = Integer.getInteger("dataBitsHintSize", 24);
+        int dataBitsHintSize = Integer.getInteger("dataBitsHintSize", 27);
         String def = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN ? "Big" : "Little";
         ByteOrder byteOrder = System.getProperty("byteOrder", def).equalsIgnoreCase("Big") ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
         String basePath = args[0];
@@ -110,21 +109,24 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
             try {
                 long index = readIndex(socket);
                 Excerpt excerpt = chronicle.createExcerpt();
-                ByteBuffer bb = TcpUtil.createBuffer(1, chronicle);
+                ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
                 while (!closed) {
                     while (!excerpt.index(index))
                         pause(delayNS);
                     int size = excerpt.capacity();
-                    int capacity = size + TcpUtil.HEADER_SIZE;
-                    if (capacity > bb.capacity())
-                        bb = TcpUtil.createBuffer(capacity, chronicle);
+                    int remaining = size + TcpUtil.HEADER_SIZE;
 
                     bb.clear();
                     bb.putLong(index);
                     bb.putLong(size);
-                    excerpt.read(bb);
-                    bb.flip();
-                    while (bb.remaining() > 0 && socket.write(bb) > 0) ;
+                    while (remaining > 0) {
+                        int size2 = Math.min(remaining, bb.capacity());
+                        bb.limit(size2);
+                        excerpt.read(bb);
+                        bb.flip();
+                        remaining -= bb.remaining();
+                        while (bb.remaining() > 0 && socket.write(bb) > 0) ;
+                    }
                     if (bb.remaining() > 0) throw new EOFException("Failed to send index=" + index);
                 }
             } catch (IOException e) {
@@ -143,10 +145,11 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
 
     protected void pause(int delayNS) {
         if (delayNS < 1) return;
-        if (delayNS < 20000)
+        long start = System.nanoTime();
+        if (delayNS >= 1000 * 1000)
+            LockSupport.parkNanos(delayNS); // only ms accuracy.
+        while (System.nanoTime() - start < delayNS)
             Thread.yield();
-        else
-            LockSupport.parkNanos(delayNS);
     }
 
     @Override

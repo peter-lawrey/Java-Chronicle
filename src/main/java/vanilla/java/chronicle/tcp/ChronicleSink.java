@@ -54,7 +54,7 @@ public class ChronicleSink<C extends Chronicle> implements Closeable {
             System.err.println("Usage: java " + ChronicleSink.class.getName() + " {chronicle-base-path} {hostname} {port}");
             System.exit(-1);
         }
-        int dataBitsHintSize = Integer.getInteger("dataBitsHintSize", 24);
+        int dataBitsHintSize = Integer.getInteger("dataBitsHintSize", 27);
         String def = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN ? "Big" : "Little";
         ByteOrder byteOrder = System.getProperty("byteOrder", def).equalsIgnoreCase("Big") ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
         String basePath = args[0];
@@ -99,7 +99,7 @@ public class ChronicleSink<C extends Chronicle> implements Closeable {
         }
 
         private void readNextExcerpt(SocketChannel sc) {
-            ByteBuffer bb = TcpUtil.createBuffer(1, chronicle);
+            ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
             try {
                 while (!closed) {
                     readHeader(sc, bb);
@@ -109,17 +109,19 @@ public class ChronicleSink<C extends Chronicle> implements Closeable {
                         throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + index);
                     if (size > Integer.MAX_VALUE || size < 0)
                         throw new StreamCorruptedException("size was " + size);
-                    if (size > bb.capacity())
-                        bb = TcpUtil.createBuffer((int) size, chronicle);
-
-                    bb.position(0);
-                    bb.limit((int) size);
-                    while (bb.remaining() > 0 && sc.read(bb) > 0) ;
-                    if (bb.remaining() > 0) throw new EOFException();
-                    bb.flip();
 
                     excerpt.startExcerpt((int) size);
-                    excerpt.write(bb);
+                    // perform a progressive copy of data.
+                    long remaining = size;
+                    bb.position(0);
+                    while (remaining > 0) {
+                        int size2 = (int) Math.min(bb.capacity(), remaining);
+                        bb.limit(size2);
+                        if (sc.read(bb) < 0) throw new EOFException();
+                        bb.flip();
+                        remaining -= bb.remaining();
+                        excerpt.write(bb);
+                    }
                     excerpt.finish();
 
                     excerpt.index(index);
