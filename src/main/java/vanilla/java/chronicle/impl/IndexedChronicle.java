@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class IndexedChronicle extends AbstractChronicle {
     public static final long MAX_VIRTUAL_ADDRESS = 1L << 48;
-    private static final int DEFAULT_DATA_BITS_SIZE = 27; // 1 << 27 or 128 MB.
+    public static final int DEFAULT_DATA_BITS_SIZE = 27; // 1 << 27 or 128 MB.
 
     private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
     private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();

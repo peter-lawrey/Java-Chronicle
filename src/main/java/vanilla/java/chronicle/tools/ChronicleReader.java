@@ -19,7 +19,7 @@ public enum ChronicleReader {
             System.err.println("Usage: java " + ChronicleReader.class.getName() + " {chronicle-base-path} [from-index]");
             System.exit(-1);
         }
-        int dataBitsHintSize = Integer.getInteger("dataBitsHintSize", 24);
+        int dataBitsHintSize = Integer.getInteger("dataBitsHintSize", IndexedChronicle.DEFAULT_DATA_BITS_SIZE);
         String def = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN ? "Big" : "Little";
         ByteOrder byteOrder = System.getProperty("byteOrder", def).equalsIgnoreCase("Big") ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
         String basePath = args[0];
