@@ -36,6 +36,8 @@ import java.util.List;
  */
 public class IndexedChronicle extends AbstractChronicle {
     public static final long MAX_VIRTUAL_ADDRESS = 1L << 48;
+    private static final int DEFAULT_DATA_BITS_SIZE = 27; // 1 << 27 or 128 MB.
+
     private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
     private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();
     private final int indexBitSize;
@@ -46,6 +48,10 @@ public class IndexedChronicle extends AbstractChronicle {
     private final FileChannel dataChannel;
     private boolean useUnsafe = false;
     private final ByteOrder byteOrder;
+
+    public IndexedChronicle(String basePath) throws IOException {
+        this(basePath, DEFAULT_DATA_BITS_SIZE);
+    }
 
     public IndexedChronicle(String basePath, int dataBitSizeHint) throws IOException {
         this(basePath, dataBitSizeHint, ByteOrder.nativeOrder());

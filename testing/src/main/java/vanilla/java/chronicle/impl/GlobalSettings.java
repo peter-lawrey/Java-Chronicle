@@ -23,7 +23,7 @@ import java.io.File;
  */
 public enum GlobalSettings {
     ;
-    public static final int DATA_BIT_SIZE_HINT = 24;
+
     public static final boolean USE_UNSAFE = Boolean.parseBoolean(System.getProperty("test.unsafe", "true"));
     public static final String BASE_DIR = System.getProperty("test.dir", System.getProperty("java.io.tmpdir", "/tmp")) + "/deleteme.iictm.";
     public static final int RUNS = Integer.getInteger("test.size", 30) * 1000 * 1000;

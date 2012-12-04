@@ -32,7 +32,7 @@ public class ReadWriteUTFTest {
         final String basePath = BASE_DIR + "text";
         deleteOnExit(basePath);
 
-        IndexedChronicle tsc = new IndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
+        IndexedChronicle tsc = new IndexedChronicle(basePath);
         tsc.useUnsafe(USE_UNSAFE);
         tsc.clear();
         Excerpt<IndexedChronicle> excerpt = tsc.createExcerpt();

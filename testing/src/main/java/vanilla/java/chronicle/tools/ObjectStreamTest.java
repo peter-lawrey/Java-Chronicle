@@ -27,7 +27,8 @@ import java.util.Date;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
-import static vanilla.java.chronicle.impl.GlobalSettings.*;
+import static vanilla.java.chronicle.impl.GlobalSettings.BASE_DIR;
+import static vanilla.java.chronicle.impl.GlobalSettings.deleteOnExit;
 
 /**
  * @author peterlawrey
@@ -38,7 +39,7 @@ public class ObjectStreamTest {
         final String basePath = BASE_DIR + "objects";
         deleteOnExit(basePath);
 
-        IndexedChronicle tsc = new IndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
+        IndexedChronicle tsc = new IndexedChronicle(basePath);
         tsc.useUnsafe(false /*USE_UNSAFE*/);
 
         Excerpt<IndexedChronicle> excerpt = tsc.createExcerpt();

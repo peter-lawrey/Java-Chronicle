@@ -164,7 +164,7 @@ public class PackedHashedTableTest {
  */
 
         String basePath = baseDir + "/deleteme.int";
-        Chronicle chronicle = new IntIndexedChronicle(basePath, 24);
+        Chronicle chronicle = new IntIndexedChronicle(basePath);
         deleteOnExit(basePath);
 
         Excerpt record = chronicle.createExcerpt();

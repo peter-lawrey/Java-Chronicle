@@ -28,6 +28,10 @@ import java.nio.ByteOrder;
 public class IntIndexedChronicle extends IndexedChronicle {
     private static final long LONG_MASK = -1L >>> -32;
 
+    public IntIndexedChronicle(String basePath) throws IOException {
+        super(basePath);
+    }
+
     public IntIndexedChronicle(String basePath, int dataBitSizeHint) throws IOException {
         super(basePath, dataBitSizeHint);
     }

@@ -41,9 +41,9 @@ public class IntIndexedChronicleThroughputMain {
         deleteOnExit(basePath);
         deleteOnExit(basePath2);
 
-        IntIndexedChronicle tsc = new IntIndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
+        IntIndexedChronicle tsc = new IntIndexedChronicle(basePath);
         tsc.useUnsafe(USE_UNSAFE);
-        IntIndexedChronicle tsc2 = new IntIndexedChronicle(basePath2, DATA_BIT_SIZE_HINT);
+        IntIndexedChronicle tsc2 = new IntIndexedChronicle(basePath2);
         tsc2.useUnsafe(USE_UNSAFE);
         tsc.clear();
 
@@ -56,9 +56,9 @@ public class IntIndexedChronicleThroughputMain {
                 al2.bind();
                 try {
                     StringBuilder sb = new StringBuilder();
-                    final IntIndexedChronicle tsc = new IntIndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
+                    final IntIndexedChronicle tsc = new IntIndexedChronicle(basePath);
                     tsc.useUnsafe(USE_UNSAFE);
-                    final IntIndexedChronicle tsc2 = new IntIndexedChronicle(basePath2, DATA_BIT_SIZE_HINT);
+                    final IntIndexedChronicle tsc2 = new IntIndexedChronicle(basePath2);
                     tsc2.useUnsafe(USE_UNSAFE);
                     tsc2.clear();
 

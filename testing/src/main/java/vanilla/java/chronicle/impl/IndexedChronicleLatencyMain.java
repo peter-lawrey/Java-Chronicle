@@ -41,9 +41,9 @@ public class IndexedChronicleLatencyMain {
         deleteOnExit(basePath);
         deleteOnExit(basePath2);
 
-        IndexedChronicle tsc = new IndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
+        IndexedChronicle tsc = new IndexedChronicle(basePath);
         tsc.useUnsafe(USE_UNSAFE);
-        IndexedChronicle tsc2 = new IndexedChronicle(basePath2, DATA_BIT_SIZE_HINT);
+        IndexedChronicle tsc2 = new IndexedChronicle(basePath2);
         tsc2.useUnsafe(USE_UNSAFE);
         tsc.clear();
 
@@ -55,9 +55,9 @@ public class IndexedChronicleLatencyMain {
             public void run() {
                 al2.bind();
                 try {
-                    final IndexedChronicle tsc = new IndexedChronicle(basePath, DATA_BIT_SIZE_HINT);
+                    final IndexedChronicle tsc = new IndexedChronicle(basePath);
                     tsc.useUnsafe(USE_UNSAFE);
-                    final IndexedChronicle tsc2 = new IndexedChronicle(basePath2, DATA_BIT_SIZE_HINT);
+                    final IndexedChronicle tsc2 = new IndexedChronicle(basePath2);
                     tsc2.useUnsafe(USE_UNSAFE);
                     tsc2.clear();
 
