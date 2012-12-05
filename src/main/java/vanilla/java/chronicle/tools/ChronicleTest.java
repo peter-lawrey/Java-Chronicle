@@ -39,7 +39,7 @@ public enum ChronicleTest {
      */
     public static String asString(Excerpt excerpt, int length) {
         int position = excerpt.position();
-        int limit = Math.min(position + length, excerpt.length());
+        int limit = Math.min(position + length, excerpt.capacity());
         StringBuilder sb = new StringBuilder(limit - position);
         for (int i = position; i < limit; i++) {
             char ch = (char) excerpt.readUnsignedByte(i);
