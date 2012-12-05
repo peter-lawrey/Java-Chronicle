@@ -9,4 +9,6 @@ public interface EnumeratedMarshaller<E> {
     public void write(Excerpt excerpt, E e);
 
     public E read(Excerpt excerpt);
+
+    public E parse(Excerpt excerpt, StopCharTester tester);
 }

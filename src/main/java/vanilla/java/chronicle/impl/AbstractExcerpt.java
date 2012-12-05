@@ -16,10 +16,7 @@
 
 package vanilla.java.chronicle.impl;
 
-import vanilla.java.chronicle.ByteString;
-import vanilla.java.chronicle.ByteStringAppender;
-import vanilla.java.chronicle.EnumeratedMarshaller;
-import vanilla.java.chronicle.Excerpt;
+import vanilla.java.chronicle.*;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -302,6 +299,90 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
             }
         }
     }
+
+    @Override
+    public String parseUTF(StopCharTester tester) {
+        utfReader.setLength(0);
+        parseUTF(utfReader, tester);
+        return utfReader.toString();
+    }
+
+    @Override
+    public void parseUTF(Appendable builder, StopCharTester tester) {
+        try {
+            readUTF0(builder, tester);
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private void readUTF0(Appendable appendable, StopCharTester tester) throws IOException {
+        while (remaining() > 0) {
+            int c = readByte();
+            if (c < 0) {
+                position(position() - 1);
+                break;
+            }
+            if (tester.isStopChar(c))
+                return;
+            appendable.append((char) c);
+        }
+
+        while (remaining() > 0) {
+            int c = readUnsignedByte();
+            switch (c >> 4) {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                    /* 0xxxxxxx*/
+                    if (tester.isStopChar(c))
+                        return;
+                    appendable.append((char) c);
+                    break;
+                case 12:
+                case 13: {
+                    /* 110x xxxx   10xx xxxx*/
+                    int char2 = readUnsignedByte();
+                    if ((char2 & 0xC0) != 0x80)
+                        throw new UTFDataFormatException(
+                                "malformed input around byte");
+                    int c2 = (char) (((c & 0x1F) << 6) |
+                            (char2 & 0x3F));
+                    if (tester.isStopChar(c2))
+                        return;
+                    appendable.append((char) c2);
+                    break;
+                }
+                case 14: {
+                    /* 1110 xxxx  10xx xxxx  10xx xxxx */
+
+                    int char2 = readUnsignedByte();
+                    int char3 = readUnsignedByte();
+
+                    if (((char2 & 0xC0) != 0x80) || ((char3 & 0xC0) != 0x80))
+                        throw new UTFDataFormatException(
+                                "malformed input around byte ");
+                    int c3 = (char) (((c & 0x0F) << 12) |
+                            ((char2 & 0x3F) << 6) |
+                            (char3 & 0x3F));
+                    if (tester.isStopChar(c3))
+                        return;
+                    appendable.append((char) c3);
+                    break;
+                }
+                default:
+                    /* 10xx xxxx,  1111 xxxx */
+                    throw new UTFDataFormatException(
+                            "malformed input around byte ");
+            }
+        }
+    }
+
 
     @Override
     public String readUTF(int offset) {
@@ -868,6 +949,11 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
     }
 
     @Override
+    public ByteStringAppender append(Enum value) {
+        return append(value.toString());
+    }
+
+    @Override
     public ByteStringAppender append(byte[] str) {
         write(str);
         return this;
@@ -1114,6 +1200,51 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         return negative ? -d : d;
     }
 
+    public static final long MAX_VALUE_DIVIDE_10 = Long.MAX_VALUE / 10;
+
+    @Override
+    public double parseDouble() {
+        long value = 0;
+        int exp = 0;
+        boolean negative = false;
+        int decimalPlaces = Integer.MIN_VALUE;
+        while (true) {
+            byte ch = readByte();
+            if (ch >= '0' && ch <= '9') {
+                while (value >= MAX_VALUE_DIVIDE_10) {
+                    value >>>= 1;
+                    exp++;
+                }
+                value = value * 10 + (ch - '0');
+                decimalPlaces++;
+            } else if (ch == '-') {
+                negative = true;
+            } else if (ch == '.') {
+                decimalPlaces = 0;
+            } else {
+                break;
+            }
+        }
+
+        return asDouble(value, exp, negative, decimalPlaces);
+    }
+
+    @Override
+    public long parseLong() {
+        long num = 0;
+        boolean negative = false;
+        while (true) {
+            byte b = readByte();
+//            if (b >= '0' && b <= '9')
+            if ((b - ('0' + Integer.MIN_VALUE)) <= 9 + Integer.MIN_VALUE)
+                num = num * 10 + b - '0';
+            else if (b == '-')
+                negative = true;
+            else
+                break;
+        }
+        return negative ? -num : num;
+    }
 
     private void appendLong0(long num) {
         // find the number of digits
@@ -1273,6 +1404,12 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
     public <E> E readEnum(Class<E> eClass) {
         EnumeratedMarshaller<E> em = chronicle().acquireMarshaller(eClass);
         return em.read(this);
+    }
+
+    @Override
+    public <E> E parseEnum(Class<E> eClass, StopCharTester tester) {
+        EnumeratedMarshaller<E> em = chronicle().acquireMarshaller(eClass);
+        return em.parse(this, tester);
     }
 
     @Override

@@ -2,6 +2,7 @@ package vanilla.java.chronicle.impl;
 
 import vanilla.java.chronicle.EnumeratedMarshaller;
 import vanilla.java.chronicle.Excerpt;
+import vanilla.java.chronicle.StopCharTester;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -56,6 +57,16 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
     @Override
     public E read(Excerpt excerpt) {
         String s = excerpt.readUTF();
+        return valueOf(s);
+    }
+
+    @Override
+    public E parse(Excerpt excerpt, StopCharTester tester) {
+        String s = excerpt.parseUTF(tester);
+        return valueOf(s);
+    }
+
+    private E valueOf(String s) {
         E e = map.get(s);
         if (e == null)
             try {

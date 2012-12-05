@@ -28,7 +28,7 @@ import java.util.Map;
  *
  * @author peter.lawrey
  */
-public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDataOutput, ByteStringAppender {
+public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDataOutput, ByteStringAppender, ByteStringParser {
     /**
      * @return the chronicle this is an excerpt for.
      */

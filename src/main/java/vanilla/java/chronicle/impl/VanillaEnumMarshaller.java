@@ -2,6 +2,7 @@ package vanilla.java.chronicle.impl;
 
 import vanilla.java.chronicle.EnumeratedMarshaller;
 import vanilla.java.chronicle.Excerpt;
+import vanilla.java.chronicle.StopCharTester;
 
 import java.util.BitSet;
 import java.util.LinkedHashMap;
@@ -62,6 +63,17 @@ public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarsh
     public E read(Excerpt excerpt) {
         reader.setLength(0);
         excerpt.readUTF(reader);
+        return builderToEnum();
+    }
+
+    @Override
+    public E parse(Excerpt excerpt, StopCharTester tester) {
+        reader.setLength(0);
+        excerpt.parseUTF(reader, tester);
+        return builderToEnum();
+    }
+
+    private E builderToEnum() {
         int num = hashFor(reader);
         int idx = num & (interner.length - 1);
         E e = interner[idx];

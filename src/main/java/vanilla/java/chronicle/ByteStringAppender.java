@@ -36,6 +36,8 @@ public interface ByteStringAppender extends Appendable {
 
     ByteStringAppender append(char c);
 
+    ByteStringAppender append(Enum value);
+
     ByteStringAppender append(int i);
 
     ByteStringAppender append(long l);

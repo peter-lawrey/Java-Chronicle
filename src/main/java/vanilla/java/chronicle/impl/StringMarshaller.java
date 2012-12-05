@@ -2,6 +2,7 @@ package vanilla.java.chronicle.impl;
 
 import vanilla.java.chronicle.EnumeratedMarshaller;
 import vanilla.java.chronicle.Excerpt;
+import vanilla.java.chronicle.StopCharTester;
 
 /**
  * @author plawrey
@@ -31,6 +32,17 @@ public class StringMarshaller implements EnumeratedMarshaller<String> {
     public String read(Excerpt excerpt) {
         reader.setLength(0);
         excerpt.readUTF(reader);
+        return builderToString();
+    }
+
+    @Override
+    public String parse(Excerpt excerpt, StopCharTester tester) {
+        reader.setLength(0);
+        excerpt.parseUTF(reader, tester);
+        return builderToString();
+    }
+
+    private String builderToString() {
         int idx = hashFor(reader);
         String s2 = interner[idx];
         if (s2 != null && s2.length() == reader.length())
