@@ -51,6 +51,8 @@ public interface Chronicle extends Closeable {
     void close();
 
     /**
+     * Add an enumerated type or override the default implementation for a class.
+     *
      * @param marshaller to add for marshaled types.
      * @param <E>        type marshaled.
      */
