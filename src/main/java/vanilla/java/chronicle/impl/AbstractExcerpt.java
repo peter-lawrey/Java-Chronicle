@@ -98,7 +98,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         if (forWrite) {
             final long endPosition = startPosition + (position - start);
             chronicle.setIndexData(index + 1, endPosition);
-            chronicle.incrSize();
+            chronicle.incrementSize();
             capacity = (int) (position - start);
             writeMemoryBarrier();
         }

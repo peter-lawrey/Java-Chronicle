@@ -36,9 +36,14 @@ public interface Chronicle extends Closeable {
     Excerpt createExcerpt();
 
     /**
-     * @return The size of this Chronicle.
+     * @return The size of this Chronicle in number of Excerpts.
      */
     long size();
+
+    /**
+     * @return The size of this Chronicle in bytes.
+     */
+    long sizeInBytes();
 
     /**
      * @return The byte order of the index and data in the chronicle.

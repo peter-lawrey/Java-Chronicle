@@ -96,6 +96,15 @@ public class IndexedChronicle extends AbstractChronicle {
         return "chronicle";
     }
 
+    @Override
+    public long sizeInBytes() {
+        try {
+            return indexChannel.size() + dataChannel.size();
+        } catch (IOException ignored) {
+            return -1;
+        }
+    }
+
     protected int indexBitSize() {
         return 3;
     }
@@ -190,7 +199,7 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     @Override
-    public void incrSize() {
+    public void incrementSize() {
         size++;
     }
 

@@ -38,7 +38,7 @@ public interface DirectChronicle extends Chronicle {
 
     long startExcerpt(int capacity);
 
-    void incrSize();
+    void incrementSize();
 
     <E> EnumeratedMarshaller<E> acquireMarshaller(Class<E> aClass);
 }
