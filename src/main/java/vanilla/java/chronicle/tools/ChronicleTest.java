@@ -27,18 +27,29 @@ public enum ChronicleTest {
      * @return 256 bytes as text with `.` replacing special bytes.
      */
     public static String asString(Excerpt excerpt) {
-        return asString(excerpt, 256);
+        return asString(excerpt, excerpt.position());
     }
 
     /**
      * Take a text copy of the contents of the Excerpt without changing it's position. Can be called in the debugger.
      *
-     * @param excerpt to get text from
-     * @param length  the maximum length
+     * @param excerpt  to get text from
+     * @param position the position to get text from
+     * @return up to 1024 bytes as text with `.` replacing special bytes.
+     */
+    public static String asString(Excerpt excerpt, int position) {
+        return asString(excerpt, position, 1024);
+    }
+
+    /**
+     * Take a text copy of the contents of the Excerpt without changing it's position. Can be called in the debugger.
+     *
+     * @param excerpt  to get text from
+     * @param position the position to get text from
+     * @param length   the maximum length
      * @return length bytes as text with `.` replacing special bytes.
      */
-    public static String asString(Excerpt excerpt, int length) {
-        int position = excerpt.position();
+    public static String asString(Excerpt excerpt, int position, int length) {
         int limit = Math.min(position + length, excerpt.capacity());
         StringBuilder sb = new StringBuilder(limit - position);
         for (int i = position; i < limit; i++) {
