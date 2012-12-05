@@ -100,18 +100,42 @@ public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDat
      */
     OutputStream outputStream();
 
-    //// Support for enumerated types.
-
+    /**
+     * Write an enumerated type.  Here enumerated has a general sense.
+     * Its requirements are; <ol>
+     * <li>values must have one to one mapping with String as the reverse</li>
+     * <li>the values must be immutable</li>
+     * <li>the class must have a valueOf(String) or Constructor(String) which can take the output of toString(). </li>
+     * </ol>
+     * <p/>
+     * This method has special handling for Enum, Classes and Strings. It can handle other types which comply e.g. BigInteger
+     * <p/>
+     * If the reader cannot be expect to know the type, the class can be written (and read) first.
+     */
     <E> void writeEnum(E e);
 
+    /**
+     * Read what was written with writeEnum
+     */
     <E> E readEnum(Class<E> eClass);
 
-    /// Support for Enum, String and generic collections
+    /**
+     * Write a collection of enumerated values.
+     */
     <E> void writeEnums(Collection<E> eList);
 
+    /**
+     * Write a map or enumerated keys and values.
+     */
     <K, V> void writeMap(Map<K, V> map);
 
+    /**
+     * Reads a collection of enumerated types.
+     */
     <E> List<E> readEnums(Class<E> eClass);
 
+    /**
+     * Reads a map of key/values with known enumerated types.
+     */
     <K, V> Map<K, V> readMap(Class<K> kClass, Class<V> vClass);
 }

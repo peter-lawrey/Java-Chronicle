@@ -33,6 +33,7 @@ public abstract class AbstractChronicle implements DirectChronicle {
     protected AbstractChronicle(String name) {
         this.name = name;
         marshallerMap.put(String.class, new StringMarshaller(16 * 1024));
+        marshallerMap.put(Class.class, new ClassEnumMarshaller(Thread.currentThread().getContextClassLoader()));
     }
 
     public String name() {
