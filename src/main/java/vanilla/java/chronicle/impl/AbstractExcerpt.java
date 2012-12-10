@@ -215,10 +215,14 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
 
     @Override
     public String readUTF() {
+        readUTF(acquireUtfReader());
+        return utfReader.toString();
+    }
+
+    private StringBuilder acquireUtfReader() {
         if (utfReader == null) utfReader = new StringBuilder();
         utfReader.setLength(0);
-        readUTF(utfReader);
-        return utfReader.toString();
+        return utfReader;
     }
 
     @Override
@@ -302,8 +306,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
 
     @Override
     public String parseUTF(StopCharTester tester) {
-        utfReader.setLength(0);
-        parseUTF(utfReader, tester);
+        parseUTF(acquireUtfReader(), tester);
         return utfReader.toString();
     }
 
