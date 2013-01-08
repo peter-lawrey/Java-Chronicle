@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractExcerpt<C extends DirectChronicle> implements Excerpt<C> {
     protected final C chronicle;
-    protected long index;
+    protected long index = -1;
     protected long start = 0;
     protected long position = 0;
     protected int capacity = 0;
@@ -55,6 +55,11 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
     @Override
     public C chronicle() {
         return chronicle;
+    }
+
+    @Override
+    public boolean nextIndex() {
+        return index(index() + 1);
     }
 
     @Override

@@ -35,6 +35,13 @@ public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDat
     C chronicle();
 
     /**
+     * Attempt to set the index to the next index.  The method is re-tryable as another thread or process could be writing to this Chronicle.
+     *
+     * @return true if the index could be set to a valid entry.
+     */
+    boolean nextIndex();
+
+    /**
      * Attempt to set the index to this number.  The method is re-tryable as another thread or process could be writing to this Chronicle.
      *
      * @param index within the Chronicle

@@ -40,7 +40,7 @@ public class IndexedChronicleTest {
 
     private void doRewriteableEntries(boolean useUnsafe) throws IOException {
         String basePath = TMP + File.separator + "deleteme.ict";
-        IndexedChronicle tsc = new IndexedChronicle(basePath, 12);
+        IndexedChronicle tsc = new IndexedChronicle(basePath);
         tsc.useUnsafe(useUnsafe);
         deleteOnExit(basePath);
 
@@ -56,19 +56,20 @@ public class IndexedChronicleTest {
             excerpt.finish();
         }
 
-        counter = 1;
-        for (int i = 0; i < 1024; i++) {
-            assertTrue(excerpt.index(i));
+        int counter2 = 1;
+        Excerpt excerpt2 = tsc.createExcerpt();
+        while (excerpt2.nextIndex()) {
             for (int j = 0; j < 128; j += 8) {
-                long actual = excerpt.readLong();
-                long expected = counter++;
+                long actual = excerpt2.readLong();
+                long expected = counter2++;
                 if (expected != actual)
                     assertEquals(expected, actual);
             }
-            assertEquals(-1, excerpt.readByte());
-            excerpt.finish();
+            assertEquals(-1, excerpt2.readByte());
+            excerpt2.finish();
         }
-        assertFalse(excerpt.index(1024));
+        assertEquals(counter, counter2);
+        assertFalse(excerpt2.index(1024));
         tsc.close();
     }
 
