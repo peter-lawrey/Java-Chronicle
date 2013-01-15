@@ -23,6 +23,7 @@ package vanilla.java.chronicle;
  *
  * @author peter.lawrey
  */
+@Deprecated
 public class ByteString implements CharSequence, Cloneable {
     private static final int MAX_LENGTH = 255;
     private final byte[] data;
