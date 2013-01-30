@@ -24,6 +24,8 @@
     <artifactId>chronicle</artifactId>
     <packaging>jar</packaging>
     <version>1.4</version>
+    <name>Java Chronicle</name>
+    <description>High Performance Logging and Persisted Messaging</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -105,7 +107,27 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
+
+    <url>https://github.com/peter-lawrey/Java-Chronicle</url>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Peter Lawrey</name>
+            <email>peter.lawrey@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>scm:git:https://github.com/peter-lawrey/Java-Chronicle.git</url>
+    </scm>
 </project>
