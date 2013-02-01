@@ -51,6 +51,7 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
     private final Logger logger;
 
     private volatile boolean closed = false;
+    private Boolean tcpNoDelay;
 
     public InProcessChronicleSource(C chronicle, int port) throws IOException {
         this.chronicle = chronicle;
@@ -60,6 +61,14 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
         logger = Logger.getLogger(getClass().getName() + "." + name);
         service = Executors.newCachedThreadPool(new NamedThreadFactory(name));
         service.execute(new Acceptor());
+    }
+
+    public void setTcpNoDelay(Boolean tcpNoDelay) {
+        this.tcpNoDelay = tcpNoDelay;
+    }
+
+    public Boolean getTcpNoDelay() {
+        return tcpNoDelay;
     }
 
     class Acceptor implements Runnable {
@@ -84,7 +93,9 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
         public Handler(SocketChannel socket) throws SocketException {
             this.socket = socket;
             socket.socket().setSendBufferSize(256 * 1024);
-//            socket.socket().setTcpNoDelay(true);
+            Boolean tcpNoDelay = getTcpNoDelay();
+            if (tcpNoDelay != null)
+                socket.socket().setTcpNoDelay(tcpNoDelay);
         }
 
         @Override

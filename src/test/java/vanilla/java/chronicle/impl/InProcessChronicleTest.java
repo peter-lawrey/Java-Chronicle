@@ -143,7 +143,7 @@ public class InProcessChronicleTest {
         long start = System.nanoTime();
         int prices = 1000000;
         for (int i = 0; i < prices; i++) {
-            pw.onPrice("symbol", 99.9, 10, 100.1, 11);
+            pw.onPrice("symbol", 99.9, i + 1, 100.1, i + 2);
         }
 
         long mid = System.nanoTime();
