@@ -8,6 +8,7 @@ import vanilla.java.chronicle.tcp.InProcessChronicleSource;
 import vanilla.java.chronicle.tools.ChronicleTest;
 
 import java.io.IOException;
+import java.util.Date;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -20,10 +21,11 @@ public class InProcessChronicleTest {
 
     @Test
     public void testOverTCP() throws IOException, InterruptedException {
+        String baseDir = System.getProperty("user.home");
         // NOTE: the sink and source must have different chronicle files.
         final int messages = 1000000;
-        final Chronicle source = new InProcessChronicleSource(new IndexedChronicle("source", 14), PORT);
-        ChronicleTest.deleteOnExit("source");
+        final Chronicle source = new InProcessChronicleSource(new IndexedChronicle(baseDir + "/source"), PORT);
+        ChronicleTest.deleteOnExit(baseDir + "/source");
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -35,6 +37,7 @@ public class InProcessChronicleTest {
                         excerpt.finish();
 //                        Thread.sleep(1);
                     }
+                    System.out.println(new Date() + ": Finished writing messages");
                 } catch (Exception e) {
                     throw new AssertionError(e);
                 }
@@ -42,8 +45,8 @@ public class InProcessChronicleTest {
             }
         });
 
-        Chronicle sink = new InProcessChronicleSink(new IndexedChronicle("sink", 14), "localhost", PORT);
-        ChronicleTest.deleteOnExit("sink");
+        Chronicle sink = new InProcessChronicleSink(new IndexedChronicle(baseDir + "/sink"), "localhost", PORT);
+        ChronicleTest.deleteOnExit(baseDir + "/sink");
 
         long start = System.nanoTime();
         t.start();
