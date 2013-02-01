@@ -67,4 +67,94 @@ public class InProcessChronicleTest {
         long time = System.nanoTime() - start;
         System.out.printf("Messages per second %,d", (int) (messages * 1e9 / time));
     }
+
+    interface PriceListener {
+        public void onPrice(String symbol, double bp, int bq, double ap, int aq);
+    }
+
+    static class PriceWriter implements PriceListener {
+        private final Excerpt excerpt;
+
+        PriceWriter(Excerpt excerpt) {
+            this.excerpt = excerpt;
+        }
+
+        @Override
+        public void onPrice(String symbol, double bp, int bq, double ap, int aq) {
+            excerpt.startExcerpt(1 + (2 + symbol.length()) + 8 + 4 + 8 + 4);
+            excerpt.writeByte('P'); // code for a price
+            excerpt.writeEnum(symbol);
+            excerpt.writeDouble(bp);
+            excerpt.writeInt(bq);
+            excerpt.writeDouble(ap);
+            excerpt.writeInt(aq);
+            excerpt.finish();
+        }
+    }
+
+    static class PriceReader {
+        private final Excerpt<Chronicle> excerpt;
+        private final PriceListener listener;
+
+        PriceReader(Excerpt excerpt, PriceListener listener) {
+            this.excerpt = excerpt;
+            this.listener = listener;
+        }
+
+        public boolean read() {
+            if (!excerpt.nextIndex()) return false;
+            char ch = (char) excerpt.readByte();
+            switch (ch) {
+                case 'P': {
+                    String symbol = excerpt.readEnum(String.class);
+                    double bp = excerpt.readDouble();
+                    int bq = excerpt.readInt();
+                    double ap = excerpt.readDouble();
+                    int aq = excerpt.readInt();
+                    listener.onPrice(symbol, bp, bq, ap, aq);
+                    break;
+                }
+                default:
+                    throw new AssertionError("Unexpected code " + ch);
+            }
+            return true;
+        }
+    }
+
+    @Test
+    public void testPricePublishing() throws IOException {
+        String baseDir = System.getProperty("java.io.tmpdir");
+        String sourceName = baseDir + "/price.source";
+        Chronicle source = new InProcessChronicleSource(new IndexedChronicle(sourceName), PORT);
+        ChronicleTest.deleteOnExit(sourceName);
+        PriceWriter pw = new PriceWriter(source.createExcerpt());
+
+        String sinkName = baseDir + "/price.sink";
+        Chronicle sink = new InProcessChronicleSink(new IndexedChronicle(sinkName), "localhost", PORT);
+        ChronicleTest.deleteOnExit(sinkName);
+
+        PriceReader reader = new PriceReader(sink.createExcerpt(), new PriceListener() {
+            @Override
+            public void onPrice(String symbol, double bp, int bq, double ap, int aq) {
+            }
+        });
+        long start = System.nanoTime();
+        int prices = 1000000;
+        for (int i = 0; i < prices; i++) {
+            pw.onPrice("symbol", 99.9, 10, 100.1, 11);
+        }
+
+        long mid = System.nanoTime();
+        for (int i = 0; i < prices; i++) {
+            while (!reader.read()) ;
+//            System.out.println(i);
+        }
+        long end = System.nanoTime();
+        System.out.printf("Took an average of %.1f us to write and %.1f us to read",
+                (mid - start) / prices / 1e3, (end - mid) / prices / 1e3);
+
+
+        source.close();
+        sink.close();
+    }
 }

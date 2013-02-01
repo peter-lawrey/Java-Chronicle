@@ -193,7 +193,7 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
 
             // needs more than one read.
             while (remaining > 0) {
-                System.out.println("++ read");
+//                System.out.println("++ read");
                 readBuffer.clear();
                 int size3 = (int) Math.min(readBuffer.capacity(), remaining);
                 readBuffer.limit(size3);
