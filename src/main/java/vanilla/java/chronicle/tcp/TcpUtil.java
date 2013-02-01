@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
  */
 enum TcpUtil {
     ;
-    static final int HEADER_SIZE = 16;
+    static final int HEADER_SIZE = 12;
     static final int INITIAL_BUFFER_SIZE = 64 * 1024;
 
     public static ByteBuffer createBuffer(int minSize, Chronicle chronicle) {

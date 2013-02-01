@@ -148,7 +148,7 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
 //                System.out.println("read header");
                 readHeader(sc, bb);
                 long index = bb.getLong(0);
-                long size = bb.getLong(8);
+                long size = bb.getInt(8);
                 if (index != chronicle.size())
                     throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + index);
                 if (size > Integer.MAX_VALUE || size < 0)

@@ -123,7 +123,7 @@ public class ChronicleSink<C extends Chronicle> implements Closeable {
                 while (!closed) {
                     readHeader(sc, bb);
                     long index = bb.getLong(0);
-                    long size = bb.getLong(8);
+                    long size = bb.getInt(8);
                     if (index != chronicle.size())
                         throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + index);
                     if (size > Integer.MAX_VALUE || size < 0)

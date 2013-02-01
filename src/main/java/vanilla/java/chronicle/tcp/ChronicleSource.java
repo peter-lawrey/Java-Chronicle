@@ -119,7 +119,7 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
 
                     bb.clear();
                     bb.putLong(index);
-                    bb.putLong(size);
+                    bb.putInt(size);
                     while (remaining > 0) {
                         int size2 = Math.min(remaining, bb.capacity());
                         bb.limit(size2);
