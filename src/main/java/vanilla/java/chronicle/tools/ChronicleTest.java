@@ -18,6 +18,7 @@ package vanilla.java.chronicle.tools;
 import vanilla.java.chronicle.Excerpt;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 
 /**
  * @author plawrey
@@ -71,6 +72,22 @@ public enum ChronicleTest {
             char ch = (char) excerpt.readUnsignedByte(i);
             if (ch < ' ' || ch > 127) ch = '.';
             sb.append(ch);
+        }
+        return sb.toString();
+    }
+
+    public static String asString(ByteBuffer bb) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = bb.position(); i < bb.limit(); i++) {
+            byte b = bb.get(i);
+            if (b < ' ') {
+                int h = b & 0xFF;
+                if (h < 16)
+                    sb.append('0');
+                sb.append(Integer.toHexString(h));
+            } else {
+                sb.append(' ').append((char) b);
+            }
         }
         return sb.toString();
     }

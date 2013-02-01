@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author peter.lawrey
  */
 public abstract class AbstractExcerpt<C extends DirectChronicle> implements Excerpt<C> {
+    public static final int MIN_SIZE = 8;
+
     protected final C chronicle;
     protected long index = -1;
     protected long start = 0;
@@ -69,6 +71,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         if (endPosition == 0) {
             capacity = 0;
             buffer = null;
+//            System.out.println("ep");
             return false;
         }
         long startPosition = chronicle.getIndexData(index);
@@ -77,7 +80,8 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         forWrite = false;
         // TODO Assumes the start of the record won't be all 0's
         // TODO Need to determine whether this is required as a safety check or not.
-        return readLong(0) != 0L;
+        long l = readLong(0);
+        return l != 0L;
     }
 
     private boolean readMemoryBarrier() {
@@ -86,7 +90,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
 
     @Override
     public void startExcerpt(int capacity) {
-        this.capacity = capacity;
+        this.capacity = capacity < MIN_SIZE ? MIN_SIZE : capacity;
         long startPosition = chronicle.startExcerpt(capacity);
         long endPosition = startPosition + capacity;
         index0(chronicle.size(), startPosition, endPosition);
@@ -95,13 +99,18 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
 
     @Override
     public void finish() {
+        long length = position - start;
+        if (length < MIN_SIZE)
+            length = MIN_SIZE;
         if (position > limit)
-            throw new IllegalStateException("Capacity allowed: " + capacity + " data read/written: " + (position - start));
+            throw new IllegalStateException("Capacity allowed: " + capacity + " data read/written: " + length);
+        if (readLong(0) == 0)
+            throw new IllegalStateException("The first 8 bytes cannot be all zero");
         if (forWrite) {
-            final long endPosition = startPosition + (position - start);
+            final long endPosition = startPosition + length;
             chronicle.setIndexData(index + 1, endPosition);
             chronicle.incrementSize();
-            capacity = (int) (position - start);
+            capacity = (int) length;
             writeMemoryBarrier();
         }
     }
@@ -603,7 +612,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
 
     @Override
     public void read(ByteBuffer bb) {
-        int len = Math.min(bb.remaining(), length());
+        int len = Math.min(bb.remaining(), remaining());
         if (bb.order() == order()) {
             while (len >= 8) {
                 bb.putLong(readLong());

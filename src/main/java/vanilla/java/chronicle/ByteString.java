@@ -22,6 +22,7 @@ package vanilla.java.chronicle;
  * It is intended to be used for ASCII text based protocols with limited field lengths.  It perform no character encoding and has trivial Serialization, and De-serialization overhead.
  *
  * @author peter.lawrey
+ * @deprecated from version 1.4
  */
 @Deprecated
 public class ByteString implements CharSequence, Cloneable {

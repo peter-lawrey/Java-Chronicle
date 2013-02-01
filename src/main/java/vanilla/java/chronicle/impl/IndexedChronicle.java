@@ -28,6 +28,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * The fastest and most extensible Chronicle.
@@ -37,6 +38,7 @@ import java.util.List;
 public class IndexedChronicle extends AbstractChronicle {
     public static final long MAX_VIRTUAL_ADDRESS = 1L << 48;
     public static final int DEFAULT_DATA_BITS_SIZE = 27; // 1 << 27 or 128 MB.
+    private static final Logger logger = Logger.getLogger(IndexedChronicle.class.getName());
 
     private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
     private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();
@@ -76,10 +78,10 @@ public class IndexedChronicle extends AbstractChronicle {
         long indexSize = indexChannel.size() >>> indexBitSize();
         if (indexSize > 0) {
             while (--indexSize > 0 && getIndexData(indexSize) == 0) ;
-            System.out.println(basePath + ", size=" + indexSize);
+            logger.info(basePath + ", size=" + indexSize);
             size = indexSize;
         } else {
-            System.out.println(basePath + " created.");
+            logger.info(basePath + " created.");
         }
     }
 

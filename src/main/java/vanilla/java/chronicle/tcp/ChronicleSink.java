@@ -85,11 +85,15 @@ public class ChronicleSink<C extends Chronicle> implements Closeable {
         @Override
         public void run() {
             SocketChannel sc = null;
-            while (!closed) {
-                if (sc == null || !sc.isOpen())
-                    sc = createConnection();
-                else
-                    readNextExcerpt(sc);
+            try {
+                while (!closed) {
+                    if (sc == null || !sc.isOpen())
+                        sc = createConnection();
+                    else
+                        readNextExcerpt(sc);
+                }
+            } finally {
+                closeSocket(sc);
             }
         }
 
@@ -158,6 +162,15 @@ public class ChronicleSink<C extends Chronicle> implements Closeable {
             while (bb.remaining() > 0 && sc.read(bb) > 0) ;
             if (bb.remaining() > 0) throw new EOFException();
         }
+    }
+
+    void closeSocket(SocketChannel sc) {
+        if (sc != null)
+            try {
+                sc.close();
+            } catch (IOException e) {
+                logger.warning("Error closing socket " + e);
+            }
     }
 
     @Override

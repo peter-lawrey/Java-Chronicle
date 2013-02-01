@@ -25,6 +25,8 @@ import java.util.Map;
 
 /**
  * An extracted record within a Chronicle.  This record refers to one entry.
+ * <p/>
+ * Note: buried in the logic there is an assumption the excerpt will be at least 8 bytes long and the first 8 will not all be zero. This assumption may be lifted in future.
  *
  * @author peter.lawrey
  */
@@ -74,7 +76,7 @@ public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDat
     int capacity();
 
     /**
-     * @return the number fo bytes unread.
+     * @return the number of bytes unread.
      */
     int remaining();
 

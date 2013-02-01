@@ -13,6 +13,8 @@ https://groups.google.com/forum/?fromgroups#!forum/java-chronicle
 Version History
 ===================================
 
+Version 1.5 - Support Publishing Chronicle over TCP.
+
 Version 1.4 - Support for enumerated types, Enum and generic.
             Improve replication performance and memory usage (esp for large excerpts)
             Removed the requirement to provide a DataSizeBitsHint when it wasn't clear what this was for.

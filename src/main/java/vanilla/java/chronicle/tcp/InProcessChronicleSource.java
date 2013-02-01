@@ -17,10 +17,10 @@
 package vanilla.java.chronicle.tcp;
 
 import vanilla.java.chronicle.Chronicle;
+import vanilla.java.chronicle.EnumeratedMarshaller;
 import vanilla.java.chronicle.Excerpt;
-import vanilla.java.chronicle.impl.IndexedChronicle;
+import vanilla.java.chronicle.impl.WrappedExcerpt;
 
-import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -30,23 +30,20 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A Chronicle as a service to be replicated to any number of clients.
- * Clients can restart from where ever they are up to.
+ * A Chronicle as a service to be replicated to any number of clients.  Clients can restart from where ever they are up to.
  * <p/>
- * Can be used ad a component or run as a stand alone service.
+ * Can be used an in process component which wraps the underlying Chronicle
+ * and offers lower overhead than using ChronicleSource
  *
  * @author peter.lawrey
  */
-public class ChronicleSource<C extends Chronicle> implements Closeable {
+public class InProcessChronicleSource<C extends Chronicle> implements Chronicle {
     private final C chronicle;
     private final ServerSocketChannel server;
-    private final int delayNS;
 
     private final String name;
     private final ExecutorService service;
@@ -54,32 +51,14 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
 
     private volatile boolean closed = false;
 
-    public ChronicleSource(C chronicle, int port, int delayNS) throws IOException {
+    public InProcessChronicleSource(C chronicle, int port) throws IOException {
         this.chronicle = chronicle;
-        this.delayNS = delayNS;
         server = ServerSocketChannel.open();
         server.socket().bind(new InetSocketAddress(port));
         name = chronicle.name() + "@" + port;
         logger = Logger.getLogger(getClass().getName() + "." + name);
         service = Executors.newCachedThreadPool(new NamedThreadFactory(name));
         service.execute(new Acceptor());
-    }
-
-    public static void main(String... args) throws IOException {
-        if (args.length < 2) {
-            System.err.println("Usage: java " + ChronicleSource.class.getName() + " {chronicle-base-path} {port} [delayNS]");
-            System.exit(-1);
-        }
-        int dataBitsHintSize = Integer.getInteger("dataBitsHintSize", 27);
-        String def = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN ? "Big" : "Little";
-        ByteOrder byteOrder = System.getProperty("byteOrder", def).equalsIgnoreCase("Big") ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
-        String basePath = args[0];
-        int port = Integer.parseInt(args[1]);
-        int delayNS = 5 * 1000 * 1000;
-        if (args.length > 2)
-            delayNS = Integer.parseInt(args[2]);
-        IndexedChronicle ic = new IndexedChronicle(basePath, dataBitsHintSize, byteOrder);
-        ChronicleSource cs = new ChronicleSource(ic, port, delayNS);
     }
 
     class Acceptor implements Runnable {
@@ -111,9 +90,14 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
                 long index = readIndex(socket);
                 Excerpt excerpt = chronicle.createExcerpt();
                 ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
+                OUTER:
                 while (!closed) {
-                    while (!excerpt.index(index))
-                        pause(delayNS);
+                    while (!excerpt.index(index)) {
+//                        System.out.println("Waiting for " + index);
+                        pause();
+                        if (closed) break OUTER;
+                    }
+//                    System.out.println("Writing " + index);
                     int size = excerpt.capacity();
                     int remaining = size + TcpUtil.HEADER_SIZE;
 
@@ -123,8 +107,10 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
                     while (remaining > 0) {
                         int size2 = Math.min(remaining, bb.capacity());
                         bb.limit(size2);
+                        long l = excerpt.readLong(0);
                         excerpt.read(bb);
                         bb.flip();
+//                        System.out.println("w " + ChronicleTest.asString(bb));
                         remaining -= bb.remaining();
                         while (bb.remaining() > 0 && socket.write(bb) > 0) ;
                     }
@@ -145,25 +131,76 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
         }
     }
 
-    protected void pause(int delayNS) {
-        if (delayNS < 1) return;
-        long start = System.nanoTime();
-        if (delayNS >= 1000 * 1000)
-            LockSupport.parkNanos(delayNS); // only ms accuracy.
-        while (System.nanoTime() - start < delayNS)
-            Thread.yield();
+    private final Object notifier = new Object();
+
+    protected void pause() {
+        try {
+            synchronized (notifier) {
+                notifier.wait(1000);
+            }
+        } catch (InterruptedException ie) {
+            logger.warning("Interrupt ignored");
+            ;
+        }
+    }
+
+    void wakeSessionHandlers() {
+        synchronized (notifier) {
+            notifier.notifyAll();
+        }
     }
 
     @Override
-    public void close() throws IOException {
-        closed = true;
-        service.shutdown();
-        try {
-            service.awaitTermination(1, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        chronicle.close();
+    public String name() {
+        return chronicle.name();
     }
 
+    @Override
+    public Excerpt createExcerpt() {
+        return new SourceExcerpt();
+    }
+
+    @Override
+    public long size() {
+        return chronicle.size();
+    }
+
+    @Override
+    public long sizeInBytes() {
+        return chronicle.sizeInBytes();
+    }
+
+    @Override
+    public ByteOrder byteOrder() {
+        return chronicle.byteOrder();
+    }
+
+    @Override
+    public void close() {
+        closed = true;
+        chronicle.close();
+        try {
+            server.close();
+        } catch (IOException e) {
+            logger.warning("Error closing server port " + e);
+        }
+    }
+
+    @Override
+    public <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller) {
+        chronicle.setEnumeratedMarshaller(marshaller);
+    }
+
+    private class SourceExcerpt extends WrappedExcerpt {
+        public SourceExcerpt() {
+            super(InProcessChronicleSource.this.chronicle.createExcerpt());
+        }
+
+        @Override
+        public void finish() {
+            super.finish();
+            wakeSessionHandlers();
+//            System.out.println("Wrote " + index());
+        }
+    }
 }
