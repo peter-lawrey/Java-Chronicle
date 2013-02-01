@@ -8,7 +8,6 @@ import vanilla.java.chronicle.tcp.InProcessChronicleSource;
 import vanilla.java.chronicle.tools.ChronicleTest;
 
 import java.io.IOException;
-import java.util.Date;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -32,12 +31,14 @@ public class InProcessChronicleTest {
                 try {
                     Excerpt excerpt = source.createExcerpt();
                     for (int i = 1; i <= messages; i++) {
-                        excerpt.startExcerpt(8);
+                        // use a size which will cause mis-alignment.
+                        excerpt.startExcerpt(9);
                         excerpt.writeLong(i);
+                        excerpt.writeByte(i);
                         excerpt.finish();
 //                        Thread.sleep(1);
                     }
-                    System.out.println(new Date() + ": Finished writing messages");
+                    System.out.println(System.currentTimeMillis() + ": Finished writing messages");
                 } catch (Exception e) {
                     throw new AssertionError(e);
                 }

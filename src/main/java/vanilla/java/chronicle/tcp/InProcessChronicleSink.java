@@ -52,6 +52,7 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
         name = chronicle.name() + '@' + hostname + ':' + port;
         logger = Logger.getLogger(getClass().getName() + '.' + chronicle);
         excerpt = chronicle.createExcerpt();
+        readBuffer = TcpUtil.createBuffer(256 * 1024, chronicle);
     }
 
     @Override
@@ -105,10 +106,13 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
     }
 
     private SocketChannel sc = null;
+    private long scIndex = -1;
+    private boolean scFirst = true;
 
     void readNext() {
         if (sc == null || !sc.isOpen()) {
             sc = createConnection();
+            scFirst = true;
         }
         if (sc != null)
             readNextExcerpt(sc);
@@ -117,7 +121,11 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
     private SocketChannel createConnection() {
         while (!closed) {
             try {
+                readBuffer.clear();
+                readBuffer.limit(0);
+
                 SocketChannel sc = SocketChannel.open(address);
+                sc.socket().setReceiveBufferSize(256 * 1024);
                 logger.info("Connected to " + address);
                 ByteBuffer bb = ByteBuffer.allocate(8);
                 bb.putLong(0, chronicle.size());
@@ -141,50 +149,78 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
         return null;
     }
 
-    private void readNextExcerpt(SocketChannel sc) {
-        ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
-        try {
-            if (!closed) {
-//                System.out.println("read header");
-                readHeader(sc, bb);
-                long index = bb.getLong(0);
-                long size = bb.getInt(8);
-                if (index != chronicle.size())
-                    throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + index);
-                if (size > Integer.MAX_VALUE || size < 0)
-                    throw new StreamCorruptedException("size was " + size);
+    private final ByteBuffer readBuffer; // minimum size
 
-                excerpt.startExcerpt((int) size);
-                // perform a progressive copy of data.
-                long remaining = size;
-                bb.position(0);
-                while (remaining > 0) {
-                    int size2 = (int) Math.min(bb.capacity(), remaining);
-                    bb.limit(size2);
-//                    System.out.println("... reading");
-                    if (sc.read(bb) < 0) throw new EOFException();
-                    bb.flip();
-//                    System.out.println("r " + ChronicleTest.asString(bb));
-                    remaining -= bb.remaining();
-                    excerpt.write(bb);
+    private void readNextExcerpt(SocketChannel sc) {
+        try {
+            if (closed) return;
+
+            if (readBuffer.remaining() < TcpUtil.HEADER_SIZE) {
+                if (readBuffer.remaining() == 0)
+                    readBuffer.clear();
+                else
+                    readBuffer.compact();
+                if (sc.read(readBuffer) < 0) {
+                    sc.close();
+                    return;
                 }
-                excerpt.finish();
+                readBuffer.flip();
             }
+
+            if (scFirst) {
+                scIndex = readBuffer.getLong();
+//                    System.out.println("ri " + scIndex);
+                scFirst = false;
+            }
+            long size = readBuffer.getInt();
+//                System.out.println("size="+size);
+            if (scIndex != chronicle.size())
+                throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + scIndex);
+            if (size > Integer.MAX_VALUE || size < 0)
+                throw new StreamCorruptedException("size was " + size);
+
+            excerpt.startExcerpt((int) size);
+            // perform a progressive copy of data.
+            long remaining = size;
+            int limit = readBuffer.limit();
+
+            int size2 = (int) Math.min(readBuffer.remaining(), remaining);
+            remaining -= size2;
+            readBuffer.limit(readBuffer.position() + size2);
+            excerpt.write(readBuffer);
+            // reset the limit;
+            readBuffer.limit(limit);
+
+            // needs more than one read.
+            while (remaining > 0) {
+                System.out.println("++ read");
+                readBuffer.clear();
+                int size3 = (int) Math.min(readBuffer.capacity(), remaining);
+                readBuffer.limit(size3);
+//                    System.out.println("... reading");
+                if (sc.read(readBuffer) < 0) throw new EOFException();
+                readBuffer.flip();
+//                    System.out.println("r " + ChronicleTest.asString(bb));
+                remaining -= readBuffer.remaining();
+                excerpt.write(readBuffer);
+            }
+
+            excerpt.finish();
+            scIndex++;
         } catch (IOException e) {
             if (logger.isLoggable(Level.FINE))
                 logger.log(Level.FINE, "Lost connection to " + address + " retrying", e);
             else if (logger.isLoggable(Level.INFO))
                 logger.log(Level.INFO, "Lost connection to " + address + " retrying " + e);
         }
-        if (logger.isLoggable(Level.FINE))
-            logger.log(Level.FINE, "Disconnected from " + address);
     }
 
-    private void readHeader(SocketChannel sc, ByteBuffer bb) throws IOException {
+    private void readHeader(SocketChannel sc, ByteBuffer bb, boolean first) throws IOException {
         bb.position(0);
-        bb.limit(TcpUtil.HEADER_SIZE);
+        bb.limit(first ? TcpUtil.HEADER_SIZE : 4);
         while (bb.remaining() > 0 && sc.read(bb) > 0) ;
         if (bb.remaining() > 0) throw new EOFException();
+        bb.flip();
     }
 
     void closeSocket(SocketChannel sc) {

@@ -24,6 +24,7 @@ import vanilla.java.chronicle.impl.WrappedExcerpt;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ServerSocketChannel;
@@ -80,8 +81,10 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
     class Handler implements Runnable {
         private final SocketChannel socket;
 
-        public Handler(SocketChannel socket) {
+        public Handler(SocketChannel socket) throws SocketException {
             this.socket = socket;
+            socket.socket().setSendBufferSize(256 * 1024);
+//            socket.socket().setTcpNoDelay(true);
         }
 
         @Override
@@ -90,6 +93,7 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
                 long index = readIndex(socket);
                 Excerpt excerpt = chronicle.createExcerpt();
                 ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
+                boolean first = true;
                 OUTER:
                 while (!closed) {
                     while (!excerpt.index(index)) {
@@ -99,15 +103,21 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
                     }
 //                    System.out.println("Writing " + index);
                     int size = excerpt.capacity();
-                    int remaining = size + TcpUtil.HEADER_SIZE;
+                    int remaining;
 
                     bb.clear();
-                    bb.putLong(index);
+                    if (first) {
+//                        System.out.println("wi "+index);
+                        bb.putLong(index);
+                        first = false;
+                        remaining = size + TcpUtil.HEADER_SIZE;
+                    } else {
+                        remaining = size + 4;
+                    }
                     bb.putInt(size);
                     while (remaining > 0) {
                         int size2 = Math.min(remaining, bb.capacity());
                         bb.limit(size2);
-                        long l = excerpt.readLong(0);
                         excerpt.read(bb);
                         bb.flip();
 //                        System.out.println("w " + ChronicleTest.asString(bb));
@@ -116,6 +126,8 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
                     }
                     if (bb.remaining() > 0) throw new EOFException("Failed to send index=" + index);
                     index++;
+//                    if (index % 20000 == 0)
+//                        System.out.println(System.currentTimeMillis() + ": wrote " + index);
                 }
             } catch (IOException e) {
                 if (!closed)
