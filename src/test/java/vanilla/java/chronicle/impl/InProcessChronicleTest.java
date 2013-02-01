@@ -20,9 +20,9 @@ public class InProcessChronicleTest {
 
     @Test
     public void testOverTCP() throws IOException, InterruptedException {
-        String baseDir = System.getProperty("user.home");
+        String baseDir = System.getProperty("java.io.tmpdir");
         // NOTE: the sink and source must have different chronicle files.
-        final int messages = 1000000;
+        final int messages = 3000000;
         final Chronicle source = new InProcessChronicleSource(new IndexedChronicle(baseDir + "/source"), PORT);
         ChronicleTest.deleteOnExit(baseDir + "/source");
         Thread t = new Thread(new Runnable() {
