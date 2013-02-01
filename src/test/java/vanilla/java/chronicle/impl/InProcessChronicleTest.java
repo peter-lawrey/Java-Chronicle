@@ -7,7 +7,10 @@ import vanilla.java.chronicle.tcp.InProcessChronicleSink;
 import vanilla.java.chronicle.tcp.InProcessChronicleSource;
 import vanilla.java.chronicle.tools.ChronicleTest;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -69,7 +72,7 @@ public class InProcessChronicleTest {
     }
 
     interface PriceListener {
-        public void onPrice(String symbol, double bp, int bq, double ap, int aq);
+        public void onPrice(long timeInMicros, String symbol, double bp, int bq, double ap, int aq);
     }
 
     static class PriceWriter implements PriceListener {
@@ -80,9 +83,10 @@ public class InProcessChronicleTest {
         }
 
         @Override
-        public void onPrice(String symbol, double bp, int bq, double ap, int aq) {
-            excerpt.startExcerpt(1 + (2 + symbol.length()) + 8 + 4 + 8 + 4);
+        public void onPrice(long timeInMicros, String symbol, double bp, int bq, double ap, int aq) {
+            excerpt.startExcerpt(1 + 8 + (2 + symbol.length()) + 8 + 4 + 8 + 4);
             excerpt.writeByte('P'); // code for a price
+            excerpt.writeLong(timeInMicros);
             excerpt.writeEnum(symbol);
             excerpt.writeDouble(bp);
             excerpt.writeInt(bq);
@@ -106,12 +110,13 @@ public class InProcessChronicleTest {
             char ch = (char) excerpt.readByte();
             switch (ch) {
                 case 'P': {
+                    long timeInMicros = excerpt.readLong();
                     String symbol = excerpt.readEnum(String.class);
                     double bp = excerpt.readDouble();
                     int bq = excerpt.readInt();
                     double ap = excerpt.readDouble();
                     int aq = excerpt.readInt();
-                    listener.onPrice(symbol, bp, bq, ap, aq);
+                    listener.onPrice(timeInMicros, symbol, bp, bq, ap, aq);
                     break;
                 }
                 default:
@@ -121,7 +126,8 @@ public class InProcessChronicleTest {
         }
     }
 
-    // Took an average of 0.6 us to write and 2.0 us to read
+    // Took an average of 0.4 us to write and 1.9 us to read (Java 6)
+    // Took an average of 0.4 us to write and 1.8 us to read (Java 7)
 
     @Test
     public void testPricePublishing() throws IOException {
@@ -135,22 +141,23 @@ public class InProcessChronicleTest {
         Chronicle sink = new InProcessChronicleSink(new IndexedChronicle(sinkName), "localhost", PORT);
         ChronicleTest.deleteOnExit(sinkName);
 
+        final AtomicInteger count = new AtomicInteger();
         PriceReader reader = new PriceReader(sink.createExcerpt(), new PriceListener() {
             @Override
-            public void onPrice(String symbol, double bp, int bq, double ap, int aq) {
+            public void onPrice(long timeInMicros, String symbol, double bp, int bq, double ap, int aq) {
+                count.incrementAndGet();
             }
         });
         long start = System.nanoTime();
-        int prices = 1000000;
+        int prices = 5000000;
         for (int i = 0; i < prices; i++) {
-            pw.onPrice("symbol", 99.9, i + 1, 100.1, i + 2);
+            pw.onPrice(1 + i, "symbol", 99.9, i + 1, 100.1, i + 2);
         }
 
         long mid = System.nanoTime();
-        for (int i = 0; i < prices; i++) {
-            while (!reader.read()) ;
-//            System.out.println(i);
-        }
+        while (count.get() < prices)
+            reader.read();
+
         long end = System.nanoTime();
         System.out.printf("Took an average of %.1f us to write and %.1f us to read",
                 (mid - start) / prices / 1e3, (end - mid) / prices / 1e3);
@@ -158,5 +165,72 @@ public class InProcessChronicleTest {
 
         source.close();
         sink.close();
+    }
+
+    static class PriceUpdate implements Externalizable, Serializable {
+        private long timeInMicros;
+        private String symbol;
+        private double bp;
+        private int bq;
+        private double ap;
+        private int aq;
+
+        public PriceUpdate() {
+        }
+
+        PriceUpdate(long timeInMicros, String symbol, double bp, int bq, double ap, int aq) {
+            this.timeInMicros = timeInMicros;
+            this.symbol = symbol;
+            this.bp = bp;
+            this.bq = bq;
+            this.ap = ap;
+            this.aq = aq;
+        }
+
+        //        @Override
+        public void writeExternal(ObjectOutput out) throws IOException {
+            out.writeLong(timeInMicros);
+            out.writeUTF(symbol);
+            out.writeDouble(bp);
+            out.writeInt(bq);
+            out.writeDouble(ap);
+            out.writeInt(aq);
+        }
+
+        //        @Override
+        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            timeInMicros = in.readLong();
+            symbol = in.readUTF();
+            bp = in.readDouble();
+            bq = in.readInt();
+            ap = in.readDouble();
+            aq = in.readInt();
+        }
+    }
+
+    // Took an average of 2.8 us to write and 7.6 us to read (Java 7)
+    @Test
+    public void testSerializationPerformance() throws IOException, ClassNotFoundException {
+        List<byte[]> bytes = new ArrayList<byte[]>();
+        long start = System.nanoTime();
+        int prices = 1000000;
+        for (int i = 0; i < prices; i++) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            PriceUpdate pu = new PriceUpdate(1 + i, "symbol", 99.9, i + 1, 100.1, i + 2);
+            oos.writeObject(pu);
+            oos.close();
+            bytes.add(baos.toByteArray());
+        }
+
+        long mid = System.nanoTime();
+        for (byte[] bs : bytes) {
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bs));
+            PriceUpdate pu = (PriceUpdate) ois.readObject();
+        }
+
+        long end = System.nanoTime();
+        System.out.printf("Took an average of %.1f us to write and %.1f us to read",
+                (mid - start) / prices / 1e3, (end - mid) / prices / 1e3);
     }
 }
