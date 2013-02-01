@@ -121,6 +121,8 @@ public class InProcessChronicleTest {
         }
     }
 
+    // Took an average of 0.6 us to write and 2.0 us to read
+
     @Test
     public void testPricePublishing() throws IOException {
         String baseDir = System.getProperty("java.io.tmpdir");
