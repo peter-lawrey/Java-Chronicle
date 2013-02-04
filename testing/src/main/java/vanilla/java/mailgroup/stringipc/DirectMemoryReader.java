@@ -15,8 +15,8 @@
  */
 package vanilla.java.mailgroup.stringipc;
 
-import vanilla.java.chronicle.Excerpt;
-import vanilla.java.chronicle.impl.IndexedChronicle;
+import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 
 import java.io.IOException;
 

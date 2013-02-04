@@ -41,7 +41,7 @@ Version 0.5.1 - Fix code to compile with Java 6 update 31. (Previously only Java
 Version 0.5 - Add support for replication of a Chronicle over TCP to any number of listeners, either as a component or stand alone/independent application. Uses ChronicleSource and ChronicleSink.
             Add ChronicleReader to read records as they are added as text. (like less)
 
-Version 0.4 - Add support for writing text to the log file without creating garbage via vanilla.java.chronicle.ByteStringAppender interface. Useful for text logs.
+Version 0.4 - Add support for writing text to the log file without creating garbage via com.higherfrequencytrading.chronicle.ByteStringAppender interface. Useful for text logs.
 
 Version 0.3.1 - Add support for 24-bit int and 48-bit long values.
 
