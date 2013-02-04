@@ -126,11 +126,11 @@ public class InProcessChronicleTest {
         }
     }
 
-    // Took an average of 0.4 us to write and 1.9 us to read (Java 6)
-    // Took an average of 0.4 us to write and 1.8 us to read (Java 7)
+    // Took an average of 0.42 us to write and 0.61 us to read (Java 6)
+    // Took an average of 0.35 us to write and 0.59 us to read (Java 7)
 
     @Test
-    public void testPricePublishing() throws IOException {
+    public void testPricePublishing() throws IOException, InterruptedException {
         String baseDir = System.getProperty("java.io.tmpdir");
         String sourceName = baseDir + "/price.source";
         Chronicle source = new InProcessChronicleSource(new IndexedChronicle(sourceName), PORT);
@@ -148,10 +148,13 @@ public class InProcessChronicleTest {
                 count.incrementAndGet();
             }
         });
+        pw.onPrice(1, "symbol", 99.9, 1, 100.1, 2);
+        reader.read();
+
         long start = System.nanoTime();
-        int prices = 5000000;
-        for (int i = 0; i < prices; i++) {
-            pw.onPrice(1 + i, "symbol", 99.9, i + 1, 100.1, i + 2);
+        int prices = 12000000;
+        for (int i = 1; i <= prices; i++) {
+            pw.onPrice(i, "symbol", 99.9, i, 100.1, i + 1);
         }
 
         long mid = System.nanoTime();
@@ -159,7 +162,7 @@ public class InProcessChronicleTest {
             reader.read();
 
         long end = System.nanoTime();
-        System.out.printf("Took an average of %.1f us to write and %.1f us to read",
+        System.out.printf("Took an average of %.2f us to write and %.2f us to read",
                 (mid - start) / prices / 1e3, (end - mid) / prices / 1e3);
 
 

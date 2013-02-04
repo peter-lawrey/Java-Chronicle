@@ -43,9 +43,11 @@ import java.util.logging.Logger;
  * @author peter.lawrey
  */
 public class InProcessChronicleSource<C extends Chronicle> implements Chronicle {
-    private final C chronicle;
-    private final ServerSocketChannel server;
+    private static final int MAX_MESSAGE = 128;
 
+    private final C chronicle;
+
+    private final ServerSocketChannel server;
     private final String name;
     private final ExecutorService service;
     private final Logger logger;
@@ -113,7 +115,7 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
                         if (closed) break OUTER;
                     }
 //                    System.out.println("Writing " + index);
-                    int size = excerpt.capacity();
+                    final int size = excerpt.capacity();
                     int remaining;
 
                     bb.clear();
@@ -126,13 +128,36 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
                         remaining = size + 4;
                     }
                     bb.putInt(size);
-                    while (remaining > 0) {
-                        int size2 = Math.min(remaining, bb.capacity());
-                        bb.limit(size2);
-                        excerpt.read(bb);
-                        bb.flip();
+                    // for large objects send one at a time.
+                    if (size > bb.capacity() / 2) {
+                        while (remaining > 0) {
+                            int size2 = Math.min(remaining, bb.capacity());
+                            bb.limit(size2);
+                            excerpt.read(bb);
+                            bb.flip();
 //                        System.out.println("w " + ChronicleTest.asString(bb));
-                        remaining -= bb.remaining();
+                            remaining -= bb.remaining();
+                            while (bb.remaining() > 0 && socket.write(bb) > 0) ;
+                        }
+                    } else {
+                        bb.limit(remaining);
+                        excerpt.read(bb);
+                        int count = 1;
+                        while (excerpt.index(index + 1) && count++ < MAX_MESSAGE) {
+                            if (excerpt.remaining() + 4 >= bb.capacity() - bb.position())
+                                break;
+                            // if there is free space, copy another one.
+                            int size2 = excerpt.capacity();
+//                            System.out.println("W+ "+size);
+                            bb.limit(bb.position() + size2 + 4);
+                            bb.putInt(size2);
+                            excerpt.read(bb);
+
+                            index++;
+                        }
+
+                        bb.flip();
+//                        System.out.println("W " + size + " wb " + bb);
                         while (bb.remaining() > 0 && socket.write(bb) > 0) ;
                     }
                     if (bb.remaining() > 0) throw new EOFException("Failed to send index=" + index);

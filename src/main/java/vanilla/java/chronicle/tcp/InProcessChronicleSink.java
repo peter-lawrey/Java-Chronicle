@@ -173,10 +173,10 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
                 scFirst = false;
             }
             long size = readBuffer.getInt();
-//                System.out.println("size="+size);
+//                System.out.println("size="+size +"  rb "+readBuffer);
             if (scIndex != chronicle.size())
                 throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + scIndex);
-            if (size > Integer.MAX_VALUE || size < 0)
+            if (size > 128 << 20 || size < 0)
                 throw new StreamCorruptedException("size was " + size);
 
             excerpt.startExcerpt((int) size);
@@ -193,7 +193,7 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
 
             // needs more than one read.
             while (remaining > 0) {
-//                System.out.println("++ read");
+//                System.out.println("++ read remaining "+remaining +" rb "+readBuffer);
                 readBuffer.clear();
                 int size3 = (int) Math.min(readBuffer.capacity(), remaining);
                 readBuffer.limit(size3);
