@@ -23,7 +23,7 @@
     <groupId>vanilla.java</groupId>
     <artifactId>chronicle</artifactId>
     <packaging>jar</packaging>
-    <version>1.5-SNAPSHOT</version>
+    <version>1.5</version>
     <name>Java Chronicle</name>
     <description>High Performance Logging and Persisted Messaging</description>
 
@@ -90,7 +90,7 @@
                     <nohelp>true</nohelp>
                 </configuration>
             </plugin>
-            <!-- plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>1.4</version>
@@ -106,7 +106,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin -->
+            </plugin>
         </plugins>
     </build>
 
