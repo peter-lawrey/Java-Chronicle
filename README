@@ -21,6 +21,7 @@ Version History
 ===================================
 
 Version 1.5 - Support Publishing Chronicle over TCP.
+           Note: the package has changed to com.higherfrequencytrading to support publishing to maven central.
 
 Version 1.4 - Support for enumerated types, Enum and generic.
             Improve replication performance and memory usage (esp for large excerpts)
