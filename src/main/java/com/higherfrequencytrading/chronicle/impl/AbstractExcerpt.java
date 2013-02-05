@@ -1494,18 +1494,18 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
     }
 
     @Override
-    public void flush() throws IOException {
+    public void flush() {
         checkEndOfBuffer();
     }
 
     @Override
-    public Object readObject() throws ClassNotFoundException, IOException {
+    public Object readObject() throws ClassNotFoundException {
         // TODO read class and object.
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void writeObject(Object obj) throws IOException {
+    public void writeObject(Object obj) {
         // TODO write obj and class
         checkEndOfBuffer();
         throw new UnsupportedOperationException();

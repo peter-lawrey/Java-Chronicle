@@ -5,7 +5,6 @@ import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -533,47 +532,47 @@ public class WrappedExcerpt<C extends Chronicle> implements Excerpt<C> {
     }
 
     @Override
-    public Object readObject() throws ClassNotFoundException, IOException {
+    public Object readObject() throws ClassNotFoundException {
         return excerpt.readObject();
     }
 
     @Override
-    public int read() throws IOException {
+    public int read() {
         return excerpt.read();
     }
 
     @Override
-    public int read(byte[] b) throws IOException {
+    public int read(byte[] b) {
         return excerpt.read(b);
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(byte[] b, int off, int len) {
         return excerpt.read(b, off, len);
     }
 
     @Override
-    public long skip(long n) throws IOException {
+    public long skip(long n) {
         return excerpt.skip(n);
     }
 
     @Override
-    public int available() throws IOException {
+    public int available() {
         return excerpt.available();
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         excerpt.close();
     }
 
     @Override
-    public void writeObject(Object obj) throws IOException {
+    public void writeObject(Object obj) {
         excerpt.writeObject(obj);
     }
 
     @Override
-    public void flush() throws IOException {
+    public void flush() {
         excerpt.flush();
     }
 }

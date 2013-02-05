@@ -133,4 +133,15 @@ public interface RandomDataOutput extends ObjectOutput, RandomAccess {
     void writeUTF(CharSequence s);
 
     void write(ByteBuffer bb);
+
+    // ObjectOutput
+
+    @Override
+    void writeObject(Object obj);
+
+    @Override
+    void flush();
+
+    @Override
+    void close();
 }

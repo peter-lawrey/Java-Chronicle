@@ -141,4 +141,27 @@ public interface RandomDataInput extends ObjectInput, RandomAccess {
     String readUTF(int offset);
 
     void read(ByteBuffer bb);
+
+    // ObjectInput
+
+    @Override
+    Object readObject() throws ClassNotFoundException;
+
+    @Override
+    int read();
+
+    @Override
+    int read(byte[] b);
+
+    @Override
+    int read(byte[] b, int off, int len);
+
+    @Override
+    long skip(long n);
+
+    @Override
+    int available();
+
+    @Override
+    void close();
 }
