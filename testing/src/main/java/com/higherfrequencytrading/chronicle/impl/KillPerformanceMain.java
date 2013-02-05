@@ -31,7 +31,7 @@ package com.higherfrequencytrading.chronicle.impl;
  * @author peter.lawrey
  */
 public class KillPerformanceMain {
-    static volatile long number;
+    static volatile Long number;
 
     public static void main(String... args) {
         while (number >= 0)

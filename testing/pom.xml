@@ -27,9 +27,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>vanilla.java</groupId>
+            <groupId>com.higherfrequencytrading</groupId>
             <artifactId>chronicle</artifactId>
-            <version>1.5</version>
+            <version>1.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>vanilla.java</groupId>

@@ -24,7 +24,7 @@ public class DirectMemoryReader {
 
     static final int DATA_BIT_SIZE_HINT = 24;
     static final boolean USE_UNSAFE = false;
-    public static final String BASE_DIR = System.getProperty("java.io.tmpdir") + "/deleteme.iictm.";
+    static final String BASE_DIR = System.getProperty("java.io.tmpdir") + "/deleteme.iictm.";
 
     final String basePath = BASE_DIR + "request";
     final IndexedChronicle tsc;
@@ -56,6 +56,7 @@ public class DirectMemoryReader {
         int i = 0;
         long last = System.nanoTime();
         StringBuilder sb = new StringBuilder();
+        //noinspection InfiniteLoopStatement
         while (true) {
             if (dmr.read(sb)) {
                 System.out.println(sb);
