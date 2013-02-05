@@ -1500,33 +1500,56 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
 
     @Override
     public Object readObject() throws ClassNotFoundException {
-        // TODO this is the lame implementation, but it works.
-        int len = readCompactInt();
-        byte[] bytes = new byte[len];
-        read(bytes);
-        try {
-            return new ObjectInputStream(new ByteArrayInputStream(bytes)).readObject();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
+        int type = readByte();
+        switch (type) {
+            case NULL:
+                return null;
+            case ENUMED: {
+                Class clazz = readEnum(Class.class);
+                return readEnum(clazz);
+            }
+            case SERIALIZED: {
+                try {
+                    Object o = new ObjectInputStream(this.inputStream()).readObject();
+                    return o;
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+            default:
+                throw new IllegalStateException("Unknown type " + (char) type);
         }
     }
 
+    private static final byte NULL = 'N';
+    private static final byte ENUMED = 'E';
+    private static final byte SERIALIZED = 'S';
+
     @Override
     public void writeObject(Object obj) {
+        if (obj == null) {
+            writeByte(NULL);
+            return;
+        }
+
+        Class<?> clazz = obj.getClass();
+        EnumeratedMarshaller<?> em = obj instanceof Comparable ?
+                chronicle.acquireMarshaller(clazz) :
+                chronicle.getMarshaller(clazz);
+        if (em != null) {
+            writeByte(ENUMED);
+            writeEnum(clazz);
+            writeEnum(obj);
+            return;
+        }
+        writeByte(SERIALIZED);
         // TODO this is the lame implementation, but it works.
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            ObjectOutputStream oos = new ObjectOutputStream(this.outputStream());
             oos.writeObject(obj);
-            oos.close();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-        byte[] bytes = baos.toByteArray();
-        writeCompactInt(bytes.length);
-        if (remaining() < bytes.length)
-            throw new IllegalStateException("Buffer needed " + bytes.length + " but only " + remaining() + " remaining.");
-        write(bytes);
         checkEndOfBuffer();
     }
 }

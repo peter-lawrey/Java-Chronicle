@@ -42,7 +42,7 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
             try {
                 constructor = classMarshaled.getConstructor(String.class);
             } catch (NoSuchMethodException e1) {
-                throw new AssertionError(e1);
+                throw new IllegalArgumentException(classMarshaled + " doesn't have a valueOf(String) or a Constructor(String)");
             }
         }
         this.constructor = constructor;

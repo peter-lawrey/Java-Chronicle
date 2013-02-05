@@ -200,7 +200,8 @@ public class ByteBufferExcerpt<C extends DirectChronicle> extends AbstractExcerp
     public int read(byte[] b, int off, int len) {
         if (len > remaining())
             len = remaining();
-        buffer.get(b, off, len);
+        for (int i = 0; i < len; i++)
+            b[i + off] = buffer.get((int) (i + position));
         return len;
     }
 }

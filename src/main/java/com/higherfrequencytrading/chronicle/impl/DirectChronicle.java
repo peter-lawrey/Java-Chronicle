@@ -41,4 +41,7 @@ public interface DirectChronicle extends Chronicle {
     void incrementSize();
 
     <E> EnumeratedMarshaller<E> acquireMarshaller(Class<E> aClass);
+
+    // get one if it exists already.
+    <E> EnumeratedMarshaller<E> getMarshaller(Class<E> aClass);
 }

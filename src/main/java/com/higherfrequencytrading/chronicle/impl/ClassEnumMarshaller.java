@@ -19,10 +19,15 @@ import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
 
+import java.lang.ref.WeakReference;
+
 /**
  * @author plawrey
  */
 public class ClassEnumMarshaller implements EnumeratedMarshaller<Class> {
+    private static final int CACHE_SIZE = 1019;
+    @SuppressWarnings("unchecked")
+    private WeakReference<Class>[] classWeakReference = new WeakReference[CACHE_SIZE];
     private final ClassLoader classLoader;
 
     public ClassEnumMarshaller(ClassLoader classLoader) {
@@ -46,8 +51,17 @@ public class ClassEnumMarshaller implements EnumeratedMarshaller<Class> {
     }
 
     private Class load(String name) {
+        int hash = (name.hashCode() & 0x7fffffff) % CACHE_SIZE;
+        WeakReference<Class> ref = classWeakReference[hash];
+        if (ref != null) {
+            Class clazz = ref.get();
+            if (clazz != null && clazz.getName().equals(name))
+                return clazz;
+        }
         try {
-            return classLoader.loadClass(name);
+            Class<?> clazz = classLoader.loadClass(name);
+            classWeakReference[hash] = new WeakReference<Class>(clazz);
+            return clazz;
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException(e);
         }

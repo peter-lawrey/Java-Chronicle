@@ -64,4 +64,10 @@ public abstract class AbstractChronicle implements DirectChronicle {
                 marshallerMap.put(aClass, em = new GenericEnumMarshaller<E>(aClass, 1000));
         return em;
     }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> aClass) {
+        return marshallerMap.get(aClass);
+    }
 }

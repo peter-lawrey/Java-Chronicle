@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import static junit.framework.Assert.*;
@@ -177,5 +178,46 @@ public class IndexedChronicleTest {
     private static void deleteOnExit(String basePath) {
         new File(basePath + ".data").deleteOnExit();
         new File(basePath + ".index").deleteOnExit();
+    }
+
+    @Test
+    public void testSerializationPerformance() throws IOException, ClassNotFoundException {
+        String testPath = TMP + File.separator + "chroncle-object";
+        IndexedChronicle tsc = new IndexedChronicle(testPath);
+        tsc.useUnsafe(true);
+        deleteOnExit(testPath);
+
+        tsc.clear();
+        Excerpt excerpt = tsc.createExcerpt();
+        int objects = 5000000;
+        long start = System.nanoTime();
+        for (int i = 0; i < objects; i++) {
+            excerpt.startExcerpt(300);
+            excerpt.writeObject(BigDecimal.valueOf(i % 1000));
+            excerpt.finish();
+        }
+        for (int i = 0; i < objects; i++) {
+            assertTrue(excerpt.index(i));
+            BigDecimal bd = (BigDecimal) excerpt.readObject();
+            assertEquals(i % 1000, bd.longValue());
+            excerpt.finish();
+        }
+        tsc.close();
+        long time = System.nanoTime() - start;
+        System.out.printf("The average time to write and read a BigDecimal was %.1f us%n", time / 1e3 / objects);
+    }
+
+    static void assertEquals(long a, long b) {
+        if (a != b)
+            Assert.assertEquals(a, b);
+    }
+
+    static <T> void assertEquals(T a, T b) {
+        if (a == null) {
+            if (b == null) return;
+        } else if (a.equals(b)) {
+            return;
+        }
+        Assert.assertEquals(a, b);
     }
 }
