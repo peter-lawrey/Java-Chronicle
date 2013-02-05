@@ -73,7 +73,7 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
         return tcpNoDelay;
     }
 
-    class Acceptor implements Runnable {
+    private class Acceptor implements Runnable {
         @Override
         public void run() {
             Thread.currentThread().setName(name + "-acceptor");
@@ -188,7 +188,6 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
             }
         } catch (InterruptedException ie) {
             logger.warning("Interrupt ignored");
-            ;
         }
     }
 
@@ -239,7 +238,8 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
         chronicle.setEnumeratedMarshaller(marshaller);
     }
 
-    private class SourceExcerpt extends WrappedExcerpt {
+    private class SourceExcerpt extends WrappedExcerpt<C> {
+        @SuppressWarnings("unchecked")
         public SourceExcerpt() {
             super(InProcessChronicleSource.this.chronicle.createExcerpt());
         }

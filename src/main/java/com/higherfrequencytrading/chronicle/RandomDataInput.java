@@ -123,10 +123,6 @@ public interface RandomDataInput extends DataInput, RandomAccess {
     @Override
     String readLine();
 
-    void readByteString(ByteString as);
-
-    int readByteString(int offset, ByteString as);
-
     void readByteString(StringBuilder sb);
 
     int readByteString(int offset, StringBuilder sb);

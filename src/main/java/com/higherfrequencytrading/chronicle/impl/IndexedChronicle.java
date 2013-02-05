@@ -70,6 +70,7 @@ public class IndexedChronicle extends AbstractChronicle {
 
         File parentFile = new File(basePath).getParentFile();
         if (parentFile != null)
+            //noinspection ResultOfMethodCallIgnored
             parentFile.mkdirs();
         indexChannel = new RandomAccessFile(basePath + ".index", "rw").getChannel();
         dataChannel = new RandomAccessFile(basePath + ".data", "rw").getChannel();

@@ -29,13 +29,11 @@ import java.util.Map;
  */
 public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
     private final Class<E> classMarshaled;
-    private final int capacity;
     private final Constructor<E> constructor;
     private final Method valueOf;
 
     public GenericEnumMarshaller(Class<E> classMarshaled, final int capacity) {
         this.classMarshaled = classMarshaled;
-        this.capacity = capacity;
         Constructor<E> constructor = null;
         Method valueOf = null;
         try {
@@ -85,10 +83,13 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
         E e = map.get(s);
         if (e == null)
             try {
-                if (constructor != null)
+                if (constructor != null) {
                     map.put(s, e = constructor.newInstance(s));
-                else
-                    map.put(s, e = (E) valueOf.invoke(null, s));
+                } else {
+                    @SuppressWarnings("unchecked")
+                    E invoke = (E) valueOf.invoke(null, s);
+                    map.put(s, e = invoke);
+                }
             } catch (Exception t) {
                 throw new AssertionError(t.getCause());
             }

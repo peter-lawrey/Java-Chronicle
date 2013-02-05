@@ -46,10 +46,10 @@ public class ChronicleSink<C extends Chronicle> implements Closeable {
     private final ExcerptListener<C> listener;
 
     private final ExecutorService service;
-    private final String name;
     private final Logger logger;
     private volatile boolean closed = false;
 
+    @SuppressWarnings("unchecked")
     public ChronicleSink(C chronicle, String hostname, int port) {
         this(chronicle, hostname, port, NullExcerptListener.INSTANCE);
     }
@@ -58,7 +58,7 @@ public class ChronicleSink<C extends Chronicle> implements Closeable {
         this.chronicle = chronicle;
         this.listener = listener;
         this.address = new InetSocketAddress(hostname, port);
-        name = chronicle.name() + '@' + hostname + ':' + port;
+        String name = chronicle.name() + '@' + hostname + ':' + port;
         logger = Logger.getLogger(getClass().getName() + '.' + chronicle);
         service = Executors.newSingleThreadExecutor(new NamedThreadFactory(name));
         service.execute(new Sink());
@@ -76,11 +76,12 @@ public class ChronicleSink<C extends Chronicle> implements Closeable {
         String hostname = args[1];
         int port = Integer.parseInt(args[2]);
         IndexedChronicle ic = new IndexedChronicle(basePath, dataBitsHintSize, byteOrder);
-        ChronicleSink cs = new ChronicleSink(ic, hostname, port);
+        new ChronicleSink<IndexedChronicle>(ic, hostname, port);
     }
 
     class Sink implements Runnable {
-        Excerpt excerpt = chronicle.createExcerpt();
+        @SuppressWarnings("unchecked")
+        final Excerpt<C> excerpt = chronicle.createExcerpt();
 
         @Override
         public void run() {

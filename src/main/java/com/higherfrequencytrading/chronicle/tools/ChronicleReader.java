@@ -41,6 +41,7 @@ public enum ChronicleReader {
         long index = args.length > 1 ? Long.parseLong(args[1]) : 0L;
         IndexedChronicle ic = new IndexedChronicle(basePath, dataBitsHintSize, byteOrder);
         Excerpt excerpt = ic.createExcerpt();
+        //noinspection InfiniteLoopStatement
         while (true) {
             while (!excerpt.index(index))
                 Thread.sleep(50);

@@ -28,6 +28,7 @@ import java.util.Map;
  */
 public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarshaller<E> {
     private final Class<E> classMarshaled;
+    @SuppressWarnings("unchecked")
     private final E[] interner = (E[]) new Enum[1024];
     private final BitSet internerDup = new BitSet(1024);
     private final Map<String, E> map = new LinkedHashMap<String, E>();

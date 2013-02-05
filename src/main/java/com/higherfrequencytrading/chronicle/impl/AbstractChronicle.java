@@ -25,8 +25,8 @@ import java.util.Map;
  * @author peter.lawrey
  */
 public abstract class AbstractChronicle implements DirectChronicle {
-    protected final String name;
-    protected final Map<Class, EnumeratedMarshaller> marshallerMap = new LinkedHashMap<Class, EnumeratedMarshaller>();
+    private final String name;
+    private final Map<Class, EnumeratedMarshaller> marshallerMap = new LinkedHashMap<Class, EnumeratedMarshaller>();
 
     protected long size = 0;
 
@@ -47,11 +47,13 @@ public abstract class AbstractChronicle implements DirectChronicle {
         return size;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller) {
         marshallerMap.put(marshaller.classMarshaled(), marshaller);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <E> EnumeratedMarshaller<E> acquireMarshaller(Class<E> aClass) {
         EnumeratedMarshaller<E> em = marshallerMap.get(aClass);

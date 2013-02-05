@@ -1,6 +1,9 @@
 package com.higherfrequencytrading.chronicle.impl;
 
-import com.higherfrequencytrading.chronicle.*;
+import com.higherfrequencytrading.chronicle.ByteStringAppender;
+import com.higherfrequencytrading.chronicle.Chronicle;
+import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.StopCharTester;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,7 +47,7 @@ public class WrappedExcerpt<C extends Chronicle> implements Excerpt<C> {
         return excerpt.index();
     }
 
-    public Excerpt position(int position) {
+    public Excerpt<C> position(int position) {
         return excerpt.position(position);
     }
 
@@ -166,14 +169,6 @@ public class WrappedExcerpt<C extends Chronicle> implements Excerpt<C> {
 
     public double readCompactDouble() {
         return excerpt.readCompactDouble();
-    }
-
-    public void readByteString(ByteString as) {
-        excerpt.readByteString(as);
-    }
-
-    public int readByteString(int offset, ByteString as) {
-        return excerpt.readByteString(offset, as);
     }
 
     public void readByteString(StringBuilder sb) {

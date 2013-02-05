@@ -42,14 +42,12 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
     private final C chronicle;
     private final SocketAddress address;
     private final Excerpt excerpt;
-    private final String name;
     private final Logger logger;
     private volatile boolean closed = false;
 
     public InProcessChronicleSink(C chronicle, String hostname, int port) {
         this.chronicle = chronicle;
         this.address = new InetSocketAddress(hostname, port);
-        name = chronicle.name() + '@' + hostname + ':' + port;
         logger = Logger.getLogger(getClass().getName() + '.' + chronicle);
         excerpt = chronicle.createExcerpt();
         readBuffer = TcpUtil.createBuffer(256 * 1024, chronicle);
@@ -85,7 +83,8 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
         chronicle.setEnumeratedMarshaller(marshaller);
     }
 
-    private class SinkExcerpt extends WrappedExcerpt {
+    private class SinkExcerpt extends WrappedExcerpt<C> {
+        @SuppressWarnings("unchecked")
         public SinkExcerpt() {
             super(chronicle.createExcerpt());
         }

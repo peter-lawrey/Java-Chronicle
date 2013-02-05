@@ -26,7 +26,7 @@ import java.nio.ByteOrder;
  * @author peter.lawrey
  */
 public class IntIndexedChronicle extends IndexedChronicle {
-    private static final long LONG_MASK = -1L >>> -32;
+    private static final long LONG_MASK = -1L >>> 32;
 
     public IntIndexedChronicle(String basePath) throws IOException {
         super(basePath);

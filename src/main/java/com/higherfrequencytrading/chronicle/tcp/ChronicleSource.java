@@ -79,7 +79,7 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
         if (args.length > 2)
             delayNS = Integer.parseInt(args[2]);
         IndexedChronicle ic = new IndexedChronicle(basePath, dataBitsHintSize, byteOrder);
-        ChronicleSource cs = new ChronicleSource(ic, port, delayNS);
+        new ChronicleSource<IndexedChronicle>(ic, port, delayNS);
     }
 
     class Acceptor implements Runnable {

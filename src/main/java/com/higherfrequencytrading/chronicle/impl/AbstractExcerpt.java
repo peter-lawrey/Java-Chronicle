@@ -16,7 +16,10 @@
 
 package com.higherfrequencytrading.chronicle.impl;
 
-import com.higherfrequencytrading.chronicle.*;
+import com.higherfrequencytrading.chronicle.ByteStringAppender;
+import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
+import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.StopCharTester;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -29,13 +32,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author peter.lawrey
  */
 public abstract class AbstractExcerpt<C extends DirectChronicle> implements Excerpt<C> {
-    public static final int MIN_SIZE = 8;
+    private static final int MIN_SIZE = 8;
 
     protected final C chronicle;
     protected long index = -1;
     protected long start = 0;
     protected long position = 0;
-    protected int capacity = 0;
+    private int capacity = 0;
     protected long limit = 0;
 
     protected long startPosition;
@@ -117,7 +120,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
 
     protected abstract void index0(long index, long startPosition, long endPosition);
 
-    final AtomicBoolean barrier = new AtomicBoolean();
+    private final AtomicBoolean barrier = new AtomicBoolean();
 
     private void writeMemoryBarrier() {
         barrier.lazySet(true);
@@ -544,23 +547,6 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
     }
 
     @Override
-    public void readByteString(ByteString as) {
-        as.clear();
-        int len = readByte() & 0xFF;
-        for (int i = 0; i < len; i++)
-            as.append(readByte());
-    }
-
-    @Override
-    public int readByteString(int offset, ByteString as) {
-        as.clear();
-        int len = readByte(offset) & 0xFF;
-        for (int i = 1; i <= len; i++)
-            as.append(readByte(offset + i));
-        return offset + len + 1;
-    }
-
-    @Override
     public void readByteString(StringBuilder sb) {
         sb.setLength(0);
         int len = readByte() & 0xFF;
@@ -577,6 +563,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         return offset + len + 1;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public String readByteString() {
         int len = readByte() & 0xFF;
@@ -689,7 +676,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
             writeChar(offset + 2 + i, s.charAt(i));
     }
 
-    static final Method writeUTFMethod;
+    private static final Method writeUTFMethod;
 
     static {
         try {
@@ -710,7 +697,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
 
         int strlen = str.length();
         int utflen = 0;
-        int c = 0;
+        int c;
 
         /* use charAt instead of copying String to char array */
         for (int i = 0; i < strlen; i++) {
@@ -1164,7 +1151,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         return this;
     }
 
-    static double asDouble(long value, int exp, boolean negative, int decimalPlaces) {
+    private static double asDouble(long value, int exp, boolean negative, int decimalPlaces) {
         if (decimalPlaces > 0 && value < Long.MAX_VALUE / 2) {
             if (value < Long.MAX_VALUE / (1L << 32)) {
                 exp -= 32;
@@ -1217,7 +1204,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         return negative ? -d : d;
     }
 
-    public static final long MAX_VALUE_DIVIDE_10 = Long.MAX_VALUE / 10;
+    private static final long MAX_VALUE_DIVIDE_10 = Long.MAX_VALUE / 10;
 
     @Override
     public double parseDouble() {
@@ -1314,7 +1301,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         }
     }
 
-    static final long[] TENS = new long[19];
+    private static final long[] TENS = new long[19];
 
     static {
         TENS[0] = 1;
@@ -1322,7 +1309,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
             TENS[i] = TENS[i - 1] * 10;
     }
 
-    public static long power10(long l) {
+    private static long power10(long l) {
         int idx = Arrays.binarySearch(TENS, l);
         return idx >= 0 ? TENS[idx] : TENS[~idx - 1];
     }
@@ -1411,18 +1398,21 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <E> void writeEnum(E e) {
         EnumeratedMarshaller<E> em = chronicle().acquireMarshaller((Class) e.getClass());
         em.write(this, e);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <E> E readEnum(Class<E> eClass) {
         EnumeratedMarshaller<E> em = chronicle().acquireMarshaller(eClass);
         return em.read(this);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <E> E parseEnum(Class<E> eClass, StopCharTester tester) {
         EnumeratedMarshaller<E> em = chronicle().acquireMarshaller(eClass);
