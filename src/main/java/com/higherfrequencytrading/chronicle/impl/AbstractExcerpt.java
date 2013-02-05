@@ -102,13 +102,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
 
     @Override
     public void finish() {
-        long length = position - start;
-        if (length < MIN_SIZE)
-            length = MIN_SIZE;
-        if (position > limit)
-            throw new IllegalStateException("Capacity allowed: " + capacity + " data read/written: " + length);
-        if (readLong(0) == 0)
-            throw new IllegalStateException("The first 8 bytes cannot be all zero");
+        long length = checkEndOfBuffer();
         if (forWrite) {
             final long endPosition = startPosition + length;
             chronicle.setIndexData(index + 1, endPosition);
@@ -116,6 +110,17 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
             capacity = (int) length;
             writeMemoryBarrier();
         }
+    }
+
+    private long checkEndOfBuffer() {
+        long length = position - start;
+        if (length < MIN_SIZE)
+            length = MIN_SIZE;
+        if (position > limit)
+            throw new IllegalStateException("Capacity allowed: " + capacity + " data read/written: " + length);
+        if (readLong(0) == 0)
+            throw new IllegalStateException("The first 8 bytes cannot be all zero");
+        return length;
     }
 
     protected abstract void index0(long index, long startPosition, long endPosition);
@@ -1453,5 +1458,56 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         for (int i = 0; i < len; i++)
             map.put(readEnum(kClass), readEnum(vClass));
         return map;
+    }
+
+    @Override
+    public int available() {
+        return remaining();
+    }
+
+    @Override
+    public int read() {
+        return remaining() > 0 ? readByte() : -1;
+    }
+
+    @Override
+    public int read(byte[] b) {
+        return read(b, 0, b.length);
+    }
+
+    @Override
+    public abstract int read(byte[] b, int off, int len);
+
+    @Override
+    public long skip(long n) {
+        if (n < 0)
+            throw new IllegalArgumentException("Skip bytes out of range, was " + n);
+        if (n > remaining())
+            n = remaining();
+        skipBytes((int) n);
+        return n;
+    }
+
+    @Override
+    public void close() {
+        finish();
+    }
+
+    @Override
+    public void flush() throws IOException {
+        checkEndOfBuffer();
+    }
+
+    @Override
+    public Object readObject() throws ClassNotFoundException, IOException {
+        // TODO read class and object.
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void writeObject(Object obj) throws IOException {
+        // TODO write obj and class
+        checkEndOfBuffer();
+        throw new UnsupportedOperationException();
     }
 }

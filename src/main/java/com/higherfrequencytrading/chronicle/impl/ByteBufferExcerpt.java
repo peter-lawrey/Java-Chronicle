@@ -195,4 +195,12 @@ public class ByteBufferExcerpt<C extends DirectChronicle> extends AbstractExcerp
     public void writeDouble(int offset, double v) {
         buffer.putDouble((int) (start + offset), v);
     }
+
+    @Override
+    public int read(byte[] b, int off, int len) {
+        if (len > remaining())
+            len = remaining();
+        buffer.get(b, off, len);
+        return len;
+    }
 }

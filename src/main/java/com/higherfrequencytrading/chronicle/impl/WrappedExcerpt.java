@@ -5,6 +5,7 @@ import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -529,5 +530,50 @@ public class WrappedExcerpt<C extends Chronicle> implements Excerpt<C> {
 
     public void writeDouble(int offset, double v) {
         excerpt.writeDouble(offset, v);
+    }
+
+    @Override
+    public Object readObject() throws ClassNotFoundException, IOException {
+        return excerpt.readObject();
+    }
+
+    @Override
+    public int read() throws IOException {
+        return excerpt.read();
+    }
+
+    @Override
+    public int read(byte[] b) throws IOException {
+        return excerpt.read(b);
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        return excerpt.read(b, off, len);
+    }
+
+    @Override
+    public long skip(long n) throws IOException {
+        return excerpt.skip(n);
+    }
+
+    @Override
+    public int available() throws IOException {
+        return excerpt.available();
+    }
+
+    @Override
+    public void close() throws IOException {
+        excerpt.close();
+    }
+
+    @Override
+    public void writeObject(Object obj) throws IOException {
+        excerpt.writeObject(obj);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        excerpt.flush();
     }
 }

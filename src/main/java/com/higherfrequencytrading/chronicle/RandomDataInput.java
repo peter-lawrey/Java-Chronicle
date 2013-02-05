@@ -16,14 +16,14 @@
 
 package com.higherfrequencytrading.chronicle;
 
-import java.io.DataInput;
+import java.io.ObjectInput;
 import java.nio.ByteBuffer;
 import java.util.RandomAccess;
 
 /**
  * @author peter.lawrey
  */
-public interface RandomDataInput extends DataInput, RandomAccess {
+public interface RandomDataInput extends ObjectInput, RandomAccess {
     @Override
     void readFully(byte[] b);
 

@@ -25,6 +25,7 @@ import java.lang.reflect.Field;
  * @author peter.lawrey
  */
 public class UnsafeExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C> {
+
     protected UnsafeExcerpt(C chronicle) {
         super(chronicle);
     }
@@ -218,6 +219,17 @@ public class UnsafeExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C>
     @Override
     public void writeDouble(int offset, double v) {
         UNSAFE.putDouble(start + offset, v);
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) {
+        if (len < 0 || off < 0 || off + len > b.length)
+            throw new IllegalArgumentException();
+        if (len > remaining())
+            len = remaining();
+        UNSAFE.copyMemory(null, position, b, BYTES_OFFSET + off, len);
+        position += len;
+        return len;
     }
 
     /**

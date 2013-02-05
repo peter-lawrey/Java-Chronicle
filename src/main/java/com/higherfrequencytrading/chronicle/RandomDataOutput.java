@@ -16,14 +16,14 @@
 
 package com.higherfrequencytrading.chronicle;
 
-import java.io.DataOutput;
+import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
 import java.util.RandomAccess;
 
 /**
  * @author peter.lawrey
  */
-public interface RandomDataOutput extends DataOutput, RandomAccess {
+public interface RandomDataOutput extends ObjectOutput, RandomAccess {
     @Override
     void write(int b);
 
