@@ -223,11 +223,13 @@ public class UnsafeExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C>
     /**
      * *** Access the Unsafe class *****
      */
+    @SuppressWarnings("ALL")
     private static final Unsafe UNSAFE;
     private static final int BYTES_OFFSET;
 
     static {
         try {
+            @SuppressWarnings("ALL")
             Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
             theUnsafe.setAccessible(true);
             UNSAFE = (Unsafe) theUnsafe.get(null);
