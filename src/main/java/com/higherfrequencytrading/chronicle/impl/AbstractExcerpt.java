@@ -1500,14 +1500,33 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
 
     @Override
     public Object readObject() throws ClassNotFoundException {
-        // TODO read class and object.
-        throw new UnsupportedOperationException();
+        // TODO this is the lame implementation, but it works.
+        int len = readCompactInt();
+        byte[] bytes = new byte[len];
+        read(bytes);
+        try {
+            return new ObjectInputStream(new ByteArrayInputStream(bytes)).readObject();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
     public void writeObject(Object obj) {
-        // TODO write obj and class
+        // TODO this is the lame implementation, but it works.
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(obj);
+            oos.close();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+        byte[] bytes = baos.toByteArray();
+        writeCompactInt(bytes.length);
+        if (remaining() < bytes.length)
+            throw new IllegalStateException("Buffer needed " + bytes.length + " but only " + remaining() + " remaining.");
+        write(bytes);
         checkEndOfBuffer();
-        throw new UnsupportedOperationException();
     }
 }
