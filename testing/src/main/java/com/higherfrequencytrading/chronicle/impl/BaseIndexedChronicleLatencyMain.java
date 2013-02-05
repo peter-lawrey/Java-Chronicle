@@ -17,8 +17,8 @@
 package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
-import vanilla.java.clock.ClockSupport;
-import vanilla.java.testing.Histogram;
+import com.higherfrequencytrading.clock.ClockSupport;
+import com.higherfrequencytrading.testing.Histogram;
 
 import java.io.IOException;
 

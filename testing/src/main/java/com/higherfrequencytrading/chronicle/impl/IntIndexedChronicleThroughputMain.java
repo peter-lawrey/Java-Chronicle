@@ -16,10 +16,10 @@
 
 package com.higherfrequencytrading.chronicle.impl;
 
+import com.higherfrequencytrading.affinity.AffinityLock;
+import com.higherfrequencytrading.affinity.AffinityStrategies;
+import com.higherfrequencytrading.busywaiting.BusyWaiter;
 import com.higherfrequencytrading.chronicle.Excerpt;
-import vanilla.java.affinity.AffinityLock;
-import vanilla.java.affinity.AffinityStrategies;
-import vanilla.java.busywaiting.BusyWaiter;
 
 import java.io.IOException;
 
