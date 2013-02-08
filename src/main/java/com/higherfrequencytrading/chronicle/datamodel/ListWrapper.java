@@ -1,5 +1,7 @@
 package com.higherfrequencytrading.chronicle.datamodel;
 
+import com.higherfrequencytrading.chronicle.AbstractListListener;
+import com.higherfrequencytrading.chronicle.CollectionListener;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ListListener;
 
@@ -10,7 +12,7 @@ import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
 /**
  * @author peter.lawrey
  */
-public class ListWrapper<E> implements List<E>, Wrapper {
+public class ListWrapper<E> implements ObservableList<E> {
     private final DataStore dataStore;
     private final String name;
     private final Class<E> eClass;
@@ -32,6 +34,21 @@ public class ListWrapper<E> implements List<E>, Wrapper {
         this.maxMessageSize = maxMessageSize;
         this.offset = offset;
         dataStore.add(name, this);
+    }
+
+    @Override
+    public void addListener(CollectionListener<E> listener) {
+        listeners.add(new ListCollectionListener<E>(listener));
+    }
+
+    @Override
+    public void removeListener(CollectionListener<E> listener) {
+        for (Iterator<ListListener<E>> iterator = listeners.iterator(); iterator.hasNext(); ) {
+            ListListener<E> listListener = iterator.next();
+            if (listListener instanceof ListCollectionListener && ((ListCollectionListener) listListener).listener == listener) {
+                iterator.remove();
+            }
+        }
     }
 
     public void addListener(ListListener<E> listener) {
@@ -467,6 +484,34 @@ public class ListWrapper<E> implements List<E>, Wrapper {
         if (!notifyOff && !listeners.isEmpty()) {
             for (int i = 0; i < listeners.size(); i++)
                 listeners.get(i).set(eventId, index, oldElement, element);
+        }
+    }
+
+    static class ListCollectionListener<E> extends AbstractListListener<E> {
+        final CollectionListener<E> listener;
+
+        public ListCollectionListener(CollectionListener<E> listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void add(long eventId, E element) {
+            listener.add(eventId, element);
+        }
+
+        @Override
+        public void addAll(long eventId, Collection<E> eList) {
+            listener.addAll(eventId, eList);
+        }
+
+        @Override
+        public void removeAll(long eventId, Collection<E> eList) {
+            listener.removeAll(eventId, eList);
+        }
+
+        @Override
+        public void remove(long eventId, E e) {
+            listener.remove(eventId, e);
         }
     }
 }

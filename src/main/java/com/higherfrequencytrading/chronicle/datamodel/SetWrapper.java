@@ -10,7 +10,7 @@ import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
 /**
  * @author peter.lawrey
  */
-public class SetWrapper<E> implements Set<E>, Wrapper {
+public class SetWrapper<E> implements ObservableSet<E> {
     private final DataStore dataStore;
     private final String name;
     private final Class<E> eClass;
