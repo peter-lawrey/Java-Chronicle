@@ -111,14 +111,7 @@ public class ListWrapper<E> implements ObservableList<E> {
 
     @Override
     public void clear() {
-        Excerpt excerpt = dataStore.startExcerpt(10, name);
-        long eventId = excerpt.index();
-        excerpt.writeEnum("clear");
-        excerpt.finish();
-        if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++)
-                listeners.get(i).removeAll(eventId, underlying);
-        }
+        writeClear();
         underlying.clear();
     }
 
@@ -235,7 +228,7 @@ public class ListWrapper<E> implements ObservableList<E> {
                     underlying.add(e);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).add(excerpt.index(), e);
+                            listeners.get(i).add(e);
 
                     break;
 
@@ -247,7 +240,7 @@ public class ListWrapper<E> implements ObservableList<E> {
                     underlying.add(index, e);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).add(excerpt.index(), index, e);
+                            listeners.get(i).add(index, e);
 
                     break;
                 }
@@ -257,7 +250,7 @@ public class ListWrapper<E> implements ObservableList<E> {
                     underlying.addAll(eList);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).addAll(excerpt.index(), eList);
+                            listeners.get(i).addAll(eList);
 
                     break;
                 }
@@ -268,7 +261,7 @@ public class ListWrapper<E> implements ObservableList<E> {
                     underlying.addAll(index, eList);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).addAll(excerpt.index(), index, eList);
+                            listeners.get(i).addAll(index, eList);
 
                     break;
                 }
@@ -279,7 +272,7 @@ public class ListWrapper<E> implements ObservableList<E> {
                     E oldElement = underlying.set(index, e);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).set(excerpt.index(), index, oldElement, e);
+                            listeners.get(i).set(index, oldElement, e);
                     break;
                 }
                 case remove: {
@@ -288,7 +281,7 @@ public class ListWrapper<E> implements ObservableList<E> {
                     underlying.remove(e);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).remove(excerpt.index(), e);
+                            listeners.get(i).remove(e);
 
                     break;
                 }
@@ -298,7 +291,7 @@ public class ListWrapper<E> implements ObservableList<E> {
                     E oldElement = underlying.remove(index);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).remove(excerpt.index(), index, oldElement);
+                            listeners.get(i).remove(index, oldElement);
                     break;
                 }
                 case removeAll: {
@@ -307,13 +300,13 @@ public class ListWrapper<E> implements ObservableList<E> {
                     underlying.removeAll(eList);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).removeAll(excerpt.index(), eList);
+                            listeners.get(i).removeAll(eList);
                     break;
                 }
                 case clear: {
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).removeAll(excerpt.index(), underlying);
+                            listeners.get(i).removeAll(underlying);
                     underlying.clear();
                     break;
                 }
@@ -413,8 +406,12 @@ public class ListWrapper<E> implements ObservableList<E> {
         excerpt.writeObject(element);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++)
-                listeners.get(i).add(eventId, element);
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.add(element);
+                listener.eventEnd(true);
+            }
         }
     }
 
@@ -425,8 +422,12 @@ public class ListWrapper<E> implements ObservableList<E> {
         excerpt.writeObject(element);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++)
-                listeners.get(i).add(eventId, index, element);
+            for (int i = 0; i < listeners.size(); i++) {
+                ListListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.add(index, element);
+                listener.eventEnd(true);
+            }
         }
     }
 
@@ -436,8 +437,27 @@ public class ListWrapper<E> implements ObservableList<E> {
         excerpt.writeList(added);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++)
-                listeners.get(i).addAll(eventId, added);
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.addAll(added);
+                listener.eventEnd(true);
+            }
+        }
+    }
+
+    private void writeClear() {
+        Excerpt excerpt = dataStore.startExcerpt(10, name);
+        long eventId = excerpt.index();
+        excerpt.writeEnum("clear");
+        excerpt.finish();
+        if (!notifyOff && !listeners.isEmpty()) {
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.removeAll(underlying);
+                listener.eventEnd(true);
+            }
         }
     }
 
@@ -447,8 +467,12 @@ public class ListWrapper<E> implements ObservableList<E> {
         excerpt.writeObject(o);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++)
-                listeners.get(i).remove(eventId, (E) o);
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.remove((E) o);
+                listener.eventEnd(true);
+            }
         }
     }
 
@@ -458,8 +482,12 @@ public class ListWrapper<E> implements ObservableList<E> {
         excerpt.writeObject(o);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++)
-                listeners.get(i).remove(eventId, index, (E) o);
+            for (int i = 0; i < listeners.size(); i++) {
+                ListListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.remove(index, (E) o);
+                listener.eventEnd(true);
+            }
         }
     }
 
@@ -469,8 +497,12 @@ public class ListWrapper<E> implements ObservableList<E> {
         excerpt.writeList(removed);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++)
-                listeners.get(i).removeAll(eventId, removed);
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.removeAll(removed);
+                listener.eventEnd(true);
+            }
         }
     }
 
@@ -482,8 +514,12 @@ public class ListWrapper<E> implements ObservableList<E> {
         excerpt.writeObject(element);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++)
-                listeners.get(i).set(eventId, index, oldElement, element);
+            for (int i = 0; i < listeners.size(); i++) {
+                ListListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.set(index, oldElement, element);
+                listener.eventEnd(true);
+            }
         }
     }
 
@@ -495,23 +531,23 @@ public class ListWrapper<E> implements ObservableList<E> {
         }
 
         @Override
-        public void add(long eventId, E element) {
-            listener.add(eventId, element);
+        public void add(E element) {
+            listener.add(element);
         }
 
         @Override
-        public void addAll(long eventId, Collection<E> eList) {
-            listener.addAll(eventId, eList);
+        public void addAll(Collection<E> eList) {
+            listener.addAll(eList);
         }
 
         @Override
-        public void removeAll(long eventId, Collection<E> eList) {
-            listener.removeAll(eventId, eList);
+        public void removeAll(Collection<E> eList) {
+            listener.removeAll(eList);
         }
 
         @Override
-        public void remove(long eventId, E e) {
-            listener.remove(eventId, e);
+        public void remove(E e) {
+            listener.remove(e);
         }
     }
 }

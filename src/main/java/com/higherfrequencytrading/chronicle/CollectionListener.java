@@ -5,12 +5,12 @@ import java.util.Collection;
 /**
  * @author peter.lawrey
  */
-public interface CollectionListener<E> {
-    void add(long eventId, E e);
+public interface CollectionListener<E> extends EventListener {
+    void add(E e);
 
-    void remove(long eventId, E e);
+    void remove(E e);
 
-    void addAll(long eventId, Collection<E> eList);
+    void addAll(Collection<E> eList);
 
-    void removeAll(long eventId, Collection<E> eList);
+    void removeAll(Collection<E> eList);
 }

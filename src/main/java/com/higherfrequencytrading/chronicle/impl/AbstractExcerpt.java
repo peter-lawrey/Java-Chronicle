@@ -68,6 +68,13 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
+    public boolean hasNextIndex() {
+        readMemoryBarrier();
+        long endPosition = chronicle.getIndexData(index + 1);
+        return endPosition != 0;
+    }
+
+    @Override
     public boolean index(long index) throws IndexOutOfBoundsException {
         readMemoryBarrier();
         long endPosition = chronicle.getIndexData(index + 1);

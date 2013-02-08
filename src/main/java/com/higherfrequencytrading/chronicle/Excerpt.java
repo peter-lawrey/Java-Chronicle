@@ -37,9 +37,16 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
     Chronicle chronicle();
 
     /**
-     * Attempt to set the index to the next index.  The method is re-tryable as another thread or process could be writing to this Chronicle.
+     * Checks if the index could be to the next index.  The method is re-tryable as another thread or process could be writing to this Chronicle.
      *
      * @return true if the index could be set to a valid entry.
+     */
+    boolean hasNextIndex();
+
+    /**
+     * Attempt to set the index to the next index.  The method is re-tryable as another thread or process could be writing to this Chronicle.
+     *
+     * @return true if the index was set to a valid entry.
      */
     boolean nextIndex();
 

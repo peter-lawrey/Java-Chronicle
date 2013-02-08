@@ -27,6 +27,11 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.chronicle();
     }
 
+    @Override
+    public boolean hasNextIndex() {
+        return excerpt.hasNextIndex();
+    }
+
     public boolean nextIndex() {
         return excerpt.nextIndex();
     }
