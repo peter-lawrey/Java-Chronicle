@@ -16,14 +16,14 @@ import java.util.Map;
 /**
  * @author plawrey
  */
-public class WrappedExcerpt<C extends Chronicle> implements Excerpt<C> {
-    private final Excerpt<C> excerpt;
+public class WrappedExcerpt implements Excerpt {
+    private final Excerpt excerpt;
 
-    public WrappedExcerpt(Excerpt<C> excerpt) {
+    public WrappedExcerpt(Excerpt excerpt) {
         this.excerpt = excerpt;
     }
 
-    public C chronicle() {
+    public Chronicle chronicle() {
         return excerpt.chronicle();
     }
 
@@ -47,7 +47,7 @@ public class WrappedExcerpt<C extends Chronicle> implements Excerpt<C> {
         return excerpt.index();
     }
 
-    public Excerpt<C> position(int position) {
+    public Excerpt position(int position) {
         return excerpt.position(position);
     }
 
@@ -532,7 +532,7 @@ public class WrappedExcerpt<C extends Chronicle> implements Excerpt<C> {
     }
 
     @Override
-    public Object readObject() throws ClassNotFoundException {
+    public Object readObject() {
         return excerpt.readObject();
     }
 
@@ -563,7 +563,10 @@ public class WrappedExcerpt<C extends Chronicle> implements Excerpt<C> {
 
     @Override
     public void close() {
-        excerpt.close();
+        try {
+            excerpt.close();
+        } catch (Exception keepIntelliJHappy) {
+        }
     }
 
     @Override
@@ -574,5 +577,15 @@ public class WrappedExcerpt<C extends Chronicle> implements Excerpt<C> {
     @Override
     public void flush() {
         excerpt.flush();
+    }
+
+    @Override
+    public <E> void writeList(Collection<E> list) {
+        writeList(list);
+    }
+
+    @Override
+    public void readList(Collection list) {
+        readList(list);
     }
 }

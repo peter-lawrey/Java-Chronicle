@@ -19,8 +19,8 @@ package com.higherfrequencytrading.chronicle.impl;
 /**
  * @author peter.lawrey
  */
-public class ByteBufferExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C> {
-    protected ByteBufferExcerpt(C chronicle) {
+public class ByteBufferExcerpt extends AbstractExcerpt {
+    protected ByteBufferExcerpt(DirectChronicle chronicle) {
         super(chronicle);
     }
 

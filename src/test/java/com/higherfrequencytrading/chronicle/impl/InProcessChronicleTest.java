@@ -97,7 +97,7 @@ public class InProcessChronicleTest {
     }
 
     static class PriceReader {
-        private final Excerpt<Chronicle> excerpt;
+        private final Excerpt excerpt;
         private final PriceListener listener;
 
         PriceReader(Excerpt excerpt, PriceListener listener) {

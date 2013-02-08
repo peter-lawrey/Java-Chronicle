@@ -30,11 +30,11 @@ import java.util.Map;
  *
  * @author peter.lawrey
  */
-public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDataOutput, ByteStringAppender, ByteStringParser {
+public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAppender, ByteStringParser {
     /**
      * @return the chronicle this is an excerpt for.
      */
-    C chronicle();
+    Chronicle chronicle();
 
     /**
      * Attempt to set the index to the next index.  The method is re-tryable as another thread or process could be writing to this Chronicle.
@@ -63,7 +63,7 @@ public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDat
      * @param position to move to.
      * @return this
      */
-    Excerpt<C> position(int position);
+    Excerpt position(int position);
 
     /**
      * @return the position within this excerpt
@@ -134,6 +134,11 @@ public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDat
     <E> void writeEnums(Collection<E> eList);
 
     /**
+     * Write a collection of any supported serializable type.
+     */
+    <E> void writeList(Collection<E> list);
+
+    /**
      * Write a map or enumerated keys and values.
      */
     <K, V> void writeMap(Map<K, V> map);
@@ -142,6 +147,11 @@ public interface Excerpt<C extends Chronicle> extends RandomDataInput, RandomDat
      * Reads a collection of enumerated types.
      */
     <E> List<E> readEnums(Class<E> eClass);
+
+    /**
+     * Read a collection of any serializable type.
+     */
+    void readList(Collection list);
 
     /**
      * Reads a map of key/values with known enumerated types.

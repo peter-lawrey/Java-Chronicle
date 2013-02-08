@@ -24,9 +24,9 @@ import java.lang.reflect.Field;
 /**
  * @author peter.lawrey
  */
-public class UnsafeExcerpt<C extends DirectChronicle> extends AbstractExcerpt<C> {
+public class UnsafeExcerpt extends AbstractExcerpt {
 
-    protected UnsafeExcerpt(C chronicle) {
+    protected UnsafeExcerpt(DirectChronicle chronicle) {
         super(chronicle);
     }
 

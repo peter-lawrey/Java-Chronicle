@@ -31,10 +31,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author peter.lawrey
  */
-public abstract class AbstractExcerpt<C extends DirectChronicle> implements Excerpt<C> {
+public abstract class AbstractExcerpt implements Excerpt {
     private static final int MIN_SIZE = 8;
 
-    protected final C chronicle;
+    protected final DirectChronicle chronicle;
     protected long index = -1;
     protected long start = 0;
     protected long position = 0;
@@ -53,12 +53,12 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
     private ExcerptInputStream inputStream = null;
     private ExcerptOutputStream outputStream = null;
 
-    protected AbstractExcerpt(C chronicle) {
+    protected AbstractExcerpt(DirectChronicle chronicle) {
         this.chronicle = chronicle;
     }
 
     @Override
-    public C chronicle() {
+    public DirectChronicle chronicle() {
         return chronicle;
     }
 
@@ -137,7 +137,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
     }
 
     @Override
-    public Excerpt<C> position(int position) {
+    public Excerpt position(int position) {
         if (position < 0 || position > capacity())
             throw new IndexOutOfBoundsException();
         this.position = start + position; // start has to be added
@@ -1432,6 +1432,13 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
     }
 
     @Override
+    public <E> void writeList(Collection<E> list) {
+        writeInt(list.size());
+        for (E e : list)
+            writeObject(e);
+    }
+
+    @Override
     public <K, V> void writeMap(Map<K, V> map) {
         writeInt(map.size());
         for (Map.Entry<K, V> entry : map.entrySet()) {
@@ -1448,6 +1455,14 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
         for (int i = 0; i < len; i++)
             list.add(readEnum(eClass));
         return list;
+    }
+
+    @Override
+    public void readList(Collection list) {
+        int len = readInt();
+        list.clear();
+        for (int i = 0; i < len; i++)
+            list.add(readObject());
     }
 
     @Override
@@ -1499,7 +1514,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
     }
 
     @Override
-    public Object readObject() throws ClassNotFoundException {
+    public Object readObject() {
         int type = readByte();
         switch (type) {
             case NULL:
@@ -1512,7 +1527,7 @@ public abstract class AbstractExcerpt<C extends DirectChronicle> implements Exce
                 try {
                     Object o = new ObjectInputStream(this.inputStream()).readObject();
                     return o;
-                } catch (IOException e) {
+                } catch (Exception e) {
                     throw new IllegalStateException(e);
                 }
             }

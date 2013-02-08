@@ -38,14 +38,14 @@ import java.util.logging.Logger;
  *
  * @author plawrey
  */
-public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
-    private final C chronicle;
+public class InProcessChronicleSink implements Chronicle {
+    private final Chronicle chronicle;
     private final SocketAddress address;
     private final Excerpt excerpt;
     private final Logger logger;
     private volatile boolean closed = false;
 
-    public InProcessChronicleSink(C chronicle, String hostname, int port) {
+    public InProcessChronicleSink(Chronicle chronicle, String hostname, int port) {
         this.chronicle = chronicle;
         this.address = new InetSocketAddress(hostname, port);
         logger = Logger.getLogger(getClass().getName() + '.' + chronicle);
@@ -83,7 +83,7 @@ public class InProcessChronicleSink<C extends Chronicle> implements Chronicle {
         chronicle.setEnumeratedMarshaller(marshaller);
     }
 
-    private class SinkExcerpt extends WrappedExcerpt<C> {
+    private class SinkExcerpt extends WrappedExcerpt {
         @SuppressWarnings("unchecked")
         public SinkExcerpt() {
             super(chronicle.createExcerpt());

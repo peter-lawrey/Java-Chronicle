@@ -39,7 +39,7 @@ public class ByteBufferExcerptTest {
         expect(dc.positionInBuffer(0)).andReturn(0);
         expect(dc.positionInBuffer(0)).andReturn(0);
         replay(dc);
-        ByteBufferExcerpt<DirectChronicle> aei = new ByteBufferExcerpt<DirectChronicle>(dc);
+        ByteBufferExcerpt aei = new ByteBufferExcerpt(dc);
         aei.index(0);
         assertEquals(128, aei.readUnsignedByte());
         aei.finish();
@@ -57,7 +57,7 @@ public class ByteBufferExcerptTest {
         expect(dc.positionInBuffer(0)).andReturn(0);
         expect(dc.positionInBuffer(0)).andReturn(0);
         replay(dc);
-        ByteBufferExcerpt<DirectChronicle> aei = new ByteBufferExcerpt<DirectChronicle>(dc);
+        ByteBufferExcerpt aei = new ByteBufferExcerpt(dc);
         aei.index(0);
         double d = 0.001;
         for (int i = 0; i < 200; i++)
@@ -81,7 +81,7 @@ public class ByteBufferExcerptTest {
         expect(dc.positionInBuffer(0)).andReturn(0);
         expect(dc.positionInBuffer(0)).andReturn(0);
         replay(dc);
-        ByteBufferExcerpt<DirectChronicle> aei = new ByteBufferExcerpt<DirectChronicle>(dc);
+        ByteBufferExcerpt aei = new ByteBufferExcerpt(dc);
         aei.index(0);
         double d = 0.001;
         for (int i = 0; i < 200; i++)
@@ -108,7 +108,7 @@ public class ByteBufferExcerptTest {
         expect(dc.positionInBuffer(0)).andReturn(0);
         expect(dc.positionInBuffer(0)).andReturn(0);
         replay(dc);
-        ByteBufferExcerpt<DirectChronicle> aei = new ByteBufferExcerpt<DirectChronicle>(dc);
+        ByteBufferExcerpt aei = new ByteBufferExcerpt(dc);
         aei.index(0);
         long time = 1000;
         for (int i = 0; i < 1000; i++) {

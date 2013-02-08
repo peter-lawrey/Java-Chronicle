@@ -114,7 +114,7 @@ public class IndexedChronicleTest {
 
         tsc.clear();
 
-        Excerpt<IndexedChronicle> excerpt = tsc.createExcerpt();
+        Excerpt excerpt = tsc.createExcerpt();
         excerpt.startExcerpt(2);
         excerpt.writeBoolean(false);
         excerpt.writeBoolean(true);
@@ -138,7 +138,7 @@ public class IndexedChronicleTest {
 
         tsc.clear();
 
-        Excerpt<IndexedChronicle> excerpt = tsc.createExcerpt();
+        Excerpt excerpt = tsc.createExcerpt();
         excerpt.startExcerpt(42);
         excerpt.writeEnum(AccessMode.EXECUTE);
         excerpt.writeEnum(AccessMode.READ);

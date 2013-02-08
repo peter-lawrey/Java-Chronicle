@@ -238,7 +238,7 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
         chronicle.setEnumeratedMarshaller(marshaller);
     }
 
-    private class SourceExcerpt extends WrappedExcerpt<C> {
+    private class SourceExcerpt extends WrappedExcerpt {
         @SuppressWarnings("unchecked")
         public SourceExcerpt() {
             super(InProcessChronicleSource.this.chronicle.createExcerpt());

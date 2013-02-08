@@ -125,8 +125,8 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     @Override
-    public Excerpt<IndexedChronicle> createExcerpt() {
-        return useUnsafe ? new UnsafeExcerpt<IndexedChronicle>(this) : new ByteBufferExcerpt<IndexedChronicle>(this);
+    public Excerpt createExcerpt() {
+        return useUnsafe ? new UnsafeExcerpt(this) : new ByteBufferExcerpt(this);
     }
 
     @Override

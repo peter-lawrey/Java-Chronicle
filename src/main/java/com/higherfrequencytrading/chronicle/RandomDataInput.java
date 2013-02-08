@@ -145,7 +145,7 @@ public interface RandomDataInput extends ObjectInput, RandomAccess {
     // ObjectInput
 
     @Override
-    Object readObject() throws ClassNotFoundException;
+    Object readObject() throws IllegalStateException;
 
     @Override
     int read();

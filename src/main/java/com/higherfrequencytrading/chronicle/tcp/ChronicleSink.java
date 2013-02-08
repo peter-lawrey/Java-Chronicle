@@ -17,6 +17,7 @@ package com.higherfrequencytrading.chronicle.tcp;
 
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.ExcerptListener;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 
 import java.io.Closeable;
@@ -40,21 +41,21 @@ import java.util.logging.Logger;
  *
  * @author peter.lawrey
  */
-public class ChronicleSink<C extends Chronicle> implements Closeable {
-    private final C chronicle;
+public class ChronicleSink implements Closeable {
+    private final Chronicle chronicle;
     private final SocketAddress address;
-    private final ExcerptListener<C> listener;
+    private final ExcerptListener listener;
 
     private final ExecutorService service;
     private final Logger logger;
     private volatile boolean closed = false;
 
     @SuppressWarnings("unchecked")
-    public ChronicleSink(C chronicle, String hostname, int port) {
+    public ChronicleSink(Chronicle chronicle, String hostname, int port) {
         this(chronicle, hostname, port, NullExcerptListener.INSTANCE);
     }
 
-    public ChronicleSink(C chronicle, String hostname, int port, ExcerptListener<C> listener) {
+    public ChronicleSink(Chronicle chronicle, String hostname, int port, ExcerptListener listener) {
         this.chronicle = chronicle;
         this.listener = listener;
         this.address = new InetSocketAddress(hostname, port);
@@ -76,12 +77,12 @@ public class ChronicleSink<C extends Chronicle> implements Closeable {
         String hostname = args[1];
         int port = Integer.parseInt(args[2]);
         IndexedChronicle ic = new IndexedChronicle(basePath, dataBitsHintSize, byteOrder);
-        new ChronicleSink<IndexedChronicle>(ic, hostname, port);
+        new ChronicleSink(ic, hostname, port);
     }
 
     class Sink implements Runnable {
         @SuppressWarnings("unchecked")
-        final Excerpt<C> excerpt = chronicle.createExcerpt();
+        final Excerpt excerpt = chronicle.createExcerpt();
 
         @Override
         public void run() {

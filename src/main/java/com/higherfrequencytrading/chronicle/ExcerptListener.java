@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.higherfrequencytrading.chronicle.tcp;
+package com.higherfrequencytrading.chronicle;
 
 /**
  * @author peter.lawrey
- * @deprecated Using com.higherfrequencytrading.chronicle.ExcerptListener to be removed in version 1.8.
  */
-@Deprecated
-public interface ExcerptListener extends com.higherfrequencytrading.chronicle.ExcerptListener {
+public interface ExcerptListener {
+    public void onExcerpt(Excerpt excerpt);
 }
