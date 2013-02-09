@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Peter Lawrey
+ * Copyright 2013 Peter Lawrey
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
 
 /**
- * @author plawrey
+ * @author peter.lawrey
  */
 public class StringMarshaller implements EnumeratedMarshaller<String> {
     private final String[] interner;
