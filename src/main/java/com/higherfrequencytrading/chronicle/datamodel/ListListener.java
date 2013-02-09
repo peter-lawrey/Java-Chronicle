@@ -1,4 +1,4 @@
-package com.higherfrequencytrading.chronicle;
+package com.higherfrequencytrading.chronicle.datamodel;
 
 import java.util.Collection;
 

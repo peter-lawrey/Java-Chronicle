@@ -42,7 +42,7 @@ public class ObjectStreamTest {
         IndexedChronicle tsc = new IndexedChronicle(basePath);
         tsc.useUnsafe(false /*USE_UNSAFE*/);
 
-        Excerpt<IndexedChronicle> excerpt = tsc.createExcerpt();
+        Excerpt excerpt = tsc.createExcerpt();
 
         List objects = Arrays.asList(1, 1L, "one", new Date(1));
 

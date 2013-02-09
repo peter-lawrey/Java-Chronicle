@@ -28,7 +28,7 @@ public class DirectMemoryReader {
 
     final String basePath = BASE_DIR + "request";
     final IndexedChronicle tsc;
-    final Excerpt<IndexedChronicle> excerpt;
+    final Excerpt excerpt;
     int currentExcerptIndex = 0;
 
 

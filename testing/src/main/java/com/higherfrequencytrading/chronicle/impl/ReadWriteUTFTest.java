@@ -35,7 +35,7 @@ public class ReadWriteUTFTest {
         IndexedChronicle tsc = new IndexedChronicle(basePath);
         tsc.useUnsafe(USE_UNSAFE);
         tsc.clear();
-        Excerpt<IndexedChronicle> excerpt = tsc.createExcerpt();
+        Excerpt excerpt = tsc.createExcerpt();
 
         StringBuilder sb = new StringBuilder();
         for (int i = Character.MIN_CODE_POINT; i <= Character.MAX_CODE_POINT; i += 16) {

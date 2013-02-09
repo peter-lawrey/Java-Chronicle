@@ -1,6 +1,5 @@
 package com.higherfrequencytrading.chronicle.datamodel;
 
-import com.higherfrequencytrading.chronicle.CollectionListener;
 import com.higherfrequencytrading.chronicle.Excerpt;
 
 import java.util.*;

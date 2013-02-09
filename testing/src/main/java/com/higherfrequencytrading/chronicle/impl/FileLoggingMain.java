@@ -45,7 +45,7 @@ public class FileLoggingMain {
         IntIndexedChronicle tsc = new IntIndexedChronicle(basePath);
         tsc.useUnsafe(USE_UNSAFE);
 
-        Excerpt<IndexedChronicle> excerpt = tsc.createExcerpt();
+        Excerpt excerpt = tsc.createExcerpt();
         double d = 0.001, factor = 1 + 10.0 / count;
         long timeInMS = System.currentTimeMillis() % 86400000;
         for (int i = 0; i < count; i++) {

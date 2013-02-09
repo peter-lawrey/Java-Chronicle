@@ -28,7 +28,7 @@ public class DirectMemoryWriter {
     public static final String BASE_DIR = System.getProperty("java.io.tmpdir") + "/deleteme.iictm.";
     final String basePath = BASE_DIR + "request";
     final IndexedChronicle tsc;
-    final Excerpt<IndexedChronicle> excerpt;
+    final Excerpt excerpt;
 
     public DirectMemoryWriter() throws IOException {
         tsc = new IndexedChronicle(basePath, DirectMemoryReader.DATA_BIT_SIZE_HINT);

@@ -1,4 +1,6 @@
-package com.higherfrequencytrading.chronicle;
+package com.higherfrequencytrading.chronicle.datamodel;
+
+import com.higherfrequencytrading.chronicle.EventListener;
 
 import java.util.Collection;
 
