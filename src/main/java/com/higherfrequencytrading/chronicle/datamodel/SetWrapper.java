@@ -19,7 +19,6 @@ package com.higherfrequencytrading.chronicle.datamodel;
 import com.higherfrequencytrading.chronicle.Excerpt;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Modifier;
 import java.util.*;
 
 import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
@@ -32,31 +31,36 @@ public class SetWrapper<E> implements ObservableSet<E> {
     private final String name;
     private final Class<E> eClass;
     private final Set<E> underlying;
+    private final ModelMode mode;
     private final int maxMessageSize;
     private final List<CollectionListener<E>> listeners = new ArrayList<CollectionListener<E>>();
     private boolean notifyOff = false;
     private final boolean enumClass;
 
-    public SetWrapper(DataStore dataStore, String name, Class<E> eClass, Set<E> underlying, int maxMessageSize) {
+    public SetWrapper(DataStore dataStore, String name, Class<E> eClass, Set<E> underlying, ModelMode mode, int maxMessageSize) {
         this.dataStore = dataStore;
         this.name = name;
         this.eClass = eClass;
         this.underlying = underlying;
+        this.mode = mode;
         this.maxMessageSize = maxMessageSize;
-        enumClass = Comparable.class.isAssignableFrom(eClass) && (eClass.getModifiers() & Modifier.FINAL) != 0;
+        enumClass = dataStore.enumeratedClass(eClass);
         dataStore.add(name, this);
     }
 
+    @Override
     public void addListener(CollectionListener<E> listener) {
         listeners.add(listener);
     }
 
+    @Override
     public void removeListener(CollectionListener<E> listener) {
         listeners.remove(listener);
     }
 
     @Override
     public boolean add(E e) {
+        checkWritable();
         if (!underlying.add(e)) return false;
         writeAdd(e);
         return true;
@@ -64,6 +68,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
+        checkWritable();
         List<E> added = new ArrayList<E>();
         for (E e : c)
             if (underlying.add(e))
@@ -75,6 +80,10 @@ public class SetWrapper<E> implements ObservableSet<E> {
         else
             writeAddAll(added);
         return true;
+    }
+
+    void checkWritable() {
+        if (!mode.writable) throw new IllegalStateException("ModelModel=" + mode);
     }
 
     @Override
@@ -126,6 +135,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
 
             @Override
             public void remove() {
+                checkWritable();
                 iter.remove();
                 int maxSize = maxMessageSize;
                 Excerpt excerpt = getExcerpt(maxSize, remove);
@@ -164,8 +174,11 @@ public class SetWrapper<E> implements ObservableSet<E> {
                     List<E> eList = readList(excerpt);
                     underlying.addAll(eList);
                     if (!notifyOff)
-                        for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).addAll(eList);
+                        for (int i = 0; i < listeners.size(); i++) {
+                            CollectionListener<E> listener = listeners.get(i);
+                            for (int j = 0; j < eList.size(); j++)
+                                listener.add(eList.get(j));
+                        }
 
                     break;
                 }
@@ -184,14 +197,22 @@ public class SetWrapper<E> implements ObservableSet<E> {
                     List<E> eList = readList(excerpt);
                     underlying.removeAll(eList);
                     if (!notifyOff)
-                        for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).removeAll(eList);
+                        for (int i = 0; i < listeners.size(); i++) {
+                            CollectionListener<E> listener = listeners.get(i);
+                            for (int j = 0; j < eList.size(); j++)
+                                listener.remove(eList.get(j));
+                        }
                     break;
                 }
                 case clear: {
-                    if (!notifyOff)
-                        for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).removeAll(underlying);
+                    if (!notifyOff && !listeners.isEmpty()) {
+                        E[] elements = (E[]) underlying.toArray(new Object[underlying.size()]);
+                        for (int i = 0; i < listeners.size(); i++) {
+                            CollectionListener<E> listener = listeners.get(i);
+                            for (int j = 0; j < elements.length; j++)
+                                listener.remove(elements[j]);
+                        }
+                    }
                     underlying.clear();
                     break;
                 }
@@ -210,6 +231,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
 
     @Override
     public boolean remove(Object o) {
+        checkWritable();
         if (!underlying.remove(o)) return false;
         writeRemove(o);
         return true;
@@ -217,6 +239,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
 
     @Override
     public boolean removeAll(Collection<?> c) {
+        checkWritable();
         List<E> removed = new ArrayList<E>();
         for (Object o : c)
             if (underlying.remove(o))
@@ -232,6 +255,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
 
     @Override
     public boolean retainAll(Collection<?> c) {
+        checkWritable();
         List<Object> toremove = new ArrayList<Object>(size());
         for (E e : this) {
             if (!c.contains(e))
@@ -293,7 +317,8 @@ public class SetWrapper<E> implements ObservableSet<E> {
             for (int i = 0; i < listeners.size(); i++) {
                 CollectionListener<E> listener = listeners.get(i);
                 listener.eventStart(eventId, name);
-                listener.addAll(added);
+                for (E e : added)
+                    listener.add(e);
                 listener.eventEnd(true);
             }
         }
@@ -305,10 +330,13 @@ public class SetWrapper<E> implements ObservableSet<E> {
         excerpt.writeEnum("clear");
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
+            E[] elements = (E[]) underlying.toArray(new Object[underlying.size()]);
             for (int i = 0; i < listeners.size(); i++) {
                 CollectionListener<E> listener = listeners.get(i);
                 listener.eventStart(eventId, name);
-                listener.removeAll(underlying);
+                for (int j = 0; j < elements.length; j++) {
+                    listener.remove(elements[j]);
+                }
                 listener.eventEnd(true);
             }
         }
@@ -339,12 +367,15 @@ public class SetWrapper<E> implements ObservableSet<E> {
             for (int i = 0; i < listeners.size(); i++) {
                 CollectionListener<E> listener = listeners.get(i);
                 listener.eventStart(eventId, name);
-                listener.removeAll(removed);
+                for (int j = 0; j < removed.size(); j++) {
+                    listener.remove(removed.get(j));
+                }
                 listener.eventEnd(true);
             }
         }
     }
 
+    @SuppressWarnings("unchecked")
     private E readElement(Excerpt excerpt) {
         if (enumClass)
             return excerpt.readEnum(eClass);

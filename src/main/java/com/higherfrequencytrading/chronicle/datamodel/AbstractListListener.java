@@ -16,8 +16,6 @@
 
 package com.higherfrequencytrading.chronicle.datamodel;
 
-import java.util.Collection;
-
 /**
  * @author peter.lawrey
  */
@@ -26,11 +24,6 @@ public abstract class AbstractListListener<E> extends AbstractCollectionListener
     public void set(int index, E oldElement, E element) {
         remove(index, oldElement);
         add(index, element);
-    }
-
-    @Override
-    public void addAll(int index, Collection<E> eList) {
-        addAll(eList);
     }
 
     @Override

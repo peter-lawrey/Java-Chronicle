@@ -16,10 +16,12 @@
 
 package com.higherfrequencytrading.chronicle.datamodel;
 
+import java.util.Map;
+
 /**
  * @author peter.lawrey
  */
-public interface ObservableMap<K, V> extends Wrapper {
+public interface ObservableMap<K, V> extends Map<K, V>, Wrapper {
     public void addListener(MapListener<K, V> listener);
 
     public void removeListener(MapListener<K, V> listener);

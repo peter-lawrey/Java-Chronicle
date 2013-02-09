@@ -22,16 +22,9 @@ import com.higherfrequencytrading.chronicle.ExcerptListener;
  * @author peter.lawrey
  */
 public interface Wrapper extends ExcerptListener {
-    public void notifyOff(boolean notifyOn);
+    public void notifyOff(boolean notifyOff);
 
 /*    public class DequeWrapper<E> extends QueueWrapper<E> implements Deque<E> {
-
-    }
-
-    public class ListWrapper<E> extends AbstractSequentialList<E> implements List<E>, RandomAccess {
-    }
-
-    public class MapWrapper<K, V> extends AbstractMap<K,V> implements Map<K,V> {
 
     }
 

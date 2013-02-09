@@ -20,5 +20,5 @@ package com.higherfrequencytrading.chronicle.datamodel;
  * @author peter.lawrey
  */
 public enum WrapperEvent {
-    add, addIndex, addAll, addAllIndex, set, remove, removeIndex, removeAll, clear;
+    add, addIndex, addAll, addAllIndex, put, putAll, remove, removeIndex, removeAll, set, clear;
 }

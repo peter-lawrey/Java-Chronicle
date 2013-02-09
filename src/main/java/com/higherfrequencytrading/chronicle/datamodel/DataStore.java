@@ -18,7 +18,9 @@ package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.impl.DirectChronicle;
 
+import java.lang.reflect.Modifier;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -26,7 +28,7 @@ import java.util.Map;
  * @author peter.lawrey
  */
 public class DataStore {
-    private final Chronicle chronicle;
+    private final DirectChronicle chronicle;
     private final ModelMode mode;
     private final Excerpt excerpt;
     private final Map<String, Wrapper> wrappers = new LinkedHashMap<String, Wrapper>();
@@ -34,7 +36,7 @@ public class DataStore {
     private Boolean notifyOff = null;
 
     public DataStore(Chronicle chronicle, ModelMode mode) {
-        this.chronicle = chronicle;
+        this.chronicle = (DirectChronicle) chronicle;
         this.mode = mode;
         excerpt = chronicle.createExcerpt();
     }
@@ -80,5 +82,11 @@ public class DataStore {
         excerpt.startExcerpt(capacity + 2 + name.length());
         excerpt.writeEnum(name);
         return excerpt;
+    }
+
+    public boolean enumeratedClass(Class eClass) {
+        if (Comparable.class.isAssignableFrom(eClass) && (eClass.getModifiers() & Modifier.FINAL) != 0)
+            return true;
+        return chronicle.getMarshaller(eClass) != null;
     }
 }

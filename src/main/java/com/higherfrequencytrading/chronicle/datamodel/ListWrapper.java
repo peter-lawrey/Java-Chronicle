@@ -19,7 +19,6 @@ package com.higherfrequencytrading.chronicle.datamodel;
 import com.higherfrequencytrading.chronicle.Excerpt;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Modifier;
 import java.util.*;
 
 import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
@@ -32,24 +31,26 @@ public class ListWrapper<E> implements ObservableList<E> {
     private final String name;
     private final Class<E> eClass;
     private final List<E> underlying;
+    private final ModelMode mode;
     private final int maxMessageSize;
     private final int offset;
     private final List<ListListener<E>> listeners = new ArrayList<ListListener<E>>();
     private boolean notifyOff = false;
     private final boolean enumClass;
 
-    public ListWrapper(DataStore dataStore, String name, Class<E> eClass, List<E> underlying, int maxMessageSize) {
-        this(dataStore, name, eClass, underlying, maxMessageSize, 0);
+    public ListWrapper(DataStore dataStore, String name, Class<E> eClass, List<E> underlying, ModelMode modelMode, int maxMessageSize) {
+        this(dataStore, name, eClass, underlying, modelMode, maxMessageSize, 0);
     }
 
-    public ListWrapper(DataStore dataStore, String name, Class<E> eClass, List<E> underlying, int maxMessageSize, int offset) {
+    public ListWrapper(DataStore dataStore, String name, Class<E> eClass, List<E> underlying, ModelMode mode, int maxMessageSize, int offset) {
         this.dataStore = dataStore;
         this.name = name;
         this.eClass = eClass;
         this.underlying = underlying;
+        this.mode = mode;
         this.maxMessageSize = maxMessageSize;
         this.offset = offset;
-        enumClass = Comparable.class.isAssignableFrom(eClass) && (eClass.getModifiers() & Modifier.FINAL) != 0;
+        enumClass = dataStore.enumeratedClass(eClass);
         dataStore.add(name, this);
     }
 
@@ -78,6 +79,7 @@ public class ListWrapper<E> implements ObservableList<E> {
 
     @Override
     public boolean add(E e) {
+        checkWritable();
         if (!underlying.add(e)) return false;
         writeAdd(e);
         return true;
@@ -85,12 +87,14 @@ public class ListWrapper<E> implements ObservableList<E> {
 
     @Override
     public void add(int index, E element) {
+        checkWritable();
         underlying.add(index, element);
         writeAdd(index, element);
     }
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
+        checkWritable();
         underlying.addAll(c);
         if (c.isEmpty())
             return false;
@@ -103,6 +107,7 @@ public class ListWrapper<E> implements ObservableList<E> {
 
     @Override
     public boolean addAll(int index, Collection<? extends E> c) {
+        checkWritable();
         List<E> added = new ArrayList<E>();
         for (E e : c)
             if (underlying.add(e))
@@ -114,6 +119,10 @@ public class ListWrapper<E> implements ObservableList<E> {
         else
             writeAddAll(added);
         return true;
+    }
+
+    void checkWritable() {
+        if (!mode.writable) throw new IllegalStateException("ModelModel=" + mode);
     }
 
     @Override
@@ -128,6 +137,7 @@ public class ListWrapper<E> implements ObservableList<E> {
 
     @Override
     public void clear() {
+        checkWritable();
         writeClear();
         underlying.clear();
     }
@@ -190,6 +200,7 @@ public class ListWrapper<E> implements ObservableList<E> {
 
             @Override
             public void remove() {
+                checkWritable();
                 iter.remove();
                 int maxSize = maxMessageSize;
                 Excerpt excerpt = getExcerpt(maxSize, remove);
@@ -269,8 +280,11 @@ public class ListWrapper<E> implements ObservableList<E> {
                     List<E> eList = readList(excerpt);
                     underlying.addAll(eList);
                     if (!notifyOff)
-                        for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).addAll(eList);
+                        for (int i = 0; i < listeners.size(); i++) {
+                            CollectionListener<E> listener = listeners.get(i);
+                            for (int j = 0; j < eList.size(); j++)
+                                listener.add(eList.get(j));
+                        }
 
                     break;
                 }
@@ -279,8 +293,11 @@ public class ListWrapper<E> implements ObservableList<E> {
                     List<E> eList = readList(excerpt);
                     underlying.addAll(index, eList);
                     if (!notifyOff)
-                        for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).addAll(index, eList);
+                        for (int i = 0; i < listeners.size(); i++) {
+                            ListListener<E> listener = listeners.get(i);
+                            for (int j = 0; j < eList.size(); j++)
+                                listener.add(index + j, eList.get(j));
+                        }
 
                     break;
                 }
@@ -317,15 +334,29 @@ public class ListWrapper<E> implements ObservableList<E> {
                     List<E> eList = readList(excerpt);
                     underlying.removeAll(eList);
                     if (!notifyOff)
-                        for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).removeAll(eList);
+                        for (int i = 0; i < listeners.size(); i++) {
+                            CollectionListener<E> listener = listeners.get(i);
+                            for (int j = 0; j < eList.size(); j++)
+                                listener.remove(eList.get(j));
+                        }
                     break;
                 }
                 case clear: {
+                    int offset = excerpt.readInt();
+                    int size = excerpt.readInt();
+                    int endToRemove = Math.min(size + offset, underlying.size());
                     if (!notifyOff)
-                        for (int i = 0; i < listeners.size(); i++)
-                            listeners.get(i).removeAll(underlying);
-                    underlying.clear();
+                        for (int i = 0; i < listeners.size(); i++) {
+                            ListListener<E> listener = listeners.get(i);
+                            for (int j = offset; j < endToRemove; j++)
+                                listener.remove(underlying.get(j));
+                        }
+
+                    if (offset != 0 || endToRemove != underlying.size()) {
+                        underlying.subList(offset, offset + size).clear();
+                    } else {
+                        underlying.clear();
+                    }
                     break;
                 }
             }
@@ -343,6 +374,7 @@ public class ListWrapper<E> implements ObservableList<E> {
 
     @Override
     public E remove(int index) {
+        checkWritable();
         if (index < size()) {
             E e = underlying.get(index);
             underlying.remove(index);
@@ -354,6 +386,7 @@ public class ListWrapper<E> implements ObservableList<E> {
 
     @Override
     public boolean remove(Object o) {
+        checkWritable();
         if (!underlying.remove(o)) return false;
         writeRemove(o);
         return true;
@@ -361,6 +394,7 @@ public class ListWrapper<E> implements ObservableList<E> {
 
     @Override
     public boolean removeAll(Collection<?> c) {
+        checkWritable();
         List<E> removed = new ArrayList<E>();
         for (Object o : c)
             if (underlying.remove(o))
@@ -376,6 +410,7 @@ public class ListWrapper<E> implements ObservableList<E> {
 
     @Override
     public boolean retainAll(Collection<?> c) {
+        checkWritable();
         List<Object> toremove = new ArrayList<Object>(size());
         for (E e : this) {
             if (!c.contains(e))
@@ -388,6 +423,7 @@ public class ListWrapper<E> implements ObservableList<E> {
 
     @Override
     public E set(int index, E element) {
+        checkWritable();
         E e = underlying.set(index, element);
         if (element.equals(e))
             return e;
@@ -404,7 +440,7 @@ public class ListWrapper<E> implements ObservableList<E> {
     public List<E> subList(int fromIndex, int toIndex) {
         if (fromIndex < 0 || toIndex >= size() || toIndex < fromIndex)
             throw new IllegalArgumentException();
-        return new ListWrapper<E>(dataStore, name, eClass, underlying.subList(fromIndex, toIndex), maxMessageSize);
+        return new ListWrapper<E>(dataStore, name, eClass, underlying.subList(fromIndex, toIndex), mode, maxMessageSize);
     }
 
     @SuppressWarnings("unchecked")
@@ -469,27 +505,33 @@ public class ListWrapper<E> implements ObservableList<E> {
             for (int i = 0; i < listeners.size(); i++) {
                 CollectionListener<E> listener = listeners.get(i);
                 listener.eventStart(eventId, name);
-                listener.addAll(added);
+                for (E e : added)
+                    listener.add(e);
                 listener.eventEnd(true);
             }
         }
     }
 
     private void writeClear() {
-        Excerpt excerpt = dataStore.startExcerpt(10, name);
+        Excerpt excerpt = getExcerpt(16, clear);
         long eventId = excerpt.index();
-        excerpt.writeEnum("clear");
+        excerpt.writeEnum(clear);
+        excerpt.writeInt(offset);
+        excerpt.writeInt(size());
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
             for (int i = 0; i < listeners.size(); i++) {
                 CollectionListener<E> listener = listeners.get(i);
                 listener.eventStart(eventId, name);
-                listener.removeAll(underlying);
+                for (int j = 0; j < underlying.size(); j++) {
+                    listener.remove(underlying.get(j));
+                }
                 listener.eventEnd(true);
             }
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void writeRemove(Object o) {
         Excerpt excerpt = getExcerpt(maxMessageSize, remove);
         long eventId = excerpt.index();
@@ -505,6 +547,7 @@ public class ListWrapper<E> implements ObservableList<E> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void writeRemove(int index, Object o) {
         Excerpt excerpt = getExcerpt(maxMessageSize, removeIndex);
         long eventId = excerpt.index();
@@ -529,7 +572,9 @@ public class ListWrapper<E> implements ObservableList<E> {
             for (int i = 0; i < listeners.size(); i++) {
                 CollectionListener<E> listener = listeners.get(i);
                 listener.eventStart(eventId, name);
-                listener.removeAll(removed);
+                for (int j = 0; j < removed.size(); j++) {
+                    listener.remove(removed.get(j));
+                }
                 listener.eventEnd(true);
             }
         }
@@ -565,22 +610,13 @@ public class ListWrapper<E> implements ObservableList<E> {
         }
 
         @Override
-        public void addAll(Collection<E> eList) {
-            listener.addAll(eList);
-        }
-
-        @Override
-        public void removeAll(Collection<E> eList) {
-            listener.removeAll(eList);
-        }
-
-        @Override
         public void remove(E e) {
             listener.remove(e);
         }
     }
 
 
+    @SuppressWarnings("unchecked")
     private E readElement(Excerpt excerpt) {
         if (enumClass)
             return excerpt.readEnum(eClass);
