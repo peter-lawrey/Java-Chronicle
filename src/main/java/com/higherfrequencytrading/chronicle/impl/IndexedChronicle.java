@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -40,8 +40,12 @@ public class IndexedChronicle extends AbstractChronicle {
     public static final int DEFAULT_DATA_BITS_SIZE = 27; // 1 << 27 or 128 MB.
     private static final Logger logger = Logger.getLogger(IndexedChronicle.class.getName());
 
-    private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
-    private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();
+   // private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
+    //private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();
+    private MappedByteBuffer indexBuffer;
+    private MappedByteBuffer dataBuffer;
+    private int indexBufferId;
+    private int dataBufferId;
     private final int indexBitSize;
     protected final int indexLowMask;
     private final int dataBitSize;
@@ -139,18 +143,24 @@ public class IndexedChronicle extends AbstractChronicle {
     protected ByteBuffer acquireIndexBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
             throw new IllegalStateException("ByteOrder is incorrect.");
-        int indexBufferId = (int) (startPosition >> indexBitSize);
-        while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
-        ByteBuffer buffer = indexBuffers.get(indexBufferId);
-        if (buffer != null)
-            return buffer;
+        int currindexBufferId = (int) (startPosition >> indexBitSize);
+        //while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
+        //ByteBuffer buffer = indexBuffers.get(indexBufferId);
+        if (indexBufferId == currindexBufferId && indexBuffer != null)
+            return indexBuffer;
         try {
 //            long start = System.nanoTime();
             MappedByteBuffer mbb = indexChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~indexLowMask, 1 << indexBitSize);
 //            long time = System.nanoTime() - start;
 //            System.out.println(Thread.currentThread().getName()+": map "+time);
             mbb.order(byteOrder);
-            indexBuffers.set(indexBufferId, mbb);
+
+            if(indexBuffer != null) {
+                indexBuffer.force();
+            }
+            indexBuffer = mbb;
+            indexBufferId = currindexBufferId;
+            //indexBuffers.set(indexBufferId, mbb);
             return mbb;
         } catch (IOException e) {
             throw new IllegalStateException(e);
@@ -161,15 +171,20 @@ public class IndexedChronicle extends AbstractChronicle {
     public ByteBuffer acquireDataBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
             throw new IllegalStateException("ByteOrder is incorrect.");
-        int dataBufferId = (int) (startPosition >> dataBitSize);
-        while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
-        ByteBuffer buffer = dataBuffers.get(dataBufferId);
-        if (buffer != null)
-            return buffer;
+        int currdataBufferId = (int) (startPosition >> dataBitSize);
+        //while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
+        //ByteBuffer buffer = dataBuffers.get(dataBufferId);
+        if (dataBufferId == currdataBufferId && dataBuffer != null)
+            return dataBuffer;
         try {
             MappedByteBuffer mbb = dataChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~dataLowMask, 1 << dataBitSize);
             mbb.order(ByteOrder.nativeOrder());
-            dataBuffers.set(dataBufferId, mbb);
+            dataBufferId = currdataBufferId;
+            if(dataBuffer != null) {
+                dataBuffer.force();
+            }
+            dataBuffer = mbb;
+            //dataBuffers.set(dataBufferId, mbb);
             return mbb;
         } catch (IOException e) {
             throw new IllegalStateException(e);
@@ -218,9 +233,9 @@ public class IndexedChronicle extends AbstractChronicle {
 
     public void close() {
         try {
-            clearAll(indexChannel, indexBuffers);
+            clearAll(indexChannel, Arrays.asList(indexBuffer));
         } finally {
-            clearAll(dataChannel, dataBuffers);
+            clearAll(dataChannel, Arrays.asList(dataBuffer));
         }
     }
 
@@ -241,6 +256,6 @@ public class IndexedChronicle extends AbstractChronicle {
                     ((DirectBuffer) buffer).cleaner().clean();
             }
         }
-        buffers.clear();
+//        buffers.clear();
     }
 }
