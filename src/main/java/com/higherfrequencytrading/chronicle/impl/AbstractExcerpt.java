@@ -1455,6 +1455,16 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
+    public <E> void readEnums(Class<E> eClass, List<E> eList) {
+        eList.clear();
+        int len = readInt();
+        if (len == 0)
+            return;
+        for (int i = 0; i < len; i++)
+            eList.add(readEnum(eClass));
+    }
+
+    @Override
     public <E> List<E> readEnums(Class<E> eClass) {
         int len = readInt();
         if (len == 0) return Collections.emptyList();

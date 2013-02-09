@@ -2,6 +2,8 @@ package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
@@ -17,6 +19,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     private final int maxMessageSize;
     private final List<CollectionListener<E>> listeners = new ArrayList<CollectionListener<E>>();
     private boolean notifyOff = false;
+    private final boolean enumClass;
 
     public SetWrapper(DataStore dataStore, String name, Class<E> eClass, Set<E> underlying, int maxMessageSize) {
         this.dataStore = dataStore;
@@ -24,6 +27,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
         this.eClass = eClass;
         this.underlying = underlying;
         this.maxMessageSize = maxMessageSize;
+        enumClass = Comparable.class.isAssignableFrom(eClass) && (eClass.getModifiers() & Modifier.FINAL) != 0;
         dataStore.add(name, this);
     }
 
@@ -109,7 +113,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
                 iter.remove();
                 int maxSize = maxMessageSize;
                 Excerpt excerpt = getExcerpt(maxSize, remove);
-                excerpt.writeObject(last);
+                writeElement(excerpt, last);
                 excerpt.finish();
             }
         };
@@ -131,7 +135,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
             switch (event) {
                 case add: {
                     @SuppressWarnings("unchecked")
-                    E e = (E) excerpt.readObject();
+                    E e = readElement(excerpt);
                     underlying.add(e);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
@@ -141,8 +145,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
 
                 }
                 case addAll: {
-                    List<E> eList = new ArrayList<E>();
-                    excerpt.readList(eList);
+                    List<E> eList = readList(excerpt);
                     underlying.addAll(eList);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
@@ -153,7 +156,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
 
                 case remove: {
                     @SuppressWarnings("unchecked")
-                    E e = (E) excerpt.readObject();
+                    E e = readElement(excerpt);
                     underlying.remove(e);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
@@ -162,8 +165,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
                     break;
                 }
                 case removeAll: {
-                    List<E> eList = new ArrayList<E>();
-                    excerpt.readList(eList);
+                    List<E> eList = readList(excerpt);
                     underlying.removeAll(eList);
                     if (!notifyOff)
                         for (int i = 0; i < listeners.size(); i++)
@@ -229,9 +231,10 @@ public class SetWrapper<E> implements ObservableSet<E> {
         return underlying.size();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Object[] toArray() {
-        return underlying.toArray();
+    public E[] toArray() {
+        return underlying.toArray((E[]) Array.newInstance(eClass, underlying.size()));
     }
 
     @Override
@@ -253,7 +256,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     private void writeAdd(E element) {
         Excerpt excerpt = getExcerpt(maxMessageSize, add);
         long eventId = excerpt.index();
-        excerpt.writeObject(element);
+        writeElement(excerpt, element);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
             for (int i = 0; i < listeners.size(); i++) {
@@ -268,7 +271,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     private void writeAddAll(Collection<E> added) {
         Excerpt excerpt = getExcerpt(maxMessageSize * added.size(), addAll);
         long eventId = excerpt.index();
-        excerpt.writeList(added);
+        writeList(excerpt, added);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
             for (int i = 0; i < listeners.size(); i++) {
@@ -295,10 +298,11 @@ public class SetWrapper<E> implements ObservableSet<E> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void writeRemove(Object o) {
         Excerpt excerpt = getExcerpt(maxMessageSize, remove);
         long eventId = excerpt.index();
-        excerpt.writeObject(o);
+        writeElement(excerpt, (E) o);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
             for (int i = 0; i < listeners.size(); i++) {
@@ -313,7 +317,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     private void writeRemoveAll(List<E> removed) {
         Excerpt excerpt = getExcerpt(maxMessageSize * removed.size(), removeAll);
         long eventId = excerpt.index();
-        excerpt.writeList(removed);
+        writeList(excerpt, removed);
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
             for (int i = 0; i < listeners.size(); i++) {
@@ -323,5 +327,34 @@ public class SetWrapper<E> implements ObservableSet<E> {
                 listener.eventEnd(true);
             }
         }
+    }
+
+    private E readElement(Excerpt excerpt) {
+        if (enumClass)
+            return excerpt.readEnum(eClass);
+        return (E) excerpt.readObject();
+    }
+
+    private void writeElement(Excerpt excerpt, E element) {
+        if (enumClass)
+            excerpt.writeEnum(element);
+        else
+            excerpt.writeObject(element);
+    }
+
+    private List<E> readList(Excerpt excerpt) {
+        List<E> eList = new ArrayList<E>();
+        if (enumClass)
+            excerpt.readEnums(eClass, eList);
+        else
+            excerpt.readList(eList);
+        return eList;
+    }
+
+    private void writeList(Excerpt excerpt, Collection<E> list) {
+        if (enumClass)
+            excerpt.writeEnums(list);
+        else
+            excerpt.writeList(list);
     }
 }

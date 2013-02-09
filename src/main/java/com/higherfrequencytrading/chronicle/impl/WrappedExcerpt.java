@@ -408,16 +408,21 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.parseEnum(aClass, tester);
     }
 
+    @Override
+    public <E> void readEnums(Class<E> eClass, List<E> eList) {
+        excerpt.readEnums(eClass, eList);
+    }
+
+    public <E> List<E> readEnums(Class<E> aClass) {
+        return excerpt.readEnums(aClass);
+    }
+
     public <E> void writeEnums(Collection<E> eList) {
         excerpt.writeEnums(eList);
     }
 
     public <K, V> void writeMap(Map<K, V> map) {
         excerpt.writeMap(map);
-    }
-
-    public <E> List<E> readEnums(Class<E> aClass) {
-        return excerpt.readEnums(aClass);
     }
 
     public <K, V> Map<K, V> readMap(Class<K> aClass, Class<V> aClass2) {

@@ -153,6 +153,12 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
     /**
      * Reads a collection of enumerated types.
      */
+    <E> void readEnums(Class<E> eClass, List<E> eList);
+
+    /**
+     * @deprecated replaced with readEnums(Class, List) in version 1.8
+     */
+    @Deprecated
     <E> List<E> readEnums(Class<E> eClass);
 
     /**

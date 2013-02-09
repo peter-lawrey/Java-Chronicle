@@ -42,6 +42,8 @@ public class DataStore {
         while (excerpt.nextIndex()) {
             String name = excerpt.readEnum(String.class);
             Wrapper wrapper = wrappers.get(name);
+            if (wrapper == null)
+                continue;
             wrapper.onExcerpt(excerpt);
 
             if (notifyOff && lastEvent >= excerpt.index())
