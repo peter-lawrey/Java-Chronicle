@@ -38,7 +38,7 @@ public class SetWrapperTest {
         String name = TMP + "/set-methods";
         ChronicleTest.deleteOnExit(name);
         {
-            CollectionListener stringsListener = createMock("strings", CollectionListener.class);
+            SetListener stringsListener = createMock("strings", SetListener.class);
             stringsListener.eventStart(1, "strings");
             stringsListener.add("Hello");
             stringsListener.eventEnd(true);
@@ -47,7 +47,7 @@ public class SetWrapperTest {
             stringsListener.add("World");
             stringsListener.eventEnd(true);
 
-            CollectionListener intListener = createMock("ints", CollectionListener.class);
+            SetListener intListener = createMock("ints", SetListener.class);
             for (int i = 0; i < 3; i++) {
                 intListener.eventStart(i * 2, "ints");
                 intListener.add(i);
@@ -81,12 +81,12 @@ public class SetWrapperTest {
             chronicle.close();
         }
         {
-            CollectionListener stringsListener = createMock("strings", CollectionListener.class);
+            SetListener stringsListener = createMock("strings", SetListener.class);
             stringsListener.eventStart(5, "strings");
             stringsListener.add("!");
             stringsListener.eventEnd(true);
 
-            CollectionListener intListener = createMock("ints", CollectionListener.class);
+            SetListener intListener = createMock("ints", SetListener.class);
 
             intListener.eventStart(6, "ints");
             intListener.add(3);
