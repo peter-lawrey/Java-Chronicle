@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -21,10 +22,31 @@ public class SetWrapperTest {
         String name = TMP + "/set-methods";
         ChronicleTest.deleteOnExit(name);
         {
+            CollectionListener stringsListener = createMock("strings", CollectionListener.class);
+            stringsListener.eventStart(1, "strings");
+            stringsListener.add("Hello");
+            stringsListener.eventEnd(true);
+
+            stringsListener.eventStart(3, "strings");
+            stringsListener.add("World");
+            stringsListener.eventEnd(true);
+
+            CollectionListener intListener = createMock("ints", CollectionListener.class);
+            for (int i = 0; i < 3; i++) {
+                intListener.eventStart(i * 2, "ints");
+                intListener.add(i);
+                intListener.eventEnd(true);
+            }
+
+            replay(stringsListener);
+            replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "test", String.class, new LinkedHashSet<String>(), 8);
+            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "strings", String.class, new LinkedHashSet<String>(), 8);
+            strings.addListener(stringsListener);
             SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 6);
+            ints.addListener(intListener);
+
             dataStore.start();
 
             ints.add(0);
@@ -33,6 +55,9 @@ public class SetWrapperTest {
             strings.add("World");
             ints.add(2);
 
+            verify(stringsListener);
+            verify(intListener);
+
             assertEquals("[Hello, World]", strings.toString());
             assertEquals("[0, 1, 2]", ints.toString());
             assertEquals(String[].class, strings.toArray().getClass());
@@ -40,13 +65,34 @@ public class SetWrapperTest {
             chronicle.close();
         }
         {
+            CollectionListener stringsListener = createMock("strings", CollectionListener.class);
+            stringsListener.eventStart(5, "strings");
+            stringsListener.add("!");
+            stringsListener.eventEnd(true);
+
+            CollectionListener intListener = createMock("ints", CollectionListener.class);
+
+            intListener.eventStart(6, "ints");
+            intListener.add(3);
+            intListener.eventEnd(true);
+
+            replay(stringsListener);
+            replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "test", String.class, new LinkedHashSet<String>(), 8);
+            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "strings", String.class, new LinkedHashSet<String>(), 8);
+            strings.addListener(stringsListener);
             SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 6);
-            dataStore.start();
+            ints.addListener(intListener);
+            // assume we have  all the events written so far
+            dataStore.start(chronicle.size());
+
             strings.add("!");
             ints.add(3);
+
+            verify(stringsListener);
+            verify(intListener);
+
             assertEquals("[Hello, World, !]", strings.toString());
             assertEquals("[0, 1, 2, 3]", ints.toString());
             chronicle.close();

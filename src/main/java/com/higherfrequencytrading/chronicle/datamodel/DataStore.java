@@ -46,7 +46,7 @@ public class DataStore {
                 continue;
             wrapper.onExcerpt(excerpt);
 
-            if (notifyOff && lastEvent >= excerpt.index())
+            if (notifyOff && lastEvent <= excerpt.index())
                 notifyOff(false);
         }
         notifyOff(false);
