@@ -24,7 +24,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
-import static com.higherfrequencytrading.chronicle.tools.ChronicleTest.deleteOnExit;
+import static com.higherfrequencytrading.chronicle.tools.ChronicleTools.deleteOnExit;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 

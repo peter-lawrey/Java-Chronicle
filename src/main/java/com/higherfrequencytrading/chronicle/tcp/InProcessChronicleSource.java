@@ -135,7 +135,7 @@ public class InProcessChronicleSource implements Chronicle {
                             bb.limit(size2);
                             excerpt.read(bb);
                             bb.flip();
-//                        System.out.println("w " + ChronicleTest.asString(bb));
+//                        System.out.println("w " + ChronicleTools.asString(bb));
                             remaining -= bb.remaining();
                             while (bb.remaining() > 0 && socket.write(bb) > 0) ;
                         }

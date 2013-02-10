@@ -18,7 +18,7 @@ package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
-import com.higherfrequencytrading.chronicle.tools.ChronicleTest;
+import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class SetWrapperTest {
     @Test
     public void testMethods() throws IOException {
         String name = TMP + "/set-methods";
-        ChronicleTest.deleteOnExit(name);
+        ChronicleTools.deleteOnExit(name);
         {
             SetListener stringsListener = createMock("strings", SetListener.class);
             stringsListener.eventStart(1, "strings");
@@ -118,7 +118,7 @@ public class SetWrapperTest {
     @Test
     public void testSetPerformance() throws IOException {
         String name = TMP + "/set-perf";
-        ChronicleTest.deleteOnExit(name);
+        ChronicleTools.deleteOnExit(name);
         long start = System.nanoTime();
         int size;
         {

@@ -200,7 +200,7 @@ public class InProcessChronicleSink implements Chronicle {
 //                    System.out.println("... reading");
                 if (sc.read(readBuffer) < 0) throw new EOFException();
                 readBuffer.flip();
-//                    System.out.println("r " + ChronicleTest.asString(bb));
+//                    System.out.println("r " + ChronicleTools.asString(bb));
                 remaining -= readBuffer.remaining();
                 excerpt.write(readBuffer);
             }

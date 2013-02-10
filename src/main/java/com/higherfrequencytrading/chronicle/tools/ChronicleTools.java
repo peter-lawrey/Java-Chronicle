@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.higherfrequencytrading.chronicle.tools;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
@@ -21,9 +22,11 @@ import java.io.File;
 import java.nio.ByteBuffer;
 
 /**
+ * Was ChronicleTest but the name was confusing.
+ *
  * @author peter.lawrey
  */
-public enum ChronicleTest {
+public enum ChronicleTools {
     ;
 
     /**
@@ -90,5 +93,28 @@ public enum ChronicleTest {
             }
         }
         return sb.toString();
+    }
+
+    private static final boolean IS64BIT = is64Bit0();
+
+    public static boolean is64Bit() {
+        return IS64BIT;
+    }
+
+    private static boolean is64Bit0() {
+        String systemProp;
+        systemProp = System.getProperty("com.ibm.vm.bitmode");
+        if (systemProp != null) {
+            return systemProp.equals("64");
+        }
+        systemProp = System.getProperty("sun.arch.data.model");
+        if (systemProp != null) {
+            return systemProp.equals("64");
+        }
+        systemProp = System.getProperty("java.vm.version");
+        if (systemProp != null) {
+            return systemProp.contains("_64");
+        }
+        return false;
     }
 }

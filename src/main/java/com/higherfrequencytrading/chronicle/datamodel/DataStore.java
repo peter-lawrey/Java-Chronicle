@@ -67,7 +67,7 @@ public class DataStore {
     }
 
     private boolean processNextEvent() {
-//        System.out.println(excerpt.index()+": "+ ChronicleTest.asString(excerpt));
+//        System.out.println(excerpt.index()+": "+ ChronicleTools.asString(excerpt));
         String name = excerpt.readEnum(String.class);
         Wrapper wrapper = wrappers.get(name);
         if (wrapper == null)

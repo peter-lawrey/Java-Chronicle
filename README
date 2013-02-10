@@ -20,6 +20,10 @@ IntelliJ CE - http://www.jetbrains.com - My favourite IDE.
 Version History
 ===================================
 
+Version 1.6 - Support distributed, durable, observable collections, List, Set and Map.
+           Support efficient serialization of Java objects.  Java Serialization provided for compatibility but use of Externalizable preferred.
+           Support minimisation of virtual memory for 32-bit platforms.
+
 Version 1.5 - Support Publishing Chronicle over TCP.
            Note: the package has changed to com.higherfrequencytrading to support publishing to maven central.
 

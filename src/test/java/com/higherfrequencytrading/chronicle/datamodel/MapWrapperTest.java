@@ -20,7 +20,7 @@ import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSource;
-import com.higherfrequencytrading.chronicle.tools.ChronicleTest;
+import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class MapWrapperTest {
     @Test
     public void testMethods() throws IOException {
         String name = TMP + "/set-methods";
-        ChronicleTest.deleteOnExit(name);
+        ChronicleTools.deleteOnExit(name);
         {
             MapListener stringsListener = createMock("strings", MapListener.class);
             stringsListener.eventStart(1, "strings");
@@ -124,7 +124,7 @@ public class MapWrapperTest {
     @Test
     public void testMapPerformance() throws IOException {
         String name = TMP + "/map-perf";
-        ChronicleTest.deleteOnExit(name);
+        ChronicleTools.deleteOnExit(name);
         long start = System.nanoTime();
         int size = 0;
         {
@@ -168,8 +168,8 @@ public class MapWrapperTest {
     public void testOverTcp() throws IOException, InterruptedException {
         String name = TMP + "/tcp0-perf";
         String name2 = TMP + "/tcp2-perf";
-        ChronicleTest.deleteOnExit(name);
-        ChronicleTest.deleteOnExit(name2);
+        ChronicleTools.deleteOnExit(name);
+        ChronicleTools.deleteOnExit(name2);
 
         long start = System.nanoTime();
         int PORT = 12345;
@@ -244,8 +244,8 @@ public class MapWrapperTest {
     public void testOverTcpPutAllClear() throws IOException, InterruptedException {
         String name = TMP + "/tcp0-perf";
         String name2 = TMP + "/tcp2-perf";
-        ChronicleTest.deleteOnExit(name);
-        ChronicleTest.deleteOnExit(name2);
+        ChronicleTools.deleteOnExit(name);
+        ChronicleTools.deleteOnExit(name2);
 
         long start = System.nanoTime();
         int PORT = 12345;
@@ -321,8 +321,8 @@ public class MapWrapperTest {
     public void testOverTcpGetPerf() throws IOException, InterruptedException {
         String name = TMP + "/tcp0-perf";
         String name2 = TMP + "/tcp2-perf";
-        ChronicleTest.deleteOnExit(name);
-        ChronicleTest.deleteOnExit(name2);
+        ChronicleTools.deleteOnExit(name);
+        ChronicleTools.deleteOnExit(name2);
 
         long start = System.nanoTime();
         int PORT = 12345;

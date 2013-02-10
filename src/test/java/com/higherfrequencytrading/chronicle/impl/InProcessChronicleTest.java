@@ -20,7 +20,7 @@ import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSource;
-import com.higherfrequencytrading.chronicle.tools.ChronicleTest;
+import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 import org.junit.Test;
 
 import java.io.*;
@@ -43,7 +43,7 @@ public class InProcessChronicleTest {
         // NOTE: the sink and source must have different chronicle files.
         final int messages = 3000000;
         final Chronicle source = new InProcessChronicleSource(new IndexedChronicle(baseDir + "/source"), PORT);
-        ChronicleTest.deleteOnExit(baseDir + "/source");
+        ChronicleTools.deleteOnExit(baseDir + "/source");
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -66,7 +66,7 @@ public class InProcessChronicleTest {
         });
 
         Chronicle sink = new InProcessChronicleSink(new IndexedChronicle(baseDir + "/sink"), "localhost", PORT);
-        ChronicleTest.deleteOnExit(baseDir + "/sink");
+        ChronicleTools.deleteOnExit(baseDir + "/sink");
 
         long start = System.nanoTime();
         t.start();
@@ -150,12 +150,12 @@ public class InProcessChronicleTest {
         String baseDir = System.getProperty("java.io.tmpdir");
         String sourceName = baseDir + "/price.source";
         Chronicle source = new InProcessChronicleSource(new IndexedChronicle(sourceName), PORT);
-        ChronicleTest.deleteOnExit(sourceName);
+        ChronicleTools.deleteOnExit(sourceName);
         PriceWriter pw = new PriceWriter(source.createExcerpt());
 
         String sinkName = baseDir + "/price.sink";
         Chronicle sink = new InProcessChronicleSink(new IndexedChronicle(sinkName), "localhost", PORT);
-        ChronicleTest.deleteOnExit(sinkName);
+        ChronicleTools.deleteOnExit(sinkName);
 
         final AtomicInteger count = new AtomicInteger();
         PriceReader reader = new PriceReader(sink.createExcerpt(), new PriceListener() {

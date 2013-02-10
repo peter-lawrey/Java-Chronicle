@@ -17,6 +17,7 @@
 package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 import sun.nio.ch.DirectBuffer;
 
 import java.io.File;
@@ -38,10 +39,18 @@ import java.util.logging.Logger;
 public class IndexedChronicle extends AbstractChronicle {
     public static final long MAX_VIRTUAL_ADDRESS = 1L << 48;
     public static final int DEFAULT_DATA_BITS_SIZE = 27; // 1 << 27 or 128 MB.
+    public static final int DEFAULT_DATA_BITS_SIZE32 = 22; // 1 << 22 or 4 MB.
     private static final Logger logger = Logger.getLogger(IndexedChronicle.class.getName());
 
+    // used if minimiseByteBuffers is false.  This is faster but uses much more virtual memory.
     private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
     private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();
+    // used if minimiseByteBuffers is true;
+    private int lastIndexId = -1;
+    private MappedByteBuffer lastIndexBuffer = null;
+    private int lastDataId = -1;
+    private MappedByteBuffer lastDataBuffer = null;
+    // end of used.
     private final int indexBitSize;
     protected final int indexLowMask;
     private final int dataBitSize;
@@ -50,9 +59,10 @@ public class IndexedChronicle extends AbstractChronicle {
     private final FileChannel dataChannel;
     private boolean useUnsafe = false;
     private final ByteOrder byteOrder;
+    private final boolean minimiseByteBuffers;
 
     public IndexedChronicle(String basePath) throws IOException {
-        this(basePath, DEFAULT_DATA_BITS_SIZE);
+        this(basePath, ChronicleTools.is64Bit() ? DEFAULT_DATA_BITS_SIZE : DEFAULT_DATA_BITS_SIZE32);
     }
 
     public IndexedChronicle(String basePath, int dataBitSizeHint) throws IOException {
@@ -60,10 +70,15 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     public IndexedChronicle(String basePath, int dataBitSizeHint, ByteOrder byteOrder) throws IOException {
+        this(basePath, dataBitSizeHint, byteOrder, !ChronicleTools.is64Bit());
+    }
+
+    public IndexedChronicle(String basePath, int dataBitSizeHint, ByteOrder byteOrder, boolean minimiseByteBuffers) throws IOException {
         super(extractName(basePath));
 
         this.byteOrder = byteOrder;
-        indexBitSize = Math.min(30, Math.max(12, dataBitSizeHint - 4));
+        this.minimiseByteBuffers = minimiseByteBuffers;
+        indexBitSize = Math.min(30, Math.max(12, dataBitSizeHint - 3));
         dataBitSize = Math.min(30, Math.max(12, dataBitSizeHint));
         indexLowMask = (1 << indexBitSize) - 1;
         dataLowMask = (1 << dataBitSize) - 1;
@@ -138,19 +153,30 @@ public class IndexedChronicle extends AbstractChronicle {
 
     protected ByteBuffer acquireIndexBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
-            throw new IllegalStateException("ByteOrder is incorrect.");
+            throwByteOrderIsIncorrect();
         int indexBufferId = (int) (startPosition >> indexBitSize);
-        while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
-        ByteBuffer buffer = indexBuffers.get(indexBufferId);
-        if (buffer != null)
-            return buffer;
+        if (minimiseByteBuffers) {
+            if (lastIndexId == indexBufferId)
+                return lastIndexBuffer;
+
+        } else {
+            while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
+            ByteBuffer buffer = indexBuffers.get(indexBufferId);
+            if (buffer != null)
+                return buffer;
+        }
         try {
 //            long start = System.nanoTime();
             MappedByteBuffer mbb = indexChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~indexLowMask, 1 << indexBitSize);
 //            long time = System.nanoTime() - start;
 //            System.out.println(Thread.currentThread().getName()+": map "+time);
             mbb.order(byteOrder);
-            indexBuffers.set(indexBufferId, mbb);
+            if (minimiseByteBuffers) {
+                lastIndexBuffer = mbb;
+                lastIndexId = indexBufferId;
+            } else {
+                indexBuffers.set(indexBufferId, mbb);
+            }
             return mbb;
         } catch (IOException e) {
             throw new IllegalStateException(e);
@@ -160,20 +186,35 @@ public class IndexedChronicle extends AbstractChronicle {
     @Override
     public ByteBuffer acquireDataBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
-            throw new IllegalStateException("ByteOrder is incorrect.");
+            return throwByteOrderIsIncorrect();
         int dataBufferId = (int) (startPosition >> dataBitSize);
-        while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
-        ByteBuffer buffer = dataBuffers.get(dataBufferId);
-        if (buffer != null)
-            return buffer;
+        if (minimiseByteBuffers) {
+            if (lastDataId == dataBufferId) {
+                return lastDataBuffer;
+            }
+        } else {
+            while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
+            ByteBuffer buffer = dataBuffers.get(dataBufferId);
+            if (buffer != null)
+                return buffer;
+        }
         try {
             MappedByteBuffer mbb = dataChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~dataLowMask, 1 << dataBitSize);
             mbb.order(ByteOrder.nativeOrder());
-            dataBuffers.set(dataBufferId, mbb);
+            if (minimiseByteBuffers) {
+                lastDataBuffer = mbb;
+                lastDataId = dataBufferId;
+            } else {
+                dataBuffers.set(dataBufferId, mbb);
+            }
             return mbb;
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private ByteBuffer throwByteOrderIsIncorrect() {
+        throw new IllegalStateException("ByteOrder is incorrect.");
     }
 
     @Override

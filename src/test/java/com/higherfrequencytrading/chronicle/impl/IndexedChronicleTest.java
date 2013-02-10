@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteOrder;
 
 import static junit.framework.Assert.*;
 
@@ -181,9 +182,9 @@ public class IndexedChronicleTest {
     }
 
     @Test
-    public void testSerializationPerformance() throws IOException, ClassNotFoundException {
-        String testPath = TMP + File.separator + "chroncle-object";
-        IndexedChronicle tsc = new IndexedChronicle(testPath);
+    public void testSerializationPerformance() throws IOException, ClassNotFoundException, InterruptedException {
+        String testPath = TMP + File.separator + "chronicle-object";
+        IndexedChronicle tsc = new IndexedChronicle(testPath, 16, ByteOrder.nativeOrder(), true);
         tsc.useUnsafe(true);
         deleteOnExit(testPath);
 
@@ -192,7 +193,7 @@ public class IndexedChronicleTest {
         int objects = 5000000;
         long start = System.nanoTime();
         for (int i = 0; i < objects; i++) {
-            excerpt.startExcerpt(300);
+            excerpt.startExcerpt(28);
             excerpt.writeObject(BigDecimal.valueOf(i % 1000));
             excerpt.finish();
         }
@@ -202,9 +203,16 @@ public class IndexedChronicleTest {
             assertEquals(i % 1000, bd.longValue());
             excerpt.finish();
         }
+//        System.out.println("waiting");
+//        Thread.sleep(20000);
+//        System.out.println("waited");
+//        System.gc();
         tsc.close();
         long time = System.nanoTime() - start;
         System.out.printf("The average time to write and read a BigDecimal was %.1f us%n", time / 1e3 / objects);
+//        tsc = null;
+//        System.gc();
+//        Thread.sleep(10000);
     }
 
     static void assertEquals(long a, long b) {
