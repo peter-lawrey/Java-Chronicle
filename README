@@ -1,4 +1,6 @@
-This library is an ultra low latency, high throughput, persisted, messaging and event driven in memory database.  The typical latency is as low at 80 nano-seconds and supports throughputs of 5-20 million messages/record updates per second.
+This library is an ultra low latency, high throughput, persisted, messaging and event driven in memory database.  The typical latency is as low as 80 nano-seconds and supports throughputs of 5-20 million messages/record updates per second.
+
+This library also supports distributed, durable, observable collections (Map, List, Set)  The performance depends on the data structures used, but simple data structures can achieve throughputs of 5 million elements or key/value pairs in batches (eg addAll or putAll) and 500K elements or key/values per second when added/updated/removed individually.
 
 It uses almost no heap, trivial GC impact, can be much larger than your physical memory size (only limited by the size of your disk) and can be shared *between processes* with better than 1/10th latency of using Sockets over loopback.
 It can change the way you design your system because it allows you to have independent processes which can be running or not at the same time (as no messages are lost)  This is useful for restarting services and testing your services from canned data. e.g. like sub-microsecond durable messaging.
