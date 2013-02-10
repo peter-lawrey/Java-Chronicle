@@ -19,7 +19,10 @@ package com.higherfrequencytrading.chronicle.tools;
 import com.higherfrequencytrading.chronicle.Excerpt;
 
 import java.io.File;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Was ChronicleTest but the name was confusing.
@@ -116,5 +119,22 @@ public enum ChronicleTools {
             return systemProp.contains("_64");
         }
         return false;
+    }
+
+    public static Class[] getGenericTypes(Type type, int count) {
+        Class[] types = new Class[count];
+        Arrays.fill(types, Object.class);
+        if (type instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) type;
+            Type[] arguments = pt.getActualTypeArguments();
+            for (int i = 0; i < arguments.length && i < count; i++) {
+                if (arguments[i] instanceof Class) {
+                    types[i] = (Class) arguments[i];
+                } else if (arguments[i] instanceof ParameterizedType) {
+                    types[i] = (Class) ((ParameterizedType) arguments[i]).getRawType();
+                }
+            }
+        }
+        return types;
     }
 }

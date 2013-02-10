@@ -42,7 +42,7 @@ public class InProcessChronicleTest {
         String baseDir = System.getProperty("java.io.tmpdir");
         // NOTE: the sink and source must have different chronicle files.
         final int messages = 3000000;
-        final Chronicle source = new InProcessChronicleSource(new IndexedChronicle(baseDir + "/source"), PORT);
+        final Chronicle source = new InProcessChronicleSource(new IndexedChronicle(baseDir + "/source"), PORT + 1);
         ChronicleTools.deleteOnExit(baseDir + "/source");
         Thread t = new Thread(new Runnable() {
             @Override
@@ -65,7 +65,7 @@ public class InProcessChronicleTest {
             }
         });
 
-        Chronicle sink = new InProcessChronicleSink(new IndexedChronicle(baseDir + "/sink"), "localhost", PORT);
+        Chronicle sink = new InProcessChronicleSink(new IndexedChronicle(baseDir + "/sink"), "localhost", PORT + 1);
         ChronicleTools.deleteOnExit(baseDir + "/sink");
 
         long start = System.nanoTime();
@@ -84,7 +84,7 @@ public class InProcessChronicleTest {
         t.join();
         source.close();
         long time = System.nanoTime() - start;
-        System.out.printf("Messages per second %,d", (int) (messages * 1e9 / time));
+        System.out.printf("Messages per second %,d%n", (int) (messages * 1e9 / time));
     }
 
     interface PriceListener {
@@ -149,12 +149,12 @@ public class InProcessChronicleTest {
     public void testPricePublishing() throws IOException, InterruptedException {
         String baseDir = System.getProperty("java.io.tmpdir");
         String sourceName = baseDir + "/price.source";
-        Chronicle source = new InProcessChronicleSource(new IndexedChronicle(sourceName), PORT);
+        Chronicle source = new InProcessChronicleSource(new IndexedChronicle(sourceName), PORT + 2);
         ChronicleTools.deleteOnExit(sourceName);
         PriceWriter pw = new PriceWriter(source.createExcerpt());
 
         String sinkName = baseDir + "/price.sink";
-        Chronicle sink = new InProcessChronicleSink(new IndexedChronicle(sinkName), "localhost", PORT);
+        Chronicle sink = new InProcessChronicleSink(new IndexedChronicle(sinkName), "localhost", PORT + 2);
         ChronicleTools.deleteOnExit(sinkName);
 
         final AtomicInteger count = new AtomicInteger();
@@ -178,7 +178,7 @@ public class InProcessChronicleTest {
             reader.read();
 
         long end = System.nanoTime();
-        System.out.printf("Took an average of %.2f us to write and %.2f us to read",
+        System.out.printf("Took an average of %.2f us to write and %.2f us to read%n",
                 (mid - start) / prices / 1e3, (end - mid) / prices / 1e3);
 
 
@@ -249,7 +249,7 @@ public class InProcessChronicleTest {
         }
 
         long end = System.nanoTime();
-        System.out.printf("Took an average of %.1f us to write and %.1f us to read",
+        System.out.printf("Took an average of %.1f us to write and %.1f us to read%n",
                 (mid - start) / prices / 1e3, (end - mid) / prices / 1e3);
     }
 }

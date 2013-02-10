@@ -100,7 +100,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     public long size() {
         readMemoryBarrier();
         long size = this.size;
-        while (chronicle.getIndexData(size) != 0)
+        while (chronicle.getIndexData(size + 1) != 0)
             size++;
         return this.size = size;
     }
@@ -1568,6 +1568,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     private static final byte ENUMED = 'E';
     private static final byte SERIALIZED = 'S';
 
+    @SuppressWarnings("unchecked")
     @Override
     public void writeObject(Object obj) {
         if (obj == null) {
@@ -1576,13 +1577,13 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
 
         Class<?> clazz = obj.getClass();
-        EnumeratedMarshaller<?> em = obj instanceof Comparable ?
+        EnumeratedMarshaller em = obj instanceof Comparable || obj instanceof Externalizable ?
                 chronicle.acquireMarshaller(clazz) :
                 chronicle.getMarshaller(clazz);
         if (em != null) {
             writeByte(ENUMED);
             writeEnum(clazz);
-            writeEnum(obj);
+            em.write(this, obj);
             return;
         }
         writeByte(SERIALIZED);

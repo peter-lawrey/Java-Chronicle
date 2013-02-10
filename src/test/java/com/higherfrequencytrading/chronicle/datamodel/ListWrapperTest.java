@@ -34,8 +34,8 @@ public class ListWrapperTest {
     static final String TMP = System.getProperty("java.io.tmpdir");
 
     @Test
-    public void testMethods() throws IOException {
-        String name = TMP + "/set-methods";
+    public void testListMethods() throws IOException {
+        String name = TMP + "/testListMethods";
         ChronicleTools.deleteOnExit(name);
         {
             ListListener stringsListener = createMock("strings", ListListener.class);
@@ -116,8 +116,8 @@ public class ListWrapperTest {
     }
 
     @Test
-    public void testSetPerformance() throws IOException {
-        String name = TMP + "/set-perf";
+    public void testListPerformance() throws IOException {
+        String name = TMP + "/testListPerformance";
         ChronicleTools.deleteOnExit(name);
         long start = System.nanoTime();
         int size = 0;
@@ -153,7 +153,7 @@ public class ListWrapperTest {
             chronicle.close();
         }
         long end = System.nanoTime();
-        System.out.printf("Took %.1f seconds avg to add&remove %,d elements and %.1f seconds avg to reload them",
+        System.out.printf("Took %.1f seconds avg to add&remove %,d elements and %.1f seconds avg to reload them%n",
                 (mid - start) / 2e9, size, (end - mid) / 2e9);
     }
 }

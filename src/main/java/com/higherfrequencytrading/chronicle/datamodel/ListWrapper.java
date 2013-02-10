@@ -359,7 +359,7 @@ public class ListWrapper<E> implements ObservableList<E> {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException(e);
         }
         if (!notifyOff) {
             boolean lastEvent = !excerpt.hasNextIndex();
@@ -513,7 +513,6 @@ public class ListWrapper<E> implements ObservableList<E> {
     private void writeClear() {
         Excerpt excerpt = getExcerpt(16, clear);
         long eventId = excerpt.index();
-        excerpt.writeEnum(clear);
         excerpt.writeInt(offset);
         excerpt.writeInt(size());
         excerpt.finish();

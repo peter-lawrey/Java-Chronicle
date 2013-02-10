@@ -18,26 +18,72 @@ package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 
+import java.io.Externalizable;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * @author peter.lawrey
  */
 public class DataStore {
+    private static final Logger LOGGER = Logger.getLogger(DataStore.class.getName());
     private final Chronicle chronicle;
     private final ModelMode mode;
     private final Excerpt excerpt;
-    private final Map<String, Wrapper> wrappers = new LinkedHashMap<String, Wrapper>();
 
+    private final Map<String, Wrapper> wrappers = new LinkedHashMap<String, Wrapper>();
     private Boolean notifyOff = null;
 
     public DataStore(Chronicle chronicle, ModelMode mode) {
         this.chronicle = chronicle;
         this.mode = mode;
         excerpt = chronicle.createExcerpt();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <Model> void inject(Model model) {
+        try {
+            for (Class type = model.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+                for (Field field : type.getDeclaredFields()) {
+                    field.setAccessible(true);
+                    Class<?> fieldType = field.getType();
+                    if (fieldType.isInterface()) {
+                        if (fieldType == Map.class || fieldType == ObservableMap.class) {
+                            Class[] genericTypes = ChronicleTools.getGenericTypes(field.getGenericType(), 2);
+                            Map underlying = (Map) field.get(model);
+                            if (underlying == null)
+                                underlying = new LinkedHashMap();
+                            ObservableMap map = new MapWrapper(this, field.getName(), genericTypes[0], genericTypes[1], underlying, 1024);
+                            field.set(model, map);
+                        } else if (fieldType == List.class || fieldType == ObservableList.class) {
+                            Class[] genericTypes = ChronicleTools.getGenericTypes(field.getGenericType(), 1);
+                            List underlying = (List) field.get(model);
+                            if (underlying == null)
+                                underlying = new ArrayList();
+                            ObservableList list = new ListWrapper(this, field.getName(), genericTypes[0], underlying, 1024);
+                            field.set(model, list);
+                        } else if (fieldType == Set.class || fieldType == ObservableSet.class) {
+                            Class[] genericTypes = ChronicleTools.getGenericTypes(field.getGenericType(), 1);
+                            Set underlying = (Set) field.get(model);
+                            if (underlying == null)
+                                underlying = new LinkedHashSet();
+                            ObservableSet set = new SetWrapper(this, field.getName(), genericTypes[0], underlying, 1024);
+                            field.set(model, set);
+                        } else {
+                            LOGGER.info("Skipping field of type " + fieldType + " as this is not supported interface");
+                        }
+                    } else {
+                        LOGGER.info("Skipping field of type " + fieldType + " as injecting concrete classes is not supported");
+                    }
+                }
+            }
+        } catch (IllegalAccessException e) {
+            throw new AssertionError(e);
+        }
     }
 
     public void start() {
@@ -88,6 +134,8 @@ public class DataStore {
 
     public boolean enumeratedClass(Class eClass) {
         if (Comparable.class.isAssignableFrom(eClass) && (eClass.getModifiers() & Modifier.FINAL) != 0)
+            return true;
+        if (Externalizable.class.isAssignableFrom(eClass))
             return true;
         return chronicle.getMarshaller(eClass) != null;
     }

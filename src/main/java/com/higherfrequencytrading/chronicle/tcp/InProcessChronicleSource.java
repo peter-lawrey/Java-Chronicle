@@ -58,6 +58,7 @@ public class InProcessChronicleSource implements Chronicle {
     public InProcessChronicleSource(Chronicle chronicle, int port) throws IOException {
         this.chronicle = chronicle;
         server = ServerSocketChannel.open();
+        server.socket().setReuseAddress(true);
         server.socket().bind(new InetSocketAddress(port));
         name = chronicle.name() + "@" + port;
         logger = Logger.getLogger(getClass().getName() + "." + name);

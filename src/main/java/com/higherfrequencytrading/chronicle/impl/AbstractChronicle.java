@@ -18,6 +18,8 @@ package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 
+import java.io.Externalizable;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -36,6 +38,7 @@ public abstract class AbstractChronicle implements DirectChronicle {
         marshallerMap.put(String.class, stringMarshaller);
         marshallerMap.put(CharSequence.class, stringMarshaller);
         marshallerMap.put(Class.class, new ClassEnumMarshaller(Thread.currentThread().getContextClassLoader()));
+        marshallerMap.put(Date.class, new DateMarshaller(10191));
     }
 
     public String name() {
@@ -60,6 +63,8 @@ public abstract class AbstractChronicle implements DirectChronicle {
         if (em == null)
             if (aClass.isEnum())
                 marshallerMap.put(aClass, em = new VanillaEnumMarshaller(aClass, null));
+            else if (Externalizable.class.isAssignableFrom(aClass))
+                marshallerMap.put(aClass, em = new ExternalizableMarshaller((Class) aClass));
             else
                 marshallerMap.put(aClass, em = new GenericEnumMarshaller<E>(aClass, 1000));
         return em;

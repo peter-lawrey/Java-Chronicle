@@ -160,14 +160,14 @@ public class MapWrapperTest {
             chronicle.close();
         }
         long end = System.nanoTime();
-        System.out.printf("Took %.1f seconds avg to add&remove %,d elements and %.1f seconds avg to reload them",
+        System.out.printf("Took %.1f seconds avg to add&remove %,d elements and %.1f seconds avg to reload them%n",
                 (mid - start) / 2e9, size, (end - mid) / 2e9);
     }
 
     @Test
     public void testOverTcp() throws IOException, InterruptedException {
-        String name = TMP + "/tcp0-perf";
-        String name2 = TMP + "/tcp2-perf";
+        String name = TMP + "/testOverTcp0";
+        String name2 = TMP + "/testOverTcp2";
         ChronicleTools.deleteOnExit(name);
         ChronicleTools.deleteOnExit(name2);
 
@@ -242,8 +242,8 @@ public class MapWrapperTest {
 
     @Test
     public void testOverTcpPutAllClear() throws IOException, InterruptedException {
-        String name = TMP + "/tcp0-perf";
-        String name2 = TMP + "/tcp2-perf";
+        String name = TMP + "/testOverTcpPutAllClear0";
+        String name2 = TMP + "/testOverTcpPutAllClear2";
         ChronicleTools.deleteOnExit(name);
         ChronicleTools.deleteOnExit(name2);
 
@@ -319,8 +319,8 @@ public class MapWrapperTest {
 
     @Test
     public void testOverTcpGetPerf() throws IOException, InterruptedException {
-        String name = TMP + "/tcp0-perf";
-        String name2 = TMP + "/tcp2-perf";
+        String name = TMP + "/testOverTcpGetPerf0";
+        String name2 = TMP + "/testOverTcpGetPerf2";
         ChronicleTools.deleteOnExit(name);
         ChronicleTools.deleteOnExit(name2);
 

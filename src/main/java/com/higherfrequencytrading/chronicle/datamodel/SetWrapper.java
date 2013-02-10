@@ -323,9 +323,8 @@ public class SetWrapper<E> implements ObservableSet<E> {
     }
 
     private void writeClear() {
-        Excerpt excerpt = dataStore.startExcerpt(10, name);
+        Excerpt excerpt = getExcerpt(10, clear);
         long eventId = excerpt.index();
-        excerpt.writeEnum("clear");
         excerpt.finish();
         if (!notifyOff && !listeners.isEmpty()) {
             E[] elements = (E[]) underlying.toArray(new Object[underlying.size()]);
