@@ -167,7 +167,13 @@ public class IndexedChronicle extends AbstractChronicle {
         }
         try {
 //            long start = System.nanoTime();
-            MappedByteBuffer mbb = indexChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~indexLowMask, 1 << indexBitSize);
+            MappedByteBuffer mbb = null;
+            try {
+                mbb = indexChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~indexLowMask, 1 << indexBitSize);
+            } catch (OutOfMemoryError e) {
+                System.gc();
+                mbb = indexChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~indexLowMask, 1 << indexBitSize);
+            }
 //            long time = System.nanoTime() - start;
 //            System.out.println(Thread.currentThread().getName()+": map "+time);
             mbb.order(byteOrder);
@@ -199,7 +205,13 @@ public class IndexedChronicle extends AbstractChronicle {
                 return buffer;
         }
         try {
-            MappedByteBuffer mbb = dataChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~dataLowMask, 1 << dataBitSize);
+            MappedByteBuffer mbb = null;
+            try {
+                mbb = dataChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~dataLowMask, 1 << dataBitSize);
+            } catch (OutOfMemoryError e) {
+                System.gc();
+                mbb = dataChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~dataLowMask, 1 << dataBitSize);
+            }
             mbb.order(ByteOrder.nativeOrder());
             if (minimiseByteBuffers) {
                 lastDataBuffer = mbb;
