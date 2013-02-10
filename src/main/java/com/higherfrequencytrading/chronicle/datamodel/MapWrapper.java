@@ -31,7 +31,6 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
     private final Class<K> kClass;
     private final Class<V> vClass;
     private final Map<K, V> underlying;
-    private final ModelMode mode;
     private final int maxMessageSize;
     private final List<MapListener<K, V>> listeners = new ArrayList<MapListener<K, V>>();
     private final Set<K> keySet;
@@ -42,13 +41,12 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
 
     private boolean notifyOff = false;
 
-    public MapWrapper(DataStore dataStore, String name, Class<K> kClass, Class<V> vClass, Map<K, V> underlying, ModelMode mode, int maxMessageSize) {
+    public MapWrapper(DataStore dataStore, String name, Class<K> kClass, Class<V> vClass, Map<K, V> underlying, int maxMessageSize) {
         this.dataStore = dataStore;
         this.name = name;
         this.kClass = kClass;
         this.vClass = vClass;
         this.underlying = underlying;
-        this.mode = mode;
         this.maxMessageSize = maxMessageSize;
         kEnumClass = dataStore.enumeratedClass(kClass);
         vEnumClass = dataStore.enumeratedClass(vClass);
@@ -151,7 +149,7 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
     }
 
     void checkWritable() {
-        if (!mode.writable) throw new IllegalStateException("ModelModel=" + mode);
+        dataStore.checkWritable();
     }
 
     //// Map

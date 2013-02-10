@@ -614,4 +614,9 @@ public class WrappedExcerpt implements Excerpt {
     public void readList(Collection list) {
         readList(list);
     }
+
+    @Override
+    public long size() {
+        return excerpt.size();
+    }
 }

@@ -31,18 +31,16 @@ public class SetWrapper<E> implements ObservableSet<E> {
     private final String name;
     private final Class<E> eClass;
     private final Set<E> underlying;
-    private final ModelMode mode;
     private final int maxMessageSize;
     private final List<CollectionListener<E>> listeners = new ArrayList<CollectionListener<E>>();
     private boolean notifyOff = false;
     private final boolean enumClass;
 
-    public SetWrapper(DataStore dataStore, String name, Class<E> eClass, Set<E> underlying, ModelMode mode, int maxMessageSize) {
+    public SetWrapper(DataStore dataStore, String name, Class<E> eClass, Set<E> underlying, int maxMessageSize) {
         this.dataStore = dataStore;
         this.name = name;
         this.eClass = eClass;
         this.underlying = underlying;
-        this.mode = mode;
         this.maxMessageSize = maxMessageSize;
         enumClass = dataStore.enumeratedClass(eClass);
         dataStore.add(name, this);
@@ -83,7 +81,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     }
 
     void checkWritable() {
-        if (!mode.writable) throw new IllegalStateException("ModelModel=" + mode);
+        dataStore.checkWritable();
     }
 
     @Override

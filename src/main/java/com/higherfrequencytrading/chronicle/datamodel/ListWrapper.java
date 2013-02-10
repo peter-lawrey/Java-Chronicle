@@ -31,23 +31,21 @@ public class ListWrapper<E> implements ObservableList<E> {
     private final String name;
     private final Class<E> eClass;
     private final List<E> underlying;
-    private final ModelMode mode;
     private final int maxMessageSize;
     private final int offset;
     private final List<ListListener<E>> listeners = new ArrayList<ListListener<E>>();
     private boolean notifyOff = false;
     private final boolean enumClass;
 
-    public ListWrapper(DataStore dataStore, String name, Class<E> eClass, List<E> underlying, ModelMode modelMode, int maxMessageSize) {
-        this(dataStore, name, eClass, underlying, modelMode, maxMessageSize, 0);
+    public ListWrapper(DataStore dataStore, String name, Class<E> eClass, List<E> underlying, int maxMessageSize) {
+        this(dataStore, name, eClass, underlying, maxMessageSize, 0);
     }
 
-    public ListWrapper(DataStore dataStore, String name, Class<E> eClass, List<E> underlying, ModelMode mode, int maxMessageSize, int offset) {
+    public ListWrapper(DataStore dataStore, String name, Class<E> eClass, List<E> underlying, int maxMessageSize, int offset) {
         this.dataStore = dataStore;
         this.name = name;
         this.eClass = eClass;
         this.underlying = underlying;
-        this.mode = mode;
         this.maxMessageSize = maxMessageSize;
         this.offset = offset;
         enumClass = dataStore.enumeratedClass(eClass);
@@ -122,7 +120,7 @@ public class ListWrapper<E> implements ObservableList<E> {
     }
 
     void checkWritable() {
-        if (!mode.writable) throw new IllegalStateException("ModelModel=" + mode);
+        dataStore.checkWritable();
     }
 
     @Override
@@ -440,7 +438,7 @@ public class ListWrapper<E> implements ObservableList<E> {
     public List<E> subList(int fromIndex, int toIndex) {
         if (fromIndex < 0 || toIndex >= size() || toIndex < fromIndex)
             throw new IllegalArgumentException();
-        return new ListWrapper<E>(dataStore, name, eClass, underlying.subList(fromIndex, toIndex), mode, maxMessageSize);
+        return new ListWrapper<E>(dataStore, name, eClass, underlying.subList(fromIndex, toIndex), maxMessageSize);
     }
 
     @SuppressWarnings("unchecked")

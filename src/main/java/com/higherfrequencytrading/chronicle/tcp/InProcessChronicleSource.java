@@ -42,10 +42,10 @@ import java.util.logging.Logger;
  *
  * @author peter.lawrey
  */
-public class InProcessChronicleSource<C extends Chronicle> implements Chronicle {
+public class InProcessChronicleSource implements Chronicle {
     private static final int MAX_MESSAGE = 128;
 
-    private final C chronicle;
+    private final Chronicle chronicle;
 
     private final ServerSocketChannel server;
     private final String name;
@@ -55,7 +55,7 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
     private volatile boolean closed = false;
     private Boolean tcpNoDelay;
 
-    public InProcessChronicleSource(C chronicle, int port) throws IOException {
+    public InProcessChronicleSource(Chronicle chronicle, int port) throws IOException {
         this.chronicle = chronicle;
         server = ServerSocketChannel.open();
         server.socket().bind(new InetSocketAddress(port));
@@ -250,5 +250,10 @@ public class InProcessChronicleSource<C extends Chronicle> implements Chronicle 
             wakeSessionHandlers();
 //            System.out.println("Wrote " + index());
         }
+    }
+
+    @Override
+    public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> eClass) {
+        return chronicle.getMarshaller(eClass);
     }
 }

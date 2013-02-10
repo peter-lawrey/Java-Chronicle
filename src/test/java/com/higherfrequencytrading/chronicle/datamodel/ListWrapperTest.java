@@ -58,9 +58,9 @@ public class ListWrapperTest {
             replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "strings", String.class, new ArrayList<String>(), ModelMode.MASTER, 8);
+            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "strings", String.class, new ArrayList<String>(), 8);
             strings.addListener(stringsListener);
-            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), ModelMode.MASTER, 6);
+            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), 6);
             ints.addListener(intListener);
 
             dataStore.start();
@@ -96,9 +96,9 @@ public class ListWrapperTest {
             replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "strings", String.class, new ArrayList<String>(), ModelMode.MASTER, 8);
+            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "strings", String.class, new ArrayList<String>(), 8);
             strings.addListener(stringsListener);
-            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), ModelMode.MASTER, 6);
+            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), 6);
             ints.addListener(intListener);
             // assume we have  all the events written so far
             dataStore.start(chronicle.size());
@@ -124,8 +124,8 @@ public class ListWrapperTest {
         {
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "test", String.class, new ArrayList<String>(), ModelMode.MASTER, 9);
-            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), ModelMode.MASTER, 9);
+            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "test", String.class, new ArrayList<String>(), 9);
+            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), 9);
             dataStore.start();
             ints.clear();
             strings.clear();
@@ -147,8 +147,8 @@ public class ListWrapperTest {
         {
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "test", String.class, new ArrayList<String>(), ModelMode.MASTER, 9);
-            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), ModelMode.MASTER, 9);
+            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "test", String.class, new ArrayList<String>(), 9);
+            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), 9);
             dataStore.start();
             chronicle.close();
         }

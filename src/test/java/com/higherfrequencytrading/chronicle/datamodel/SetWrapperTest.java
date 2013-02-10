@@ -58,9 +58,9 @@ public class SetWrapperTest {
             replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "strings", String.class, new LinkedHashSet<String>(), ModelMode.MASTER, 8);
+            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "strings", String.class, new LinkedHashSet<String>(), 8);
             strings.addListener(stringsListener);
-            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), ModelMode.MASTER, 6);
+            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 6);
             ints.addListener(intListener);
 
             dataStore.start();
@@ -96,9 +96,9 @@ public class SetWrapperTest {
             replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "strings", String.class, new LinkedHashSet<String>(), ModelMode.MASTER, 8);
+            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "strings", String.class, new LinkedHashSet<String>(), 8);
             strings.addListener(stringsListener);
-            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), ModelMode.MASTER, 6);
+            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 6);
             ints.addListener(intListener);
             // assume we have  all the events written so far
             dataStore.start(chronicle.size());
@@ -124,8 +124,8 @@ public class SetWrapperTest {
         {
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "test", String.class, new LinkedHashSet<String>(), ModelMode.MASTER, 9);
-            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), ModelMode.MASTER, 9);
+            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "test", String.class, new LinkedHashSet<String>(), 9);
+            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 9);
             dataStore.start();
             ints.clear();
             strings.clear();
@@ -145,8 +145,8 @@ public class SetWrapperTest {
         {
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "test", String.class, new LinkedHashSet<String>(), ModelMode.MASTER, 9);
-            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), ModelMode.MASTER, 9);
+            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "test", String.class, new LinkedHashSet<String>(), 9);
+            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 9);
             dataStore.start();
             chronicle.close();
         }

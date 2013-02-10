@@ -43,6 +43,8 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     protected long startPosition;
 
+    protected long size = 0;
+
     protected ByteBuffer buffer;
     private boolean forWrite = false;
 
@@ -92,6 +94,15 @@ public abstract class AbstractExcerpt implements Excerpt {
         // TODO Need to determine whether this is required as a safety check or not.
         long l = readLong(0);
         return l != 0L;
+    }
+
+    @Override
+    public long size() {
+        readMemoryBarrier();
+        long size = this.size;
+        while (chronicle.getIndexData(size) != 0)
+            size++;
+        return this.size = size;
     }
 
     private boolean readMemoryBarrier() {

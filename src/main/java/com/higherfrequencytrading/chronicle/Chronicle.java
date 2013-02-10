@@ -62,4 +62,11 @@ public interface Chronicle extends Closeable {
      * @param <E>        type marshaled.
      */
     <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller);
+
+    /**
+     * Get the marshaller for a class
+     *
+     * @return the marshaller or null for there is not already.
+     */
+    <E> EnumeratedMarshaller<E> getMarshaller(Class<E> eClass);
 }

@@ -170,4 +170,11 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
      * Reads a map of key/values with known enumerated types.
      */
     <K, V> Map<K, V> readMap(Class<K> kClass, Class<V> vClass);
+
+    /**
+     * The last index which can be safely read without blocking.
+     *
+     * @return last index + 1
+     */
+    long size();
 }

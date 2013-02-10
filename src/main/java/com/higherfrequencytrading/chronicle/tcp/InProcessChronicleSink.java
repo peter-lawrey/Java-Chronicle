@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.higherfrequencytrading.chronicle.tcp;
 
 import com.higherfrequencytrading.chronicle.Chronicle;
@@ -100,7 +101,7 @@ public class InProcessChronicleSink implements Chronicle {
         public boolean index(long index) throws IndexOutOfBoundsException {
             if (super.index(index)) return true;
             readNext();
-            return index(index);
+            return super.index(index);
         }
     }
 
@@ -214,14 +215,6 @@ public class InProcessChronicleSink implements Chronicle {
         }
     }
 
-    private void readHeader(SocketChannel sc, ByteBuffer bb, boolean first) throws IOException {
-        bb.position(0);
-        bb.limit(first ? TcpUtil.HEADER_SIZE : 4);
-        while (bb.remaining() > 0 && sc.read(bb) > 0) ;
-        if (bb.remaining() > 0) throw new EOFException();
-        bb.flip();
-    }
-
     void closeSocket(SocketChannel sc) {
         if (sc != null)
             try {
@@ -236,5 +229,10 @@ public class InProcessChronicleSink implements Chronicle {
         closed = true;
         closeSocket(sc);
         chronicle.close();
+    }
+
+    @Override
+    public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> eClass) {
+        return chronicle.getMarshaller(eClass);
     }
 }
