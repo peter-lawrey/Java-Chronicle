@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
@@ -22,6 +23,7 @@ import java.io.IOException;
 
 import static com.higherfrequencytrading.chronicle.impl.GlobalSettings.*;
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 /**
  * @author peter.lawrey
@@ -48,6 +50,9 @@ public class ReadWriteUTFTest {
             excerpt.writeUTF(sb);
             excerpt.finish();
         }
+        excerpt.startExcerpt(2 + 1);
+        excerpt.writeUTF(null);
+        excerpt.finish();
 
         for (int i = Character.MIN_CODE_POINT, n = 0; i <= Character.MAX_CODE_POINT; i += 16, n++) {
             sb.setLength(0);
@@ -60,5 +65,9 @@ public class ReadWriteUTFTest {
             excerpt.finish();
             assertEquals("i: " + i, sb.toString(), text);
         }
+        assertTrue(excerpt.nextIndex());
+        String text = excerpt.readUTF();
+        excerpt.finish();
+        assertEquals(null, text);
     }
 }

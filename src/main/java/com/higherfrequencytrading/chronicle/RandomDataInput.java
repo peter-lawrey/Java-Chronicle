@@ -136,7 +136,7 @@ public interface RandomDataInput extends ObjectInput, RandomAccess {
     @Override
     String readUTF();
 
-    void readUTF(Appendable appendable);
+    boolean readUTF(Appendable appendable);
 
     String readUTF(int offset);
 

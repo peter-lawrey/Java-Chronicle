@@ -128,8 +128,9 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.readUTF();
     }
 
-    public void readUTF(Appendable appendable) {
+    public boolean readUTF(Appendable appendable) {
         excerpt.readUTF(appendable);
+        return false;
     }
 
     public String parseUTF(StopCharTester tester) {

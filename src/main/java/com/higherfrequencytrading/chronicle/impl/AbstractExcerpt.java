@@ -255,8 +255,9 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @Override
     public String readUTF() {
-        readUTF(acquireUtfReader());
-        return utfReader.toString();
+        if (readUTF(acquireUtfReader()))
+            return utfReader.toString();
+        return null;
     }
 
     private StringBuilder acquireUtfReader() {
@@ -266,20 +267,22 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void readUTF(Appendable appendable) {
+    public boolean readUTF(Appendable appendable) {
         try {
-            readUTF0(appendable);
+            return readUTF0(appendable);
         } catch (IOException unexpected) {
             throw new AssertionError(unexpected);
         }
     }
 
-    private void readUTF0(Appendable appendable) throws IOException {
+    private boolean readUTF0(Appendable appendable) throws IOException {
         int utflen = readUnsignedShort();
         int count = 0;
         while (count < utflen) {
             int c = readByte();
             if (c < 0) {
+                if (count == 0 && utflen == 1 && c == -1)
+                    return false;
                 position(position() - 1);
                 break;
             }
@@ -342,6 +345,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                             "malformed input around byte " + count);
             }
         }
+        return true;
     }
 
     @Override
@@ -717,7 +721,11 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @Override
     public void writeUTF(CharSequence str) {
-
+        if (str == null) {
+            writeUnsignedShort(1);
+            writeByte(-1);
+            return;
+        }
         int strlen = str.length();
         int utflen = 0;
         int c;
