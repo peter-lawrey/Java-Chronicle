@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
@@ -62,7 +63,7 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
 
     @Override
     public void write(Excerpt excerpt, E e) {
-        excerpt.writeUTF(e.toString());
+        excerpt.writeUTF(e == null ? null : e.toString());
     }
 
     private final Map<String, E> map;
@@ -70,7 +71,7 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
     @Override
     public E read(Excerpt excerpt) {
         String s = excerpt.readUTF();
-        return valueOf(s);
+        return s == null ? null : valueOf(s);
     }
 
     @Override
