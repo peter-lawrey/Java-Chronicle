@@ -41,12 +41,36 @@ public class DateMarshaller implements EnumeratedMarshaller<Date> {
 
     @Override
     public void write(Excerpt excerpt, Date date) {
-        excerpt.writeLong(date.getTime());
+        int pos = excerpt.position();
+        excerpt.writeUnsignedShort(0);
+        excerpt.append(date.getTime());
+        excerpt.writeUnsignedByte(pos, excerpt.position() - 2 - pos);
     }
+
+    private final StringBuilder sb = new StringBuilder();
 
     @Override
     public Date read(Excerpt excerpt) {
-        return lookupDate(excerpt.readLong());
+        sb.setLength(0);
+        excerpt.readUTF(sb);
+        long time = parseLong(sb);
+        return lookupDate(time);
+    }
+
+    private static long parseLong(CharSequence sb) {
+        long num = 0;
+        boolean negative = false;
+        for (int i = 0; i < sb.length(); i++) {
+            char b = sb.charAt(i);
+//            if (b >= '0' && b <= '9')
+            if ((b - ('0' + Integer.MIN_VALUE)) <= 9 + Integer.MIN_VALUE)
+                num = num * 10 + b - '0';
+            else if (b == '-')
+                negative = true;
+            else
+                break;
+        }
+        return negative ? -num : num;
     }
 
     @Override

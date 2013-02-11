@@ -17,6 +17,7 @@
 package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
+import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
 
 import java.io.Externalizable;
 import java.util.Date;
@@ -63,6 +64,8 @@ public abstract class AbstractChronicle implements DirectChronicle {
         if (em == null)
             if (aClass.isEnum())
                 marshallerMap.put(aClass, em = new VanillaEnumMarshaller(aClass, null));
+            else if (ExcerptMarshallable.class.isAssignableFrom(aClass))
+                marshallerMap.put(aClass, em = new ExcerptMarshaller((Class) aClass));
             else if (Externalizable.class.isAssignableFrom(aClass))
                 marshallerMap.put(aClass, em = new ExternalizableMarshaller((Class) aClass));
             else

@@ -18,6 +18,7 @@ package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 
 import java.io.Externalizable;
@@ -135,7 +136,7 @@ public class DataStore {
     public boolean enumeratedClass(Class eClass) {
         if (Comparable.class.isAssignableFrom(eClass) && (eClass.getModifiers() & Modifier.FINAL) != 0)
             return true;
-        if (Externalizable.class.isAssignableFrom(eClass))
+        if (ExcerptMarshallable.class.isAssignableFrom(eClass) || Externalizable.class.isAssignableFrom(eClass))
             return true;
         return chronicle.getMarshaller(eClass) != null;
     }

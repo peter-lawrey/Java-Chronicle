@@ -16,6 +16,9 @@
 
 package com.higherfrequencytrading.chronicle.datamodel;
 
+import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -43,7 +46,7 @@ public class ExampleDataModel {
 
 //    public final Deque<String> deque = new ArrayDeque<String>();
 
-    public static final class MyType implements Externalizable {
+    public static final class MyType implements Externalizable, ExcerptMarshallable {
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
 
@@ -52,6 +55,14 @@ public class ExampleDataModel {
         @Override
         public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 
+        }
+
+        @Override
+        public void readMarshallable(Excerpt excerpt) throws IllegalStateException {
+        }
+
+        @Override
+        public void writeMarshallable(Excerpt excerpt) {
         }
     }
 }
