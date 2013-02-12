@@ -108,6 +108,11 @@ public interface RandomDataInput extends ObjectInput, RandomAccess {
 
     long readCompactLong();
 
+    /**
+     * @return a stop bit encoded number as a long.
+     */
+    long readStopBit();
+
     @Override
     float readFloat();
 

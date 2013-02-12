@@ -101,6 +101,12 @@ public interface RandomDataOutput extends ObjectOutput, RandomAccess {
 
     void writeCompactLong(long v);
 
+    /**
+     * Stop bit encoding numbers.
+     * This will write the same number of bytes whether you used a byte, short or int.
+     */
+    void writeStopBit(long n);
+
     @Override
     void writeFloat(float v);
 

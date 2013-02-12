@@ -563,6 +563,19 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
     }
 
+    @Override
+    public long readStopBit() {
+        long l = 0, b;
+        int count = 0;
+        while ((b = readByte()) < 0) {
+            l |= (b & 0x7FL) << count;
+            count += 7;
+        }
+        if (b == 0 && count > 0)
+            return ~l;
+        return l | (b << count);
+    }
+
     // RandomDataOutput
 
     @Override
@@ -941,6 +954,29 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
     }
 
+    @Override
+    public void writeStopBit(long n) {
+        boolean neg = false;
+        if (n < 0) {
+            neg = true;
+            n = ~n;
+        }
+        while (true) {
+            long n2 = n >>> 7;
+            if (n2 != 0) {
+                writeByte((byte) (0x80 | (n & 0x7F)));
+                n = n2;
+            } else {
+                if (neg) {
+                    writeByte((byte) (0x80 | (n & 0x7F)));
+                    writeByte(0);
+                } else {
+                    writeByte((byte) (n & 0x7F));
+                }
+                break;
+            }
+        }
+    }
 
     @Override
     public void writeCompactDouble(double v) {

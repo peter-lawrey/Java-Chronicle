@@ -189,6 +189,11 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.readCompactLong();
     }
 
+    @Override
+    public long readStopBit() {
+        return excerpt.readStopBit();
+    }
+
     public double readCompactDouble() {
         return excerpt.readCompactDouble();
     }
@@ -540,6 +545,11 @@ public class WrappedExcerpt implements Excerpt {
 
     public void writeLong(int offset, long v) {
         excerpt.writeLong(offset, v);
+    }
+
+    @Override
+    public void writeStopBit(long n) {
+        excerpt.writeStopBit(n);
     }
 
     public void writeFloat(float v) {

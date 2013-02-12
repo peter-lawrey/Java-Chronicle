@@ -131,6 +131,44 @@ public class IndexedChronicleTest {
     }
 
     @Test
+    public void testStopBitEncoded() throws IOException {
+        String testPath = TMP + File.separator + "chroncle-stop-bit";
+        IndexedChronicle tsc = new IndexedChronicle(testPath, 12);
+        deleteOnExit(testPath);
+
+        Excerpt reader = tsc.createExcerpt();
+        Excerpt writer = tsc.createExcerpt();
+        long[] longs = {Long.MIN_VALUE, Integer.MIN_VALUE, Short.MIN_VALUE, Character.MIN_VALUE, Byte.MIN_VALUE,
+                Long.MAX_VALUE, Integer.MAX_VALUE, Short.MAX_VALUE, Character.MAX_CODE_POINT, Character.MAX_VALUE, Byte.MAX_VALUE};
+        for (long l : longs) {
+            writer.startExcerpt(12);
+            writer.writeChar('T');
+            writer.writeStopBit(l);
+            writer.finish();
+
+            reader.nextIndex();
+            reader.readChar();
+            long l2 = reader.readStopBit();
+            reader.finish();
+            assertEquals(l, l2);
+        }
+        writer.startExcerpt(longs.length * 10);
+        writer.writeChar('t');
+        for (long l : longs)
+            writer.writeStopBit(l);
+        writer.finish();
+
+        reader.nextIndex();
+        reader.readChar();
+        for (long l : longs) {
+            long l2 = reader.readStopBit();
+            assertEquals(l, l2);
+        }
+        assertEquals(0, reader.remaining());
+        reader.finish();
+    }
+
+    @Test
     public void testEnum() throws IOException {
         String testPath = TMP + File.separator + "chroncle-bool-enum";
         IndexedChronicle tsc = new IndexedChronicle(testPath, 12);

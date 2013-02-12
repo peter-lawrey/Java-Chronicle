@@ -48,8 +48,10 @@ public class DataStore {
     @SuppressWarnings("unchecked")
     public <Model> void inject(Model model) {
         try {
-            for (Class type = model.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Class type = model.getClass(); type != null && type != Object.class && type != Enum.class; type = type.getSuperclass()) {
                 for (Field field : type.getDeclaredFields()) {
+                    if ((field.getModifiers() & Modifier.STATIC) != 0 || (field.getModifiers() & Modifier.TRANSIENT) != 0) continue;
+
                     field.setAccessible(true);
                     Class<?> fieldType = field.getType();
                     if (fieldType.isInterface()) {
