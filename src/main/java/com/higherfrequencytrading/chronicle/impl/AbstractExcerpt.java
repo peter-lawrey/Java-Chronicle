@@ -22,7 +22,6 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
 
 import java.io.*;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
@@ -276,13 +275,16 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     private boolean readUTF0(Appendable appendable) throws IOException {
-        int utflen = readUnsignedShort();
+        long len = readStopBit();
+        if (len < -1 || len > Integer.MAX_VALUE)
+            throw new StreamCorruptedException("UTF length invalid " + len);
+        if (len == -1)
+            return false;
+        int utflen = (int) len;
         int count = 0;
         while (count < utflen) {
             int c = readByte();
             if (c < 0) {
-                if (count == 0 && utflen == 1 && c == -1)
-                    return false;
                 position(position() - 1);
                 break;
             }
@@ -716,17 +718,6 @@ public abstract class AbstractExcerpt implements Excerpt {
             writeChar(offset + 2 + i, s.charAt(i));
     }
 
-    private static final Method writeUTFMethod;
-
-    static {
-        try {
-            writeUTFMethod = DataOutputStream.class.getDeclaredMethod("writeUTF", String.class, DataOutput.class);
-            writeUTFMethod.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            throw new AssertionError(e);
-        }
-    }
-
     @Override
     public void writeUTF(String s) {
         writeUTF((CharSequence) s);
@@ -735,11 +726,10 @@ public abstract class AbstractExcerpt implements Excerpt {
     @Override
     public void writeUTF(CharSequence str) {
         if (str == null) {
-            writeUnsignedShort(1);
-            writeByte(-1);
+            writeStopBit(-1);
             return;
         }
-        int strlen = str.length();
+        long strlen = str.length();
         int utflen = 0;
         int c;
 
@@ -755,14 +745,14 @@ public abstract class AbstractExcerpt implements Excerpt {
             }
         }
 
-        if (utflen > 65535)
+        if (utflen > Integer.MAX_VALUE)
             throw new IllegalArgumentException(new UTFDataFormatException(
                     "encoded string too long: " + utflen + " bytes"));
         if (utflen > remaining())
             throw new IllegalArgumentException(
                     "encoded string too long: " + utflen + " bytes, remaining=" + remaining());
 
-        writeUnsignedShort(utflen);
+        writeStopBit(utflen);
 
         int i;
         for (i = 0; i < strlen; i++) {
