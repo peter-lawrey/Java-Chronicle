@@ -1432,9 +1432,11 @@ public abstract class AbstractExcerpt implements Excerpt {
     @SuppressWarnings("unchecked")
     @Override
     public <E> void writeEnum(E e) {
-        Class aClass = (Class) e.getClass();
-        if (aClass == null)
+        Class aClass;
+        if (e == null)
             aClass = String.class;
+        else
+            aClass = (Class) e.getClass();
         EnumeratedMarshaller<E> em = chronicle().acquireMarshaller(aClass);
         em.write(this, e);
     }
