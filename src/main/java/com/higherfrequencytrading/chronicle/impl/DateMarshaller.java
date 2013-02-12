@@ -42,9 +42,9 @@ public class DateMarshaller implements EnumeratedMarshaller<Date> {
     @Override
     public void write(Excerpt excerpt, Date date) {
         int pos = excerpt.position();
-        excerpt.writeUnsignedShort(0);
+        excerpt.writeUnsignedByte(0);
         excerpt.append(date.getTime());
-        excerpt.writeUnsignedByte(pos, excerpt.position() - 2 - pos);
+        excerpt.writeUnsignedByte(pos, excerpt.position() - 1 - pos);
     }
 
     private final StringBuilder sb = new StringBuilder();
