@@ -149,10 +149,11 @@ public class ChronicleSink implements Closeable {
                     listener.onExcerpt(excerpt);
                 }
             } catch (IOException e) {
-                if (logger.isLoggable(Level.FINE))
-                    logger.log(Level.FINE, "Lost connection to " + address + " retrying", e);
-                else if (logger.isLoggable(Level.INFO))
-                    logger.log(Level.INFO, "Lost connection to " + address + " retrying " + e);
+                if (!closed)
+                    if (logger.isLoggable(Level.FINE))
+                        logger.log(Level.FINE, "Lost connection to " + address + " retrying", e);
+                    else if (logger.isLoggable(Level.INFO))
+                        logger.log(Level.INFO, "Lost connection to " + address + " retrying " + e);
             }
             if (logger.isLoggable(Level.FINE))
                 logger.log(Level.FINE, "Disconnected from " + address);

@@ -18,11 +18,16 @@ package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
+import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSource;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
@@ -81,5 +86,53 @@ public class DataStoreTest {
             assertEquals(i + 1, set2Count.get());
             chronicle.close();
         }
+    }
+
+    @Test
+    public void testTCP() throws IOException, InterruptedException {
+        int port = 65432;
+        String masterPath = TMP + "/master";
+        ChronicleTools.deleteOnExit(masterPath);
+        InProcessChronicleSource masterC = new InProcessChronicleSource(new IndexedChronicle(masterPath), port);
+        DataStore master = new DataStore(masterC, ModelMode.MASTER);
+        ExampleDataModel masterModel = new ExampleDataModel();
+        master.inject(masterModel);
+        master.start();
+
+        String copyPath = TMP + "/copy";
+        ChronicleTools.deleteOnExit(copyPath);
+        InProcessChronicleSink copyC = new InProcessChronicleSink(new IndexedChronicle(copyPath), "localhost", port);
+        DataStore copy = new DataStore(copyC, ModelMode.READ_ONLY);
+        ExampleDataModel copyModel = new ExampleDataModel();
+        copy.inject(copyModel);
+        copy.start();
+
+        final int runs = 250000;
+        final BlockingQueue<Long> queue = new ArrayBlockingQueue<Long>(runs);
+        ((ObservableMap<Date, ExampleDataModel.MyType>) copyModel.map).addListener(
+                new AbstractMapListener<Date, ExampleDataModel.MyType>() {
+                    @Override
+                    public void update(Date key, ExampleDataModel.MyType oldValue, ExampleDataModel.MyType newValue) {
+                        if (key.getTime() >= 0)
+                            queue.add(System.nanoTime() - newValue.timestamp);
+                    }
+                });
+
+        for (int i = -20000; i < runs; i++) {
+            masterModel.map.put(new Date(i), new ExampleDataModel.MyType(System.nanoTime()));
+            if (i >= 0 && i % 25 == 0)
+                Thread.sleep(1);
+            else
+                Thread.yield();
+        }
+        long[] latencies = new long[runs];
+        for (int i = 0; i < runs; i++)
+            latencies[i] = queue.take();
+        Arrays.sort(latencies);
+        System.out.printf("Master to copy listener latency 50%%/90%%/99%% of %,d/%,d/%,d us",
+                latencies[runs / 2] / 1000, latencies[runs * 9 / 10] / 1000, latencies[runs * 99 / 100] / 1000);
+
+        copy.close();
+        master.close();
     }
 }

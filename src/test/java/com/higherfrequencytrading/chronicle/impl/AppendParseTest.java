@@ -47,8 +47,8 @@ public class AppendParseTest {
     public void testFix() throws IOException {
         // 8=FIX.4.1^A9=154^A35=6^A49=BRKR^A56=INVMGR^A34=238^A52=19980604-07:59:56^A23=115686^A28=N^A55=FIA.MI^A54=2^A27=250000^A44=7900.000000^A25=H^A10=231^A
         String basePath = TMP + File.separator + "test-fix.ict";
-        IndexedChronicle tsc = new IndexedChronicle(basePath, 12);
         deleteOnExit(basePath);
+        IndexedChronicle tsc = new IndexedChronicle(basePath, 12);
 
         Excerpt excerpt = tsc.createExcerpt();
         excerpt.startExcerpt(200);
