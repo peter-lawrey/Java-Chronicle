@@ -169,13 +169,14 @@ public class DataStore implements Closeable {
         }
     }
 
-    private boolean processNextEvent() {
+    boolean processNextEvent() {
 //        System.out.println(excerpt.index()+": "+ ChronicleTools.asString(excerpt));
         String name = excerpt.readEnum(String.class);
         Wrapper wrapper = wrappers.get(name);
         if (wrapper == null)
             return true;
         wrapper.onExcerpt(excerpt);
+        excerpt.finish();
         return false;
     }
 

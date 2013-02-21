@@ -172,7 +172,7 @@ public class MapWrapperTest {
         ChronicleTools.deleteOnExit(name2);
 
         long start = System.nanoTime();
-        int PORT = 12345;
+        int PORT = 12346;
         int size = 0;
 
         InProcessChronicleSource chronicle = new InProcessChronicleSource(new IndexedChronicle(name), PORT);
@@ -229,7 +229,7 @@ public class MapWrapperTest {
         while (dataStore2.events() < count) {
 //            if (timeout++ % 10000 == 0)
 //                System.out.println(dataStore2.events());
-            dataStore2.nextEvent();
+            Thread.sleep(1);
         }
 
         chronicle.close();
@@ -248,8 +248,7 @@ public class MapWrapperTest {
         ChronicleTools.deleteOnExit(name2);
 
         long start = System.nanoTime();
-        int PORT = 12345;
-        int size = 0;
+        int PORT = 12347;
 
         InProcessChronicleSource chronicle = new InProcessChronicleSource(new IndexedChronicle(name), PORT);
         DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
@@ -304,17 +303,17 @@ public class MapWrapperTest {
 
 //        int timeout = 0;
         while (dataStore2.events() < count) {
-//            if (timeout++ % 10000 == 0)
-//                System.out.println(dataStore2.events());
-            dataStore2.nextEvent();
+            Thread.sleep(1);
         }
 
-        chronicle.close();
-        chronicle2.close();
         long end = System.nanoTime();
 
-        System.out.printf("Startup and write took %.2f us on average (per key) and read and shutdown took %.2f on average (per key)%n",
+        System.out.printf("Startup and write took %.2f us on average (per key) and read and shutdown took %.2f us on average (per key)%n",
                 (mid - start) / count / collectionSize / 1e3, (end - mid) / count / collectionSize / 1e3);
+
+        chronicle.close();
+//        System.gc();
+        chronicle2.close();
     }
 
     @Test
@@ -325,8 +324,7 @@ public class MapWrapperTest {
         ChronicleTools.deleteOnExit(name2);
 
         long start = System.nanoTime();
-        int PORT = 12345;
-        int size = 0;
+        int PORT = 12348;
 
         InProcessChronicleSource chronicle = new InProcessChronicleSource(new IndexedChronicle(name), PORT);
         DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
@@ -379,7 +377,7 @@ public class MapWrapperTest {
         while (dataStore2.events() < count) {
 //            if (timeout++ % 10000 == 0)
 //                System.out.println(dataStore2.events());
-            dataStore2.nextEvent();
+            Thread.sleep(1);
         }
         assertEquals(collectionSize, strings.size());
         assertEquals(collectionSize, strings2.size());
