@@ -18,6 +18,7 @@ package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -65,6 +66,27 @@ public class ListWrapper<E> implements ObservableList<E> {
                 iterator.remove();
             }
         }
+    }
+
+
+    private Annotation[] annotations = {};
+
+    public Annotation[] getAnnotations() {
+        return annotations;
+    }
+
+    public void setAnnotations(Annotation[] annotations) {
+        this.annotations = annotations;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
+        for (Annotation annotation : annotations) {
+            if (annotationClass.isInstance(annotation))
+                return (A) annotation;
+        }
+        return null;
     }
 
     public void addListener(ListListener<E> listener) {

@@ -18,6 +18,8 @@ package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.ExcerptListener;
 
+import java.lang.annotation.Annotation;
+
 /**
  * @author peter.lawrey
  */
@@ -30,6 +32,8 @@ public interface Wrapper extends ExcerptListener {
     public void publishEvent(Object object);
 
     public void notifyOff(boolean notifyOff);
+
+    public <A extends Annotation> A getAnnotation(Class<A> annotationClass);
 
 /*    public class DequeWrapper<E> extends QueueWrapper<E> implements Deque<E> {
 

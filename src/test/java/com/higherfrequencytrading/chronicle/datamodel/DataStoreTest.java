@@ -31,6 +31,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author peter.lawrey
@@ -84,6 +85,9 @@ public class DataStoreTest {
             assertEquals(i + 1, list2Count.get());
             assertEquals(i + 1, model.set.size());
             assertEquals(i + 1, set2Count.get());
+            MyAnnotation annotation = model.map2.getAnnotation(MyAnnotation.class);
+            assertNotNull(annotation);
+            assertEquals("My text", annotation.value());
             chronicle.close();
         }
     }

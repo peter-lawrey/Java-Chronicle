@@ -23,6 +23,7 @@ import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 
 import java.io.Closeable;
 import java.io.Externalizable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -85,7 +86,10 @@ public class DataStore implements Closeable {
                             Map underlying = (Map) field.get(model);
                             if (underlying == null)
                                 underlying = new ConcurrentHashMap();
-                            ObservableMap map = new MapWrapper(this, field.getName(), genericTypes[0], genericTypes[1], underlying, 1024);
+                            MapWrapper map = new MapWrapper(this, field.getName(), genericTypes[0], genericTypes[1], underlying, 1024);
+                            Annotation[] annotations = field.getAnnotations();
+                            if (annotations != null)
+                                map.setAnnotations(annotations);
                             field.set(model, map);
 
                         } else if (fieldType == List.class || fieldType == ObservableList.class) {
@@ -93,7 +97,10 @@ public class DataStore implements Closeable {
                             List underlying = (List) field.get(model);
                             if (underlying == null)
                                 underlying = Collections.synchronizedList(new ArrayList());
-                            ObservableList list = new ListWrapper(this, field.getName(), genericTypes[0], underlying, 1024);
+                            ListWrapper list = new ListWrapper(this, field.getName(), genericTypes[0], underlying, 1024);
+                            Annotation[] annotations = field.getAnnotations();
+                            if (annotations != null)
+                                list.setAnnotations(annotations);
                             field.set(model, list);
 
                         } else if (fieldType == Set.class || fieldType == ObservableSet.class) {
@@ -101,7 +108,10 @@ public class DataStore implements Closeable {
                             Set underlying = (Set) field.get(model);
                             if (underlying == null)
                                 underlying = Collections.newSetFromMap(new ConcurrentHashMap());
-                            ObservableSet set = new SetWrapper(this, field.getName(), genericTypes[0], underlying, 1024);
+                            SetWrapper set = new SetWrapper(this, field.getName(), genericTypes[0], underlying, 1024);
+                            Annotation[] annotations = field.getAnnotations();
+                            if (annotations != null)
+                                set.setAnnotations(annotations);
                             field.set(model, set);
 
                         } else {

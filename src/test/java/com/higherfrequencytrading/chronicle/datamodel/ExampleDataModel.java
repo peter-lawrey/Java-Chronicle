@@ -32,6 +32,7 @@ public class ExampleDataModel {
 //    public final NavigableMap<String, MyType> nMap = new TreeMap<String, MyType>();
 
     public final Map<Date, MyType> map = new LinkedHashMap<Date, MyType>();
+    @MyAnnotation("My text")
     public final ObservableMap<Date, MyType> map2 = null;
 
     public final List<MyType> list = new ArrayList<MyType>();

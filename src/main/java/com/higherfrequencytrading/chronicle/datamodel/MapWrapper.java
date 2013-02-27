@@ -18,6 +18,7 @@ package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 
+import java.lang.annotation.Annotation;
 import java.util.*;
 
 import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
@@ -56,6 +57,26 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         entrySet = Collections.unmodifiableSet(underlying.entrySet());
 
         dataStore.add(name, this);
+    }
+
+    private Annotation[] annotations = {};
+
+    public Annotation[] getAnnotations() {
+        return annotations;
+    }
+
+    public void setAnnotations(Annotation[] annotations) {
+        this.annotations = annotations;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
+        for (Annotation annotation : annotations) {
+            if (annotationClass.isInstance(annotation))
+                return (A) annotation;
+        }
+        return null;
     }
 
     @Override
