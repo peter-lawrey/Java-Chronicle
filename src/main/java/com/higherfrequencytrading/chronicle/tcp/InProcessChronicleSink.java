@@ -99,6 +99,7 @@ public class InProcessChronicleSink implements Chronicle {
         @Override
         public boolean index(long index) throws IndexOutOfBoundsException {
             if (super.index(index)) return true;
+            if (index < 0) return false;
             return readNext() && super.index(index);
         }
     }

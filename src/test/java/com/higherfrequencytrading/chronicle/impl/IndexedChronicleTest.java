@@ -252,7 +252,7 @@ public class IndexedChronicleTest {
 //        System.gc();
         tsc.close();
         long time = System.nanoTime() - start;
-        System.out.printf("The average time to write and read a BigDecimal was %.1f us%n", time / 1e3 / objects);
+        System.out.printf("The average time to write and read a double was %.1f us%n", time / 1e3 / objects / 10);
 //        tsc = null;
 //        System.gc();
 //        Thread.sleep(10000);

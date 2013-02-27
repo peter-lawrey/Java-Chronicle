@@ -54,6 +54,8 @@ public class IntIndexedChronicle extends IndexedChronicle {
 
     @Override
     public void setIndexData(long indexId, long indexData) {
+        if (indexData >= (1L << 32))
+            throw new IllegalStateException("Size of Chronicle too large > 4 GB");
         long indexOffset = indexId << indexBitSize();
         ByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
         assert indexData <= LONG_MASK;

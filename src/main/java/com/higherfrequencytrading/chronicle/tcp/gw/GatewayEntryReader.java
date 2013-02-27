@@ -16,15 +16,15 @@ public abstract class GatewayEntryReader {
 
     public boolean readEntry() {
         if (!excerpt.nextIndex()) return false;
-        long writeTimeNS = excerpt.readLong();
         long writeTimeMS = excerpt.readLong();
+        long writeTimeNS = excerpt.readLong();
         int pos = excerpt.position();
-        long readTimeMS = excerpt.readLong();
-        if (targetReader && readTimeMS == 0)
-            excerpt.writeLong(pos, readTimeMS = System.nanoTime());
+        long readTimeNS = excerpt.readLong();
+        if (targetReader && readTimeNS == 0)
+            excerpt.writeLong(pos, readTimeNS = System.nanoTime());
         int length = excerpt.readInt24();
         char type = (char) excerpt.readUnsignedByte();
-        onEntry(writeTimeNS, writeTimeMS, readTimeMS, length, type, excerpt);
+        onEntry(writeTimeMS, writeTimeNS, readTimeNS, length, type, excerpt);
         return true;
     }
 
