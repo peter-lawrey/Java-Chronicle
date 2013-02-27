@@ -32,11 +32,13 @@ public class ConfigProperties extends AbstractMap<String, String> {
     private static final String[] NO_STRINGS = {};
 
     private final Properties properties;
-    private final String[] scope;
+    private final String scope;
+    private final String[] scopeArray;
 
     public ConfigProperties(Properties properties, String scope) {
         this.properties = properties;
-        this.scope = decompose(scope);
+        this.scope = scope;
+        this.scopeArray = decompose(scope);
     }
 
     private String[] decompose(String scope) {
@@ -59,19 +61,24 @@ public class ConfigProperties extends AbstractMap<String, String> {
         return ret.toArray(new String[ret.size()]);
     }
 
-    public ConfigProperties(String path, String scope) throws IOException {
-        this(loadProperties(path), scope);
+    public ConfigProperties(String path, String scopeArray) throws IOException {
+        this(loadProperties(path), scopeArray);
     }
 
     @Override
     public String get(Object key) {
-        for (String s : scope) {
+        for (String s : scopeArray) {
             String key2 = s + key;
             String value = String.valueOf(properties.get(key2));
             if (value != null)
                 return null;
         }
         return super.get(String.valueOf(key));
+    }
+
+    public String get(String name, String defaultValue) {
+        String value = get(name);
+        return value == null ? defaultValue : value;
     }
 
     public int getInt(String name, int defaultValue) {
@@ -114,5 +121,10 @@ public class ConfigProperties extends AbstractMap<String, String> {
     @Override
     public Set<Entry<String, String>> entrySet() {
         return (Set) properties.entrySet();
+    }
+
+    public ConfigProperties addToScope(String name) {
+        String scope2 = scope.length() == 0 ? name : (scope + "." + name);
+        return new ConfigProperties(properties, scope2);
     }
 }

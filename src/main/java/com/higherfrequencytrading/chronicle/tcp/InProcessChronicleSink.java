@@ -93,15 +93,13 @@ public class InProcessChronicleSink implements Chronicle {
         @Override
         public boolean nextIndex() {
             if (super.nextIndex()) return true;
-            readNext();
-            return super.nextIndex();
+            return readNext() && super.nextIndex();
         }
 
         @Override
         public boolean index(long index) throws IndexOutOfBoundsException {
             if (super.index(index)) return true;
-            readNext();
-            return super.index(index);
+            return readNext() && super.index(index);
         }
     }
 
@@ -109,13 +107,14 @@ public class InProcessChronicleSink implements Chronicle {
     private long scIndex = -1;
     private boolean scFirst = true;
 
-    void readNext() {
+    boolean readNext() {
         if (sc == null || !sc.isOpen()) {
             sc = createConnection();
             scFirst = true;
         }
         if (sc != null)
-            readNextExcerpt(sc);
+            return readNextExcerpt(sc);
+        return false;
     }
 
     private SocketChannel createConnection() {
@@ -151,18 +150,18 @@ public class InProcessChronicleSink implements Chronicle {
 
     private final ByteBuffer readBuffer; // minimum size
 
-    private void readNextExcerpt(SocketChannel sc) {
+    private boolean readNextExcerpt(SocketChannel sc) {
         try {
-            if (closed) return;
+            if (closed) return false;
 
-            if (readBuffer.remaining() < TcpUtil.HEADER_SIZE) {
+            if (readBuffer.remaining() < (scFirst ? TcpUtil.HEADER_SIZE : 4)) {
                 if (readBuffer.remaining() == 0)
                     readBuffer.clear();
                 else
                     readBuffer.compact();
                 if (sc.read(readBuffer) < 0) {
                     sc.close();
-                    return;
+                    return false;
                 }
                 readBuffer.flip();
             }
@@ -173,6 +172,11 @@ public class InProcessChronicleSink implements Chronicle {
                 scFirst = false;
             }
             long size = readBuffer.getInt();
+            if (size == InProcessChronicleSource.IN_SYNC_LEN) {
+//                System.out.println("... received inSync");
+                return false;
+            }
+
 //                System.out.println("size="+size +"  rb "+readBuffer);
             if (scIndex != chronicle.size())
                 throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + scIndex);
@@ -213,6 +217,7 @@ public class InProcessChronicleSink implements Chronicle {
             else if (logger.isLoggable(Level.INFO))
                 logger.log(Level.INFO, "Lost connection to " + address + " retrying " + e);
         }
+        return true;
     }
 
     void closeSocket(SocketChannel sc) {

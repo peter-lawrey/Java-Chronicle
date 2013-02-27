@@ -43,10 +43,12 @@ import java.util.logging.Logger;
  * @author peter.lawrey
  */
 public class InProcessChronicleSource implements Chronicle {
+    static final int IN_SYNC_LEN = -1;
+    static final long HEARTBEAT_INTERVAL_MS = 2500;
+
     private static final int MAX_MESSAGE = 128;
 
     private final Chronicle chronicle;
-
     private final ServerSocketChannel server;
     private final String name;
     private final ExecutorService service;
@@ -107,11 +109,20 @@ public class InProcessChronicleSource implements Chronicle {
                 long index = readIndex(socket);
                 Excerpt excerpt = chronicle.createExcerpt();
                 ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
+                long sendInSync = 0;
                 boolean first = true;
                 OUTER:
                 while (!closed) {
                     while (!excerpt.index(index)) {
 //                        System.out.println("Waiting for " + index);
+                        long now = System.currentTimeMillis();
+                        if (sendInSync <= now) {
+                            bb.clear();
+                            bb.putInt(IN_SYNC_LEN);
+                            bb.flip();
+                            while (bb.remaining() > 0 && socket.write(bb) > 0) ;
+                            sendInSync = now + HEARTBEAT_INTERVAL_MS;
+                        }
                         pause();
                         if (closed) break OUTER;
                     }
@@ -163,6 +174,7 @@ public class InProcessChronicleSource implements Chronicle {
                     }
                     if (bb.remaining() > 0) throw new EOFException("Failed to send index=" + index);
                     index++;
+                    sendInSync = 0;
 //                    if (index % 20000 == 0)
 //                        System.out.println(System.currentTimeMillis() + ": wrote " + index);
                 }
@@ -185,7 +197,7 @@ public class InProcessChronicleSource implements Chronicle {
     protected void pause() {
         try {
             synchronized (notifier) {
-                notifier.wait(1000);
+                notifier.wait(HEARTBEAT_INTERVAL_MS / 2);
             }
         } catch (InterruptedException ie) {
             logger.warning("Interrupt ignored");

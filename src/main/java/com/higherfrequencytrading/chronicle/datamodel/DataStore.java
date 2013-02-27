@@ -42,7 +42,8 @@ public class DataStore implements Closeable {
     private final ModelMode mode;
     private final Excerpt excerpt;
 
-    private final Map<String, Wrapper> wrappers = new ConcurrentHashMap<String, Wrapper>();
+    protected final Map<String, Wrapper> wrappers = new ConcurrentHashMap<String, Wrapper>();
+    protected Wrapper[] wrappersArray = {};
     private ExecutorService updator;
     private volatile boolean closed = false;
     private volatile Boolean notifyOff = null;
@@ -133,7 +134,7 @@ public class DataStore implements Closeable {
 
     void notifyOff(boolean notifyOff) {
         if ((Boolean) notifyOff != this.notifyOff) {
-            for (Wrapper wrapper : wrappers.values()) {
+            for (Wrapper wrapper : wrappersArray) {
                 wrapper.notifyOff(notifyOff);
             }
             this.notifyOff = notifyOff;
@@ -153,6 +154,9 @@ public class DataStore implements Closeable {
                         notifyOff(false);
                 }
                 notifyOff(false);
+                for (Wrapper wrapper : wrappersArray) {
+                    wrapper.inSync();
+                }
                 break;
 
             case READ_ONLY:
@@ -168,6 +172,11 @@ public class DataStore implements Closeable {
 
                                 if (notifyOff && lastEvent <= excerpt.index())
                                     notifyOff(false);
+
+                            } else {
+                                notifyOff(false);
+                                for (Wrapper wrapper : wrappersArray)
+                                    wrapper.inSync();
                             }
                         }
                     }
@@ -192,6 +201,7 @@ public class DataStore implements Closeable {
 
     public void add(String name, Wrapper wrapper) {
         wrappers.put(name, wrapper);
+        wrappersArray = wrappers.values().toArray(new Wrapper[wrappers.size()]);
     }
 
     public Excerpt startExcerpt(int capacity, String name) {

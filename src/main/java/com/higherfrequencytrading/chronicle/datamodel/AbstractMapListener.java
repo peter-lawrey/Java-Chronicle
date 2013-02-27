@@ -44,4 +44,8 @@ public abstract class AbstractMapListener<K, V> implements MapListener<K, V> {
     @Override
     public void eventEnd(boolean lastEvent) {
     }
+
+    @Override
+    public void inSync() {
+    }
 }

@@ -39,4 +39,8 @@ public abstract class AbstractCollectionListener<E> implements CollectionListene
     @Override
     public void onEvent(Object object) {
     }
+
+    @Override
+    public void inSync() {
+    }
 }

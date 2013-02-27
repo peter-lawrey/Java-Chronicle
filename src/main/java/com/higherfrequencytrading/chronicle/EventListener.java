@@ -32,6 +32,11 @@ public interface EventListener {
     public void eventEnd(boolean lastEvent);
 
     /**
+     * Called when the listener is in sync with the event on the master.
+     */
+    public void inSync();
+
+    /**
      * An arbitary event was published for listeners by Wrapper.publishEvent()
      *
      * @param object published.

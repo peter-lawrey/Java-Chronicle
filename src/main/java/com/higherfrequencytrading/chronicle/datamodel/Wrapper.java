@@ -35,6 +35,11 @@ public interface Wrapper extends ExcerptListener {
 
     public <A extends Annotation> A getAnnotation(Class<A> annotationClass);
 
+    /**
+     * Internal use method to notify listeners that their collections are in sync now.
+     */
+    public void inSync();
+
 /*    public class DequeWrapper<E> extends QueueWrapper<E> implements Deque<E> {
 
     }

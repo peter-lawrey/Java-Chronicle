@@ -57,6 +57,12 @@ public class SetWrapper<E> implements ObservableSet<E> {
         listeners.remove(listener);
     }
 
+    @Override
+    public void inSync() {
+        for (CollectionListener<E> listener : listeners) {
+            listener.inSync();
+        }
+    }
 
     private Annotation[] annotations = {};
 

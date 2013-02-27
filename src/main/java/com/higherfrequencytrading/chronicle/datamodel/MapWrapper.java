@@ -89,6 +89,13 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         listeners.remove(listener);
     }
 
+    @Override
+    public void inSync() {
+        for (MapListener<K, V> listener : listeners) {
+            listener.inSync();
+        }
+    }
+
     // reload, and synchronise the map.
     @Override
     public void onExcerpt(Excerpt excerpt) {

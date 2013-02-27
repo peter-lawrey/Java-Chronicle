@@ -68,6 +68,13 @@ public class ListWrapper<E> implements ObservableList<E> {
         }
     }
 
+    @Override
+    public void inSync() {
+        for (ListListener<E> listener : listeners) {
+            listener.inSync();
+        }
+    }
+
 
     private Annotation[] annotations = {};
 
