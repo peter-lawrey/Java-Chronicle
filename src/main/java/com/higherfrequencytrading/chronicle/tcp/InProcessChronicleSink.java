@@ -228,7 +228,7 @@ public class InProcessChronicleSink implements Chronicle {
     public void close() {
         closed = true;
         closeSocket(sc);
-        chronicle.close();
+//        chronicle.close();
     }
 
     @Override

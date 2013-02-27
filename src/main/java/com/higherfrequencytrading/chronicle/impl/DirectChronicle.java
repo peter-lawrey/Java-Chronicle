@@ -19,7 +19,7 @@ package com.higherfrequencytrading.chronicle.impl;
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 
-import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 
 /**
  * All Chronicle must actually implement this interface, however these method are intended for internal use only.
@@ -30,7 +30,7 @@ public interface DirectChronicle extends Chronicle {
 
     public long getIndexData(long indexId);
 
-    ByteBuffer acquireDataBuffer(long startPosition);
+    MappedByteBuffer acquireDataBuffer(long startPosition);
 
     int positionInBuffer(long startPosition);
 
@@ -41,4 +41,6 @@ public interface DirectChronicle extends Chronicle {
     void incrementSize();
 
     <E> EnumeratedMarshaller<E> acquireMarshaller(Class<E> aClass);
+
+    boolean synchronousMode();
 }

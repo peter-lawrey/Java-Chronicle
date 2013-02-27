@@ -47,22 +47,33 @@ public class ExampleDataModel {
 //    public final Deque<String> deque = new ArrayDeque<String>();
 
     public static final class MyType implements Externalizable, ExcerptMarshallable {
+        long timestamp;
+
+        public MyType() {
+        }
+
+        public MyType(long timestamp) {
+            this.timestamp = timestamp;
+        }
+
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
-
+            out.writeLong(timestamp);
         }
 
         @Override
         public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-
+            timestamp = in.readLong();
         }
 
         @Override
-        public void readMarshallable(Excerpt excerpt) throws IllegalStateException {
+        public void readMarshallable(Excerpt in) throws IllegalStateException {
+            timestamp = in.readLong();
         }
 
         @Override
-        public void writeMarshallable(Excerpt excerpt) {
+        public void writeMarshallable(Excerpt out) {
+            out.writeLong(timestamp);
         }
     }
 }

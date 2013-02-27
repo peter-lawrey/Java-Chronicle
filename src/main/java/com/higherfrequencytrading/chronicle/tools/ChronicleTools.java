@@ -33,13 +33,16 @@ public enum ChronicleTools {
     ;
 
     /**
-     * Delete a chronicle on exit, for testing
+     * Delete a chronicle now and on exit, for testing
      *
      * @param basePath of the chronicle
      */
     public static void deleteOnExit(String basePath) {
-        new File(basePath + ".data").deleteOnExit();
-        new File(basePath + ".index").deleteOnExit();
+        for (String name : new String[]{basePath + ".data", basePath + ".index"}) {
+            File file = new File(name);
+            file.delete();
+            file.deleteOnExit();
+        }
     }
 
     /**

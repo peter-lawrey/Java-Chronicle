@@ -36,13 +36,18 @@ public class IndexedChronicleTest {
 
     @Test
     public void rewritibleEntries() throws IOException {
-        doRewriteableEntries(false);
-        doRewriteableEntries(true);
+        boolean[] booleans = {false, true};
+        for (boolean useUnsafe : booleans)
+            for (boolean minimiseByteBuffers : booleans)
+                for (boolean synchronousMode : booleans)
+                    doRewriteableEntries(useUnsafe, minimiseByteBuffers, synchronousMode);
+
     }
 
-    private void doRewriteableEntries(boolean useUnsafe) throws IOException {
+    private void doRewriteableEntries(boolean useUnsafe, boolean minimiseByteBuffers, boolean synchronousMode) throws IOException {
         String basePath = TMP + File.separator + "deleteme.ict";
-        IndexedChronicle tsc = new IndexedChronicle(basePath);
+        IndexedChronicle tsc = new IndexedChronicle(basePath, IndexedChronicle.DEFAULT_DATA_BITS_SIZE32,
+                ByteOrder.nativeOrder(), minimiseByteBuffers, synchronousMode);
         tsc.useUnsafe(useUnsafe);
         deleteOnExit(basePath);
 

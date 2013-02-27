@@ -71,7 +71,13 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
     // reload, and synchronise the map.
     @Override
     public void onExcerpt(Excerpt excerpt) {
+        int position = excerpt.position();
         WrapperEvent event = excerpt.readEnum(WrapperEvent.class);
+        if (event == null) {
+            excerpt.position(position);
+            System.err.println("Unknown event type " + excerpt.readUTF());
+            return;
+        }
         if (!notifyOff) {
             for (int i = 0; i < listeners.size(); i++)
                 listeners.get(i).eventStart(excerpt.index(), name);

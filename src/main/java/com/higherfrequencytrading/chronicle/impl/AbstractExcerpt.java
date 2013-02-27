@@ -24,6 +24,7 @@ import com.higherfrequencytrading.chronicle.StopCharTester;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.MappedByteBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -44,7 +45,7 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     protected long size = 0;
 
-    protected ByteBuffer buffer;
+    protected MappedByteBuffer buffer;
     private boolean forWrite = false;
 
     private static final byte[] MIN_VALUE_TEXT = ("" + Long.MIN_VALUE).getBytes();
@@ -117,16 +118,31 @@ public abstract class AbstractExcerpt implements Excerpt {
         forWrite = true;
     }
 
+    private Thread lastThread = null;
+
+    private boolean checkThread() {
+        Thread thread = Thread.currentThread();
+        if (lastThread == null)
+            lastThread = thread;
+        else if (lastThread != thread)
+            throw new AssertionError("Excerpt used by two threads " + thread + " and " + lastThread);
+        return true;
+    }
+
     @Override
     public void finish() {
+        assert checkThread();
         long length = checkEndOfBuffer();
         if (forWrite) {
+            if (chronicle.synchronousMode())
+                buffer.force();
             final long endPosition = startPosition + length;
             chronicle.setIndexData(index + 1, endPosition);
             chronicle.incrementSize();
             capacity = (int) length;
             writeMemoryBarrier();
         }
+        buffer = null;
     }
 
     private long checkEndOfBuffer() {

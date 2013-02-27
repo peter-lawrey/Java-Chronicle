@@ -60,6 +60,7 @@ public class IndexedChronicle extends AbstractChronicle {
     private boolean useUnsafe = false;
     private final ByteOrder byteOrder;
     private final boolean minimiseByteBuffers;
+    private final boolean synchronousMode;
 
     public IndexedChronicle(String basePath) throws IOException {
         this(basePath, ChronicleTools.is64Bit() ? DEFAULT_DATA_BITS_SIZE : DEFAULT_DATA_BITS_SIZE32);
@@ -74,10 +75,15 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     public IndexedChronicle(String basePath, int dataBitSizeHint, ByteOrder byteOrder, boolean minimiseByteBuffers) throws IOException {
+        this(basePath, dataBitSizeHint, byteOrder, minimiseByteBuffers, false);
+    }
+
+    public IndexedChronicle(String basePath, int dataBitSizeHint, ByteOrder byteOrder, boolean minimiseByteBuffers, boolean synchronousMode) throws IOException {
         super(extractName(basePath));
 
         this.byteOrder = byteOrder;
         this.minimiseByteBuffers = minimiseByteBuffers;
+        this.synchronousMode = synchronousMode;
         indexBitSize = Math.min(30, Math.max(12, dataBitSizeHint - 3));
         dataBitSize = Math.min(30, Math.max(12, dataBitSizeHint));
         indexLowMask = (1 << indexBitSize) - 1;
@@ -87,8 +93,8 @@ public class IndexedChronicle extends AbstractChronicle {
         if (parentFile != null)
             //noinspection ResultOfMethodCallIgnored
             parentFile.mkdirs();
-        indexChannel = new RandomAccessFile(basePath + ".index", "rw").getChannel();
-        dataChannel = new RandomAccessFile(basePath + ".data", "rw").getChannel();
+        indexChannel = new RandomAccessFile(basePath + ".index", synchronousMode ? "rwd" : "rw").getChannel();
+        dataChannel = new RandomAccessFile(basePath + ".data", synchronousMode ? "rwd" : "rw").getChannel();
 
         // find the last record.
         long indexSize = indexChannel.size() >>> indexBitSize();
@@ -140,6 +146,11 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     @Override
+    public boolean synchronousMode() {
+        return synchronousMode;
+    }
+
+    @Override
     public Excerpt createExcerpt() {
         return useUnsafe ? new UnsafeExcerpt(this) : new ByteBufferExcerpt(this);
     }
@@ -151,7 +162,7 @@ public class IndexedChronicle extends AbstractChronicle {
         return indexBuffer.getLong((int) (indexOffset & indexLowMask));
     }
 
-    protected ByteBuffer acquireIndexBuffer(long startPosition) {
+    protected MappedByteBuffer acquireIndexBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
             throwByteOrderIsIncorrect();
         int indexBufferId = (int) (startPosition >> indexBitSize);
@@ -161,7 +172,7 @@ public class IndexedChronicle extends AbstractChronicle {
 
         } else {
             while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
-            ByteBuffer buffer = indexBuffers.get(indexBufferId);
+            MappedByteBuffer buffer = indexBuffers.get(indexBufferId);
             if (buffer != null)
                 return buffer;
         }
@@ -190,7 +201,7 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     @Override
-    public ByteBuffer acquireDataBuffer(long startPosition) {
+    public MappedByteBuffer acquireDataBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
             return throwByteOrderIsIncorrect();
         int dataBufferId = (int) (startPosition >> dataBitSize);
@@ -200,7 +211,7 @@ public class IndexedChronicle extends AbstractChronicle {
             }
         } else {
             while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
-            ByteBuffer buffer = dataBuffers.get(dataBufferId);
+            MappedByteBuffer buffer = dataBuffers.get(dataBufferId);
             if (buffer != null)
                 return buffer;
         }
@@ -225,7 +236,7 @@ public class IndexedChronicle extends AbstractChronicle {
         }
     }
 
-    private ByteBuffer throwByteOrderIsIncorrect() {
+    private MappedByteBuffer throwByteOrderIsIncorrect() {
         throw new IllegalStateException("ByteOrder is incorrect.");
     }
 
@@ -237,8 +248,10 @@ public class IndexedChronicle extends AbstractChronicle {
     @Override
     public void setIndexData(long indexId, long indexData) {
         long indexOffset = indexId << indexBitSize();
-        ByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
+        MappedByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
         indexBuffer.putLong((int) (indexOffset & indexLowMask), indexData);
+        if (synchronousMode())
+            indexBuffer.force();
     }
 
     @Override
