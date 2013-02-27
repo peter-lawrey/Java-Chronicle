@@ -59,6 +59,14 @@ public class MapWrapperTest {
                 intListener.eventEnd(true);
             }
 
+            stringsListener.eventStart(5, "strings");
+            stringsListener.onEvent("bye");
+            stringsListener.eventEnd(true);
+
+            intListener.eventStart(6, "ints");
+            intListener.onEvent("now");
+            intListener.eventEnd(true);
+
             replay(stringsListener);
             replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
@@ -76,6 +84,9 @@ public class MapWrapperTest {
             strings.put("World", "all");
             ints.put(2, 1002);
 
+            strings.publishEvent("bye");
+            ints.publishEvent("now");
+
             verify(stringsListener);
             verify(intListener);
 
@@ -86,13 +97,13 @@ public class MapWrapperTest {
         }
         {
             MapListener stringsListener = createMock("strings", MapListener.class);
-            stringsListener.eventStart(5, "strings");
+            stringsListener.eventStart(7, "strings");
             stringsListener.add("!", "end");
             stringsListener.eventEnd(true);
 
             MapListener intListener = createMock("ints", MapListener.class);
 
-            intListener.eventStart(6, "ints");
+            intListener.eventStart(8, "ints");
             intListener.add(3, 1003);
             intListener.eventEnd(true);
 
@@ -374,18 +385,19 @@ public class MapWrapperTest {
         count += 2;
 
 //        int timeout = 0;
-        while (dataStore2.events() < count) {
+        while (dataStore2.events() < count || ints2.size() < collectionSize) {
 //            if (timeout++ % 10000 == 0)
 //                System.out.println(dataStore2.events());
             Thread.sleep(1);
         }
+
         assertEquals(collectionSize, strings.size());
         assertEquals(collectionSize, strings2.size());
         assertEquals(collectionSize, ints.size());
         assertEquals(collectionSize, ints2.size());
-
+        System.out.println("=== performing get test ===");
         int gets = 0;
-        for (int j = 0; j < 50000; j++) {
+        for (int j = 0; j < 10000; j++) {
             for (String s : ssMap.keySet()) {
                 String s1 = strings.get(s);
                 String s2 = strings2.get(s);

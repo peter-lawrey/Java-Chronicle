@@ -115,11 +115,17 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
                             for (int j = 0; j < entrySet.length; j++) {
                                 listener.remove(entrySet[j].getKey(), entrySet[j].getValue());
                             }
-                            listener.eventEnd(true);
                         }
                     }
                     underlying.clear();
                     break;
+                }
+                case event: {
+                    if (!notifyOff) {
+                        Object object = excerpt.readObject();
+                        for (int i = 0; i < listeners.size(); i++)
+                            listeners.get(i).onEvent(object);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -246,6 +252,23 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
     @Override
     public Collection<V> values() {
         return values;
+    }
+
+    @Override
+    public void publishEvent(Object object) {
+        Excerpt excerpt = getExcerpt(maxMessageSize + 128, event);
+        long eventId = excerpt.index();
+        excerpt.writeObject(event);
+        excerpt.finish();
+
+        if (!notifyOff && !listeners.isEmpty()) {
+            for (int i = 0; i < listeners.size(); i++) {
+                MapListener<K, V> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.onEvent(object);
+                listener.eventEnd(true);
+            }
+        }
     }
 
     private Excerpt getExcerpt(int maxSize, WrapperEvent event) {

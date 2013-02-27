@@ -214,6 +214,13 @@ public class SetWrapper<E> implements ObservableSet<E> {
                     underlying.clear();
                     break;
                 }
+                case event: {
+                    if (!notifyOff) {
+                        Object object = excerpt.readObject();
+                        for (int i = 0; i < listeners.size(); i++)
+                            listeners.get(i).onEvent(object);
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -283,6 +290,23 @@ public class SetWrapper<E> implements ObservableSet<E> {
     @Override
     public String toString() {
         return underlying.toString();
+    }
+
+    @Override
+    public void publishEvent(Object object) {
+        Excerpt excerpt = getExcerpt(maxMessageSize + 128, event);
+        long eventId = excerpt.index();
+        excerpt.writeObject(event);
+        excerpt.finish();
+
+        if (!notifyOff && !listeners.isEmpty()) {
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.onEvent(object);
+                listener.eventEnd(true);
+            }
+        }
     }
 
     private Excerpt getExcerpt(int maxSize, WrapperEvent event) {

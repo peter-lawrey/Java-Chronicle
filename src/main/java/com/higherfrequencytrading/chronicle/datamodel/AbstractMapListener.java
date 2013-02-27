@@ -29,9 +29,16 @@ public abstract class AbstractMapListener<K, V> implements MapListener<K, V> {
         update(key, null, value);
     }
 
+    // This is the only one which must be implemented.
+    public abstract void update(K key, V oldValue, V newValue);
+
     @Override
     public void remove(K key, V value) {
         update(key, value, null);
+    }
+
+    @Override
+    public void onEvent(Object object) {
     }
 
     @Override

@@ -22,6 +22,9 @@ IntelliJ CE - http://www.jetbrains.com - My favourite IDE.
 Version History
 ===================================
 
+Version 1.7 - Add support for arbitary events to sent such as timestamps, heartbeats, changes in stages which can picked up by listeners.
+           Add ConfigProperties which is scoped properties i.e. a single Properties file with a rule based properties.
+
 Version 1.6 - Distributed, durable, observable collections, List, Set and Map.
            Efficient serialization of Java objects.  Java Serialization provided for compatibility but use of Externalizable preferred.
            Minimisation of virtual memory for 32-bit platforms.

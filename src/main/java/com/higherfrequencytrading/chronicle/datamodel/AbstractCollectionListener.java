@@ -35,4 +35,8 @@ public abstract class AbstractCollectionListener<E> implements CollectionListene
     @Override
     public void remove(E e) {
     }
+
+    @Override
+    public void onEvent(Object object) {
+    }
 }

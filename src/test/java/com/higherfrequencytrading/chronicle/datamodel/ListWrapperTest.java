@@ -54,6 +54,14 @@ public class ListWrapperTest {
                 intListener.eventEnd(true);
             }
 
+            stringsListener.eventStart(5, "strings");
+            stringsListener.onEvent("bye");
+            stringsListener.eventEnd(true);
+
+            intListener.eventStart(6, "ints");
+            intListener.onEvent("now");
+            intListener.eventEnd(true);
+
             replay(stringsListener);
             replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
@@ -71,6 +79,9 @@ public class ListWrapperTest {
             strings.add("World");
             ints.add(2);
 
+            strings.publishEvent("bye");
+            ints.publishEvent("now");
+
             verify(stringsListener);
             verify(intListener);
 
@@ -82,24 +93,26 @@ public class ListWrapperTest {
         }
         {
             ListListener stringsListener = createMock("strings", ListListener.class);
-            stringsListener.eventStart(5, "strings");
+            stringsListener.eventStart(7, "strings");
             stringsListener.add("!");
             stringsListener.eventEnd(true);
 
             ListListener intListener = createMock("ints", ListListener.class);
 
-            intListener.eventStart(6, "ints");
+            intListener.eventStart(8, "ints");
             intListener.add(3);
             intListener.eventEnd(true);
 
             replay(stringsListener);
             replay(intListener);
+
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
             ListWrapper<String> strings = new ListWrapper<String>(dataStore, "strings", String.class, new ArrayList<String>(), 8);
             strings.addListener(stringsListener);
             ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), 6);
             ints.addListener(intListener);
+
             // assume we have  all the events written so far
             dataStore.start(chronicle.size());
 

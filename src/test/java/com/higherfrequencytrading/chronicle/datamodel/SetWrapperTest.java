@@ -54,6 +54,14 @@ public class SetWrapperTest {
                 intListener.eventEnd(true);
             }
 
+            stringsListener.eventStart(5, "strings");
+            stringsListener.onEvent("bye");
+            stringsListener.eventEnd(true);
+
+            intListener.eventStart(6, "ints");
+            intListener.onEvent("now");
+            intListener.eventEnd(true);
+
             replay(stringsListener);
             replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
@@ -71,6 +79,9 @@ public class SetWrapperTest {
             strings.add("World");
             ints.add(2);
 
+            strings.publishEvent("bye");
+            ints.publishEvent("now");
+
             verify(stringsListener);
             verify(intListener);
 
@@ -82,13 +93,13 @@ public class SetWrapperTest {
         }
         {
             SetListener stringsListener = createMock("strings", SetListener.class);
-            stringsListener.eventStart(5, "strings");
+            stringsListener.eventStart(7, "strings");
             stringsListener.add("!");
             stringsListener.eventEnd(true);
 
             SetListener intListener = createMock("ints", SetListener.class);
 
-            intListener.eventStart(6, "ints");
+            intListener.eventStart(8, "ints");
             intListener.add(3);
             intListener.eventEnd(true);
 

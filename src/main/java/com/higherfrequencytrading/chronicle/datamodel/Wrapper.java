@@ -22,6 +22,13 @@ import com.higherfrequencytrading.chronicle.ExcerptListener;
  * @author peter.lawrey
  */
 public interface Wrapper extends ExcerptListener {
+    /**
+     * Publish any Serializable or ExcerptMarshallable or class with an EnumeratedMarshaller
+     *
+     * @param object to publish to the stream for listeners to pick up.
+     */
+    public void publishEvent(Object object);
+
     public void notifyOff(boolean notifyOff);
 
 /*    public class DequeWrapper<E> extends QueueWrapper<E> implements Deque<E> {

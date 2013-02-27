@@ -30,4 +30,11 @@ public interface EventListener {
      * @param lastEvent false if there is definitely another event to process, true if it is not known if there is a waiting event.
      */
     public void eventEnd(boolean lastEvent);
+
+    /**
+     * An arbitary event was published for listeners by Wrapper.publishEvent()
+     *
+     * @param object published.
+     */
+    public void onEvent(Object object);
 }
