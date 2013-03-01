@@ -62,6 +62,9 @@ public class ListWrapperTest {
             intListener.onEvent("now");
             intListener.eventEnd(true);
 
+            stringsListener.inSync();
+            intListener.inSync();
+
             replay(stringsListener);
             replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
@@ -102,6 +105,9 @@ public class ListWrapperTest {
             intListener.eventStart(8, "ints");
             intListener.add(3);
             intListener.eventEnd(true);
+
+            stringsListener.inSync();
+            intListener.inSync();
 
             replay(stringsListener);
             replay(intListener);

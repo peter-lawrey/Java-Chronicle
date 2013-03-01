@@ -67,6 +67,9 @@ public class MapWrapperTest {
             intListener.onEvent("now");
             intListener.eventEnd(true);
 
+            stringsListener.inSync();
+            intListener.inSync();
+
             replay(stringsListener);
             replay(intListener);
             Chronicle chronicle = new IndexedChronicle(name);
@@ -106,6 +109,9 @@ public class MapWrapperTest {
             intListener.eventStart(8, "ints");
             intListener.add(3, 1003);
             intListener.eventEnd(true);
+
+            stringsListener.inSync();
+            intListener.inSync();
 
             replay(stringsListener);
             replay(intListener);
@@ -209,7 +215,7 @@ public class MapWrapperTest {
 
             @Override
             public void inSync() {
-                System.out.println("inSync");
+//                System.out.println("inSync");
             }
         };
         strings2.addListener(stringsListener);
@@ -253,7 +259,7 @@ public class MapWrapperTest {
         System.out.printf("Startup and write took %.2f us on average and read and shutdown took %.2f on average%n",
                 (mid - start) / count / 1e3, (end - mid) / count / 1e3);
 
-        Thread.sleep(10000);
+//        Thread.sleep(10000);
 
         chronicle.close();
         chronicle2.close();

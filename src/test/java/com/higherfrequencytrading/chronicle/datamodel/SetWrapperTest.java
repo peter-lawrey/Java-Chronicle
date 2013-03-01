@@ -62,8 +62,12 @@ public class SetWrapperTest {
             intListener.onEvent("now");
             intListener.eventEnd(true);
 
+            stringsListener.inSync();
+            intListener.inSync();
+
             replay(stringsListener);
             replay(intListener);
+
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
             SetWrapper<String> strings = new SetWrapper<String>(dataStore, "strings", String.class, new LinkedHashSet<String>(), 8);
@@ -102,6 +106,9 @@ public class SetWrapperTest {
             intListener.eventStart(8, "ints");
             intListener.add(3);
             intListener.eventEnd(true);
+
+            stringsListener.inSync();
+            intListener.inSync();
 
             replay(stringsListener);
             replay(intListener);
