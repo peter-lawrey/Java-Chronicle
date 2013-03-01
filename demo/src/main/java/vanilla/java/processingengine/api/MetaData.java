@@ -67,7 +67,7 @@ public class MetaData implements ExcerptMarshallable {
     }
 
     public static void writeFromGateway(Excerpt out) {
-        out.writeLong(System.currentTimeMillis());
+        out.writeLong(-1L); //System.currentTimeMillis());
         out.writeLong(ClockSupport.nanoTime());
         out.writeLong(0L);
     }
