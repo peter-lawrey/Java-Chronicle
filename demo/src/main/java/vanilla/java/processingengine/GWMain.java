@@ -16,9 +16,12 @@
 
 package vanilla.java.processingengine;
 
+import com.higherfrequencytrading.affinity.AffinitySupport;
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import com.higherfrequencytrading.clock.ClockSupport;
 import vanilla.java.processingengine.api.*;
+import vanilla.java.processingengine.testing.Histogram;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,7 +35,10 @@ public class GWMain {
             System.err.print("java " + GWMain.class.getName() + " [1 or 2]");
             System.exit(-1);
         }
-        int gwId = Integer.parseInt(args[0]);
+        final int gwId = Integer.parseInt(args[0]);
+        AffinitySupport.setAffinity(1 << (7 - gwId));
+
+        int orders = 5000000;
 
         String tmp = System.getProperty("java.io.tmpdir");
         String gw2pePath = tmp + "/demo/gw2pe" + gwId;
@@ -43,10 +49,14 @@ public class GWMain {
         Gw2PeWriter gw2PeWriter = new Gw2PeWriter(gw2pe.createExcerpt());
 
         Chronicle pe2gw = new IndexedChronicle(pePath);
+        final Histogram times = new Histogram(10000, 100);
         final AtomicInteger reportCount = new AtomicInteger();
         Pe2GwEvents listener = new Pe2GwEvents() {
             @Override
             public void report(MetaData metaData, SmallReport smallReport) {
+                if (metaData.sourceId != gwId) return;
+
+                times.sample(ClockSupport.nanoTime() - metaData.writeTimestampNanos);
                 reportCount.getAndIncrement();
             }
         };
@@ -59,7 +69,6 @@ public class GWMain {
         System.out.println("Started");
         long start = System.nanoTime();
         // run loop
-        int orders = 10000000;
         SmallCommand command = new SmallCommand();
         StringBuilder clientOrderId = command.clientOrderId;
         for (int i = 0; i < orders; i++) {
@@ -74,8 +83,7 @@ public class GWMain {
             command.side = (i & 1) == 0 ? Side.BUY : Side.SELL;
             gw2PeWriter.small(null, command);
 
-            while (pe2GwReader.readOne()) {
-                // read each one there.
+            while (pe2GwReader.readOne() || reportCount.get() < i - 10) {
             }
         }
 
@@ -84,6 +92,12 @@ public class GWMain {
         }
         long time = System.nanoTime() - start;
         System.out.printf("Processed %,d events in and out in %.1f seconds%n", orders, time / 1e9);
+        System.out.printf("The latency distribution was %.1f, %.1f/%.1f/%.1f us for the 1, 90/99/99.9 %%tile%n",
+                times.percentile(0.01) / 1e3,
+                times.percentile(0.90) / 1e3,
+                times.percentile(0.99) / 1e3,
+                times.percentile(0.999) / 1e3
+        );
         gw2pe.close();
         pe2gw.close();
     }

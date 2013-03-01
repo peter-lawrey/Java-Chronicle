@@ -38,15 +38,15 @@ public class MetaData implements ExcerptMarshallable {
 
     @Override
     public void readMarshallable(Excerpt in) throws IllegalStateException {
-        sourceId = (int) in.readStopBit();
-        excerptId = in.readStopBit();
+        sourceId = in.readInt();
+        excerptId = in.readLong();
         readTimestamps(in);
     }
 
     @Override
     public void writeMarshallable(Excerpt out) {
-        out.writeStopBit(sourceId);
-        out.writeStopBit(excerptId);
+        out.writeInt(sourceId);
+        out.writeLong(excerptId);
         out.writeLong(writeTimestampMillis);
         out.writeLong(writeTimestampNanos);
         out.writeLong(readTimestampNanos);
@@ -73,8 +73,8 @@ public class MetaData implements ExcerptMarshallable {
     }
 
     public void readFromEngine(Excerpt in, int sourceId) {
-        this.sourceId = (int) in.readStopBit();
-        excerptId = in.readStopBit();
+        this.sourceId = (int) in.readInt();
+        excerptId = in.readLong();
         targetReader = sourceId == this.sourceId;
         readTimestamps(in);
     }

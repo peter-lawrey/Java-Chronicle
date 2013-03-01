@@ -16,6 +16,7 @@
 
 package vanilla.java.processingengine;
 
+import com.higherfrequencytrading.affinity.AffinitySupport;
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
@@ -28,6 +29,7 @@ import java.io.IOException;
  */
 public class PEMain {
     public static void main(String... args) throws IOException {
+        AffinitySupport.setAffinity(1 << 7);
         String tmp = System.getProperty("java.io.tmpdir");
 
         String pePath = tmp + "/demo/pe";
@@ -45,7 +47,7 @@ public class PEMain {
             readers[i] = new Gw2PeReader(sourceId, gw2pe[i].createExcerpt(), listener);
         }
 
-        long prevProcessed = 0;
+        long prevProcessed = 0, count = 0;
         while (true) {
             boolean readOne = false;
             for (Gw2PeReader reader : readers) {
@@ -53,7 +55,8 @@ public class PEMain {
             }
             if (readOne) {
                 // did something
-            } else {
+                count = 0;
+            } else if (count++ > 1000000) {
                 // do something else like pause.
                 long processed = excerpt.index() + 1;
                 if (prevProcessed != processed) {
