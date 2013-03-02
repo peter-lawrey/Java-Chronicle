@@ -53,7 +53,6 @@ public class SmallReport implements ExcerptMarshallable {
     @Override
     public void writeMarshallable(Excerpt out) {
         out.writeUTF(clientOrderId);
-        ;
         out.writeEnum(status);
         out.writeUTF(rejectedReason);
     }

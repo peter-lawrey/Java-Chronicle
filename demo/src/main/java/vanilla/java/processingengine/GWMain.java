@@ -25,6 +25,11 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * For a latency test
+ * Start first: PEMain
+ * Then run: GEMain 2 false
+ * When the count down is reached:  GEMain 1 false
+ *
  * @author peter.lawrey
  */
 public class GWMain {
@@ -37,9 +42,10 @@ public class GWMain {
         final boolean throughputTest = Boolean.parseBoolean(args[1]);
         AffinitySupport.setAffinity(1 << (3 - gwId));
 
-        int orders = 10000000;
+        int orders = 10 * 1000 * 1000;
 
         String tmp = System.getProperty("java.io.tmpdir");
+//        String tmp = System.getProperty("user.home");
         String gw2pePath = tmp + "/demo/gw2pe" + gwId;
         String pePath = tmp + "/demo/pe";
 

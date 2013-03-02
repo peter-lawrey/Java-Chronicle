@@ -17,7 +17,6 @@
 package vanilla.java.processingengine;
 
 import com.higherfrequencytrading.affinity.AffinitySupport;
-import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import vanilla.java.processingengine.api.*;
@@ -31,19 +30,22 @@ public class PEMain {
     public static void main(String... args) throws IOException {
         AffinitySupport.setAffinity(1 << 3);
         String tmp = System.getProperty("java.io.tmpdir");
+//        String tmp = System.getProperty("user.home");
 
         String pePath = tmp + "/demo/pe";
-        Chronicle pe2gw = new IndexedChronicle(pePath);
+        IndexedChronicle pe2gw = new IndexedChronicle(pePath);
+        pe2gw.useUnsafe(true);
         Excerpt excerpt = pe2gw.createExcerpt();
         final Pe2GwWriter pe2GwWriter = new Pe2GwWriter(excerpt);
 
         Gw2PeEvents listener = new PEEvents(pe2GwWriter);
         Gw2PeReader[] readers = new Gw2PeReader[2];
-        Chronicle[] gw2pe = new Chronicle[readers.length];
+        IndexedChronicle[] gw2pe = new IndexedChronicle[readers.length];
         for (int i = 0; i < readers.length; i++) {
             int sourceId = i + 1;
             String gw2pePath = tmp + "/demo/gw2pe" + sourceId;
             gw2pe[i] = new IndexedChronicle(gw2pePath);
+            gw2pe[i].useUnsafe(true);
             readers[i] = new Gw2PeReader(sourceId, gw2pe[i].createExcerpt(), listener);
         }
 
