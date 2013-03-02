@@ -17,65 +17,67 @@
 package vanilla.java.processingengine.api;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
-import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
 import com.higherfrequencytrading.clock.ClockSupport;
 
 /**
  * @author peter.lawrey
  */
-public class MetaData implements ExcerptMarshallable {
+public class MetaData {
     boolean targetReader;
 
     public int sourceId;
     public long excerptId;
     public long writeTimestampMillis;
-    public long writeTimestampNanos;
-    public long readTimestampNanos;
+    public long inWriteTimestamp7; // tenths of a micro-second
+    public long inReadTimestamp7Delta; // tenths of a micro-second
+    public long outWriteTimestamp7Delta; // tenths of a micro-second
+    public long outReadTimestamp7Delta; // tenths of a micro-second
 
     public MetaData(boolean targetReader) {
         this.targetReader = targetReader;
     }
 
-    @Override
-    public void readMarshallable(Excerpt in) throws IllegalStateException {
-        sourceId = in.readInt();
-        excerptId = in.readLong();
-        readTimestamps(in);
+    private static long fastTime() {
+        return ClockSupport.nanoTime() / 100;
     }
 
-    @Override
-    public void writeMarshallable(Excerpt out) {
+    public static void writeForGateway(Excerpt out) {
+        out.writeLong(System.currentTimeMillis());
+        out.writeLong(fastTime());
+        out.writeInt(0);
+    }
+
+    public void readFromGateway(Excerpt in) {
+        excerptId = in.index();
+        writeTimestampMillis = in.readLong();
+        inWriteTimestamp7 = in.readLong();
+        inReadTimestamp7Delta = in.readUnsignedInt();
+        if (inReadTimestamp7Delta == 0 && targetReader)
+            in.writeUnsignedInt(in.position() - 4,
+                    inReadTimestamp7Delta = fastTime() - inWriteTimestamp7);
+    }
+
+    public void writeForEngine(Excerpt out) {
         out.writeInt(sourceId);
         out.writeLong(excerptId);
         out.writeLong(writeTimestampMillis);
-        out.writeLong(writeTimestampNanos);
-        out.writeLong(readTimestampNanos);
-    }
-
-    public void readFromGateway(Excerpt in, int sourceId) throws IllegalStateException {
-        this.sourceId = sourceId;
-        excerptId = in.index();
-        readTimestamps(in);
-    }
-
-    private void readTimestamps(Excerpt in) {
-        writeTimestampMillis = in.readLong();
-        writeTimestampNanos = in.readLong();
-        readTimestampNanos = in.readLong();
-        if (readTimestampNanos == 0 && targetReader)
-            in.writeLong(in.position() - 8, ClockSupport.nanoTime());
-    }
-
-    public static void writeFromGateway(Excerpt out) {
-        out.writeLong(-1L); //System.currentTimeMillis());
-        out.writeLong(ClockSupport.nanoTime());
-        out.writeLong(0L);
+        out.writeLong(inWriteTimestamp7);
+        out.writeUnsignedInt(inReadTimestamp7Delta);
+        out.writeUnsignedInt(fastTime() - inWriteTimestamp7);
+        out.writeUnsignedInt(0L);
     }
 
     public void readFromEngine(Excerpt in, int sourceId) {
-        this.sourceId = (int) in.readInt();
+        this.sourceId = in.readInt();
         excerptId = in.readLong();
         targetReader = sourceId == this.sourceId;
-        readTimestamps(in);
+        writeTimestampMillis = in.readLong();
+        inWriteTimestamp7 = in.readLong();
+        inReadTimestamp7Delta = in.readUnsignedInt();
+        outWriteTimestamp7Delta = in.readUnsignedInt();
+        outReadTimestamp7Delta = in.readUnsignedInt();
+        if (outReadTimestamp7Delta == 0 && targetReader)
+            in.writeUnsignedInt(in.position() - 4,
+                    outReadTimestamp7Delta = fastTime() - inWriteTimestamp7);
     }
 }

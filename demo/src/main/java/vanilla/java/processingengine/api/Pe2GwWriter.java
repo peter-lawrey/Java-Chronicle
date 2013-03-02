@@ -32,7 +32,7 @@ public class Pe2GwWriter implements Pe2GwEvents {
     public void report(MetaData metaData, SmallReport smallReport) {
         excerpt.startExcerpt(200); // a guess to be lazy.
         excerpt.writeEnum(MessageType.report);
-        metaData.writeMarshallable(excerpt);
+        metaData.writeForEngine(excerpt);
         smallReport.writeMarshallable(excerpt);
         excerpt.finish();
     }

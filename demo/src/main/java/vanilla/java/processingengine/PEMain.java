@@ -29,7 +29,7 @@ import java.io.IOException;
  */
 public class PEMain {
     public static void main(String... args) throws IOException {
-        AffinitySupport.setAffinity(1 << 7);
+        AffinitySupport.setAffinity(1 << 3);
         String tmp = System.getProperty("java.io.tmpdir");
 
         String pePath = tmp + "/demo/pe";

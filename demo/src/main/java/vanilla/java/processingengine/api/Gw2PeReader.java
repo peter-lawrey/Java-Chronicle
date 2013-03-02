@@ -48,7 +48,8 @@ public class Gw2PeReader {
         }
         switch (mt) {
             case small: {
-                metaData.readFromGateway(excerpt, sourceId);
+                metaData.sourceId = sourceId;
+                metaData.readFromGateway(excerpt);
                 smallCommand.readMarshallable(excerpt);
                 peEvents.small(metaData, smallCommand);
                 break;
