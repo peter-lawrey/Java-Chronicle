@@ -67,7 +67,7 @@ It uses memory mapped file to store "excerpts" of a "chronicle"  Initially it on
 ===================================
 Throughput Test - FileLoggingMain
 ===================================
-https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/FileLoggingMain.java
+https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/com/higherfrequencytrading/chronicle/impl/FileLoggingMain.java
 
 This test logs one million lines of text using Chronicle compared with Logger.
 
@@ -79,7 +79,7 @@ Throughput Test - IndexedChronicleThroughputMain
 
 Note: These timings include Serialization.  This is important because many performance tests don't include Serialization even though it can be many times slower than the data store they are testing.
 
-https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/IndexedChronicleLatencyMain.java
+https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/com/higherfrequencytrading/chronicle/impl/IndexedChronicleLatencyMain.java
 
 On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
 
@@ -89,7 +89,7 @@ The average RTT latency was 172 ns. The 50/99 / 99.9/99.99%tile latencies were 1
 The average RTT latency was 180 ns. The 50/99 / 99.9/99.99%tile latencies were 160/190 / 3,110/19,110 - ByteBuffer (ext4)
 The average RTT latency was 178 ns. The 50/99 / 99.9/99.99%tile latencies were 160/190 / 3,100/19,090- Using Unsafe (ext4)
 
-https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/IndexedChronicleThroughputMain.java
+https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/com/higherfrequencytrading/chronicle/impl/IndexedChronicleThroughputMain.java
 
 On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
 
@@ -109,7 +109,7 @@ On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
  ===================================
  More compact Index for less than 4 GB of data
  ===================================
- https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/vanilla/java/chronicle/impl/IntIndexedChronicleThroughputMain.java
+ https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/com/higherfrequencytrading/chronicle/impl/IntIndexedChronicleThroughputMain.java
 
 on a 4.6 GHz, i7-2600
 Took 6.325 seconds to write/read 100,000,000 entries, rate was 15.8 M entries/sec - ByteBuffer (tmpfs)
