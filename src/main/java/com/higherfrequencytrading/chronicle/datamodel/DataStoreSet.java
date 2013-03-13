@@ -90,10 +90,4 @@ public class DataStoreSet {
             dataStore.close();
         }
     }
-
-    public void notifyOff(boolean notifyOff) {
-        for (DataStore dataStore : dataStoreMap.values()) {
-            dataStore.notifyOff(notifyOff);
-        }
-    }
 }

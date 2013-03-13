@@ -46,8 +46,6 @@ public class DataStore implements Closeable {
     protected Wrapper[] wrappersArray = {};
     private ExecutorService updater;
     private volatile boolean closed = false;
-    private volatile Boolean notifyOff = null;
-
 
     public DataStore(final Chronicle chronicle, ModelMode mode) {
         this.chronicle = chronicle;
@@ -139,15 +137,6 @@ public class DataStore implements Closeable {
         start(-1);
     }
 
-    void notifyOff(boolean notifyOff) {
-        if ((Boolean) notifyOff != this.notifyOff) {
-            for (Wrapper wrapper : wrappersArray) {
-                wrapper.notifyOff(notifyOff);
-            }
-            this.notifyOff = notifyOff;
-        }
-    }
-
     public void startAtEnd() {
         start(chronicle.size());
     }
@@ -159,12 +148,9 @@ public class DataStore implements Closeable {
                 long size = excerpt.size();
                 excerpt.index(lastEvent);
                 while (excerpt.index() < size && excerpt.nextIndex()) {
-                    if (processNextEvent()) continue;
-
-                    if (notifyOff && lastEvent <= excerpt.index())
-                        notifyOff(false);
+                    processNextEvent();
                 }
-                notifyOff(false);
+
                 for (Wrapper wrapper : wrappersArray) {
                     wrapper.inSync();
                 }
@@ -179,13 +165,11 @@ public class DataStore implements Closeable {
                         while (!closed) {
                             boolean found = excerpt.nextIndex();
                             if (found) {
-                                if (processNextEvent()) continue;
+                                processNextEvent();
 
-                                if (notifyOff && lastEvent <= excerpt.index())
-                                    notifyOff(false);
 
                             } else {
-                                notifyOff(false);
+
                                 for (Wrapper wrapper : wrappersArray)
                                     wrapper.inSync();
                             }
