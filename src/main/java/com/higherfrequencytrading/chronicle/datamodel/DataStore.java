@@ -40,32 +40,35 @@ public class DataStore implements Closeable {
     private static final Logger LOGGER = Logger.getLogger(DataStore.class.getName());
     private final Chronicle chronicle;
     private final ModelMode mode;
-    private final Excerpt excerpt;
+    private Excerpt excerpt = null;
 
     protected final Map<String, Wrapper> wrappers = new ConcurrentHashMap<String, Wrapper>();
     protected Wrapper[] wrappersArray = {};
-    private ExecutorService updator;
+    private ExecutorService updater;
     private volatile boolean closed = false;
     private volatile Boolean notifyOff = null;
 
 
-    public DataStore(Chronicle chronicle, ModelMode mode) {
+    public DataStore(final Chronicle chronicle, ModelMode mode) {
         this.chronicle = chronicle;
         this.mode = mode;
-        excerpt = chronicle.createExcerpt();
+
         switch (mode) {
             case MASTER:
                 break;
+
             case READ_ONLY:
-                updator = Executors.newSingleThreadExecutor(new ThreadFactory() {
+                final String name = chronicle.name();
+                updater = Executors.newSingleThreadExecutor(new ThreadFactory() {
                     @Override
                     public Thread newThread(Runnable r) {
-                        Thread t = new Thread(r, "datastore updator");
+                        Thread t = new Thread(r, name + "data store updater");
                         t.setDaemon(true);
                         return t;
                     }
                 });
                 break;
+
             default:
                 throw new IllegalArgumentException("Unknown mode " + mode);
         }
@@ -76,55 +79,59 @@ public class DataStore implements Closeable {
         try {
             for (Class type = model.getClass(); type != null && type != Object.class && type != Enum.class; type = type.getSuperclass()) {
                 for (Field field : type.getDeclaredFields()) {
-                    if ((field.getModifiers() & Modifier.STATIC) != 0 || (field.getModifiers() & Modifier.TRANSIENT) != 0)
-                        continue;
-
-                    field.setAccessible(true);
-                    Class<?> fieldType = field.getType();
-                    if (fieldType.isInterface()) {
-                        if (fieldType == Map.class || fieldType == ObservableMap.class) {
-                            Class[] genericTypes = ChronicleTools.getGenericTypes(field.getGenericType(), 2);
-                            Map underlying = (Map) field.get(model);
-                            if (underlying == null)
-                                underlying = new ConcurrentHashMap();
-                            MapWrapper map = new MapWrapper(this, field.getName(), genericTypes[0], genericTypes[1], underlying, 1024);
-                            Annotation[] annotations = field.getAnnotations();
-                            if (annotations != null)
-                                map.setAnnotations(annotations);
-                            field.set(model, map);
-
-                        } else if (fieldType == List.class || fieldType == ObservableList.class) {
-                            Class[] genericTypes = ChronicleTools.getGenericTypes(field.getGenericType(), 1);
-                            List underlying = (List) field.get(model);
-                            if (underlying == null)
-                                underlying = Collections.synchronizedList(new ArrayList());
-                            ListWrapper list = new ListWrapper(this, field.getName(), genericTypes[0], underlying, 1024);
-                            Annotation[] annotations = field.getAnnotations();
-                            if (annotations != null)
-                                list.setAnnotations(annotations);
-                            field.set(model, list);
-
-                        } else if (fieldType == Set.class || fieldType == ObservableSet.class) {
-                            Class[] genericTypes = ChronicleTools.getGenericTypes(field.getGenericType(), 1);
-                            Set underlying = (Set) field.get(model);
-                            if (underlying == null)
-                                underlying = Collections.newSetFromMap(new ConcurrentHashMap());
-                            SetWrapper set = new SetWrapper(this, field.getName(), genericTypes[0], underlying, 1024);
-                            Annotation[] annotations = field.getAnnotations();
-                            if (annotations != null)
-                                set.setAnnotations(annotations);
-                            field.set(model, set);
-
-                        } else {
-                            LOGGER.info("Skipping field of type " + fieldType + " as this is not supported interface");
-                        }
-                    } else {
-                        LOGGER.info("Skipping field of type " + fieldType + " as injecting concrete classes is not supported");
-                    }
+                    injectField(model, field);
                 }
             }
         } catch (IllegalAccessException e) {
             throw new AssertionError(e);
+        }
+    }
+
+    public <Model> void injectField(Model model, Field field) throws IllegalAccessException {
+        if ((field.getModifiers() & Modifier.STATIC) != 0 || (field.getModifiers() & Modifier.TRANSIENT) != 0)
+            return;
+
+        field.setAccessible(true);
+        Class<?> fieldType = field.getType();
+        if (fieldType.isInterface()) {
+            if (fieldType == Map.class || fieldType == ObservableMap.class) {
+                Class[] genericTypes = ChronicleTools.getGenericTypes(field.getGenericType(), 2);
+                Map underlying = (Map) field.get(model);
+                if (underlying == null)
+                    underlying = new ConcurrentHashMap();
+                MapWrapper map = new MapWrapper(this, field.getName(), genericTypes[0], genericTypes[1], underlying, 1024);
+                Annotation[] annotations = field.getAnnotations();
+                if (annotations != null)
+                    map.setAnnotations(annotations);
+                field.set(model, map);
+
+            } else if (fieldType == List.class || fieldType == ObservableList.class) {
+                Class[] genericTypes = ChronicleTools.getGenericTypes(field.getGenericType(), 1);
+                List underlying = (List) field.get(model);
+                if (underlying == null)
+                    underlying = Collections.synchronizedList(new ArrayList());
+                ListWrapper list = new ListWrapper(this, field.getName(), genericTypes[0], underlying, 1024);
+                Annotation[] annotations = field.getAnnotations();
+                if (annotations != null)
+                    list.setAnnotations(annotations);
+                field.set(model, list);
+
+            } else if (fieldType == Set.class || fieldType == ObservableSet.class) {
+                Class[] genericTypes = ChronicleTools.getGenericTypes(field.getGenericType(), 1);
+                Set underlying = (Set) field.get(model);
+                if (underlying == null)
+                    underlying = Collections.newSetFromMap(new ConcurrentHashMap());
+                SetWrapper set = new SetWrapper(this, field.getName(), genericTypes[0], underlying, 1024);
+                Annotation[] annotations = field.getAnnotations();
+                if (annotations != null)
+                    set.setAnnotations(annotations);
+                field.set(model, set);
+
+            } else {
+                LOGGER.info("Skipping field of type " + fieldType + " as this is not supported interface");
+            }
+        } else {
+            LOGGER.info("Skipping field of type " + fieldType + " as injecting concrete classes is not supported");
         }
     }
 
@@ -141,12 +148,16 @@ public class DataStore implements Closeable {
         }
     }
 
+    public void startAtEnd() {
+        start(chronicle.size());
+    }
+
     public void start(final long lastEvent) {
         switch (mode) {
             case MASTER:
-                excerpt.index(-1);
+                excerpt = chronicle.createExcerpt();
                 long size = excerpt.size();
-                notifyOff(lastEvent >= 0);
+                excerpt.index(lastEvent);
                 while (excerpt.index() < size && excerpt.nextIndex()) {
                     if (processNextEvent()) continue;
 
@@ -160,11 +171,11 @@ public class DataStore implements Closeable {
                 break;
 
             case READ_ONLY:
-                updator.submit(new Runnable() {
+                updater.submit(new Runnable() {
                     @Override
                     public void run() {
-                        excerpt.index(-1);
-                        notifyOff(lastEvent >= 0);
+                        excerpt = chronicle.createExcerpt();
+                        excerpt.index(lastEvent);
                         while (!closed) {
                             boolean found = excerpt.nextIndex();
                             if (found) {
@@ -205,6 +216,7 @@ public class DataStore implements Closeable {
     }
 
     public Excerpt startExcerpt(int capacity, String name) {
+        checkStarted();
         excerpt.startExcerpt(capacity + 2 + name.length());
         excerpt.writeEnum(name);
         return excerpt;
@@ -223,10 +235,12 @@ public class DataStore implements Closeable {
     }
 
     public long events() {
+        checkStarted();
         return excerpt.index() + 1;
     }
 
     public boolean nextEvent() {
+        checkStarted();
         if (excerpt.nextIndex()) {
             processNextEvent();
             return true;
@@ -234,10 +248,14 @@ public class DataStore implements Closeable {
         return false;
     }
 
+    private void checkStarted() {
+        if (excerpt == null) throw new AssertionError("Not start()ed");
+    }
+
     public void close() {
         closed = true;
-        if (updator != null)
-            updator.shutdown();
+        if (updater != null)
+            updater.shutdown();
         chronicle.close();
     }
 }
