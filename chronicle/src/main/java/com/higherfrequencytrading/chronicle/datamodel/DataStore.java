@@ -138,7 +138,7 @@ public class DataStore implements Closeable {
     }
 
     public void startAtEnd() {
-        start(chronicle.size());
+        start(chronicle.size() - 1);
     }
 
     public void start(final long lastEvent) {
@@ -146,12 +146,12 @@ public class DataStore implements Closeable {
             case MASTER:
                 excerpt = chronicle.createExcerpt();
                 long size = excerpt.size();
-                excerpt.index(lastEvent);
                 while (excerpt.index() < size && excerpt.nextIndex()) {
-                    processNextEvent();
+                    processNextEvent(excerpt.index() <= lastEvent);
                 }
 
                 for (Wrapper wrapper : wrappersArray) {
+                    wrapper.notifyOff(false);
                     wrapper.inSync();
                 }
                 break;
@@ -161,17 +161,16 @@ public class DataStore implements Closeable {
                     @Override
                     public void run() {
                         excerpt = chronicle.createExcerpt();
-                        excerpt.index(lastEvent);
                         while (!closed) {
                             boolean found = excerpt.nextIndex();
                             if (found) {
-                                processNextEvent();
-
+                                processNextEvent(excerpt.index() <= lastEvent);
 
                             } else {
-
-                                for (Wrapper wrapper : wrappersArray)
+                                for (Wrapper wrapper : wrappersArray) {
+                                    wrapper.notifyOff(false);
                                     wrapper.inSync();
+                                }
                             }
                         }
                     }
@@ -183,12 +182,13 @@ public class DataStore implements Closeable {
         }
     }
 
-    boolean processNextEvent() {
+    boolean processNextEvent(boolean notifyOff) {
 //        System.out.println(excerpt.index()+": "+ ChronicleTools.asString(excerpt));
         String name = excerpt.readEnum(String.class);
         Wrapper wrapper = wrappers.get(name);
         if (wrapper == null)
             return true;
+        wrapper.notifyOff(notifyOff);
         wrapper.onExcerpt(excerpt);
         excerpt.finish();
         return false;
@@ -221,15 +221,6 @@ public class DataStore implements Closeable {
     public long events() {
         checkStarted();
         return excerpt.index() + 1;
-    }
-
-    public boolean nextEvent() {
-        checkStarted();
-        if (excerpt.nextIndex()) {
-            processNextEvent();
-            return true;
-        }
-        return false;
     }
 
     private void checkStarted() {

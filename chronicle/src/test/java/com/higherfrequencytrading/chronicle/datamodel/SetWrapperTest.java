@@ -119,7 +119,7 @@ public class SetWrapperTest {
             SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 6);
             ints.addListener(intListener);
             // assume we have  all the events written so far
-            dataStore.start(chronicle.size());
+            dataStore.start(chronicle.size() - 1);
 
             strings.add("!");
             ints.add(3);

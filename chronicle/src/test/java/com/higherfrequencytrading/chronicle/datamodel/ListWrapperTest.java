@@ -120,7 +120,7 @@ public class ListWrapperTest {
             ints.addListener(intListener);
 
             // assume we have  all the events written so far
-            dataStore.start(chronicle.size());
+            dataStore.start(chronicle.size() - 1);
 
             strings.add("!");
             ints.add(3);

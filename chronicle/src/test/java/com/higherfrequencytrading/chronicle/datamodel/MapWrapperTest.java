@@ -124,7 +124,7 @@ public class MapWrapperTest {
             ints.addListener(intListener);
 
             // assume we have  all the events written so far
-            dataStore.start(chronicle.size());
+            dataStore.start(chronicle.size() - 1);
 
             strings.put("!", "end");
             ints.put(3, 1003);
@@ -398,6 +398,7 @@ public class MapWrapperTest {
         ints.putAll(iiMap);
         count += 2;
 
+        Thread.sleep(100);
 //        int timeout = 0;
         while (dataStore2.events() < count || ints2.size() < collectionSize) {
 //            if (timeout++ % 10000 == 0)
