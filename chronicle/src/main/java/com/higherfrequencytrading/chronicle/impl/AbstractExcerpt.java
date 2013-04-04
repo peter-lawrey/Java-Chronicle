@@ -277,20 +277,34 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     private StringBuilder acquireUtfReader() {
         if (utfReader == null) utfReader = new StringBuilder();
-        utfReader.setLength(0);
         return utfReader;
     }
 
     @Override
     public boolean readUTF(Appendable appendable) {
+        return appendUTF(appendable);
+    }
+
+    @Override
+    public boolean readUTF(StringBuilder stringBuilder) {
         try {
-            return readUTF0(appendable);
+            stringBuilder.setLength(0);
+            return appendUTF0(stringBuilder);
         } catch (IOException unexpected) {
             throw new AssertionError(unexpected);
         }
     }
 
-    private boolean readUTF0(Appendable appendable) throws IOException {
+    @Override
+    public boolean appendUTF(Appendable appendable) {
+        try {
+            return appendUTF0(appendable);
+        } catch (IOException unexpected) {
+            throw new AssertionError(unexpected);
+        }
+    }
+
+    private boolean appendUTF0(Appendable appendable) throws IOException {
         long len = readStopBit();
         if (len < -1 || len > Integer.MAX_VALUE)
             throw new StreamCorruptedException("UTF length invalid " + len);

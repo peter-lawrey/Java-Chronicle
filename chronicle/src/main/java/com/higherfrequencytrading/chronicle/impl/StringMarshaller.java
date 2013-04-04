@@ -45,7 +45,6 @@ public class StringMarshaller implements EnumeratedMarshaller<String> {
 
     @Override
     public String read(Excerpt excerpt) {
-        reader.setLength(0);
         if (excerpt.readUTF(reader))
             return builderToString();
         return null;

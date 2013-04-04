@@ -141,7 +141,17 @@ public interface RandomDataInput extends ObjectInput, RandomAccess {
     @Override
     String readUTF();
 
+    /**
+     * Use readUTF(StringBuilder) or appendUTF
+     *
+     * @deprecated to be removed in version 1.8
+     */
+    @Deprecated
     boolean readUTF(Appendable appendable);
+
+    boolean readUTF(StringBuilder stringBuilder);
+
+    boolean appendUTF(Appendable appendable);
 
     String readUTF(int offset);
 
