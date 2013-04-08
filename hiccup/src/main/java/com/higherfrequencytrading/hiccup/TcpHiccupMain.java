@@ -81,7 +81,7 @@ public class TcpHiccupMain {
             ssc.socket().setReuseAddress(true);
             for (int i = 0; i < 3; i++)
                 try {
-                    ssc.bind(new InetSocketAddress(port));
+                    ssc.socket().bind(new InetSocketAddress(port));
                     break;
                 } catch (BindException be) {
                     System.err.println("Failed to bind, retrying... ");
@@ -97,13 +97,13 @@ public class TcpHiccupMain {
         public void run() {
             try {
                 ByteBuffer bb = ByteBuffer.allocateDirect(64 * 1024);
-                System.err.println("Accepting connect on " + ssc.getLocalAddress());
+                System.err.println("Accepting connect on " + ssc.socket().getLocalPort());
                 while (!Thread.interrupted()) {
                     SocketChannel sc = ssc.accept();
                     if (BUSY)
                         sc.configureBlocking(false);
 
-                    String ra = sc.getRemoteAddress().toString();
+                    String ra = sc.socket().getInetAddress().toString();
                     System.err.println("... connect to " + ra);
                     try {
                         sc.socket().setTcpNoDelay(true);
@@ -231,7 +231,7 @@ public class TcpHiccupMain {
 
             } finally {
                 try {
-                    System.err.println("... disconnected from " + sc.getRemoteAddress());
+                    System.err.println("... disconnected from " + sc.socket().getInetAddress());
                     sc.close();
                 } catch (IOException e) {
                     e.printStackTrace();
