@@ -217,7 +217,7 @@ public class TcpHiccupMain {
                     heading.append("\t").append(perc).append("%");
                     long value = findPercentile(histograms, perc);
                     values.append("\t").append(inNanos(value));
-                    if (RUNS >= oneIn * oneIn - 1)
+                    if (RUNS <= oneIn * oneIn)
                         break;
                 }
                 heading.append("\tworst");
