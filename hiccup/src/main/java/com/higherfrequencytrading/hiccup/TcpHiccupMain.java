@@ -35,7 +35,7 @@ public class TcpHiccupMain {
     // total messages to send.
     static final int WARMUP = Integer.getInteger("warmup", 12000);
     // total messages to send.
-    static final int RUNS = Integer.getInteger("runs", 1000000);
+    static final int RUNS = Integer.getInteger("runs", 10000000);
     // per milli-second. (note: every message is sent twice)
     static final int RATE = Integer.getInteger("rate", 25);
     // busy waiting
@@ -84,7 +84,7 @@ public class TcpHiccupMain {
                     ssc.bind(new InetSocketAddress(port));
                     break;
                 } catch (BindException be) {
-                    System.out.println("Failed to bind, retrying... ");
+                    System.err.println("Failed to bind, retrying... ");
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
@@ -97,8 +97,8 @@ public class TcpHiccupMain {
         public void run() {
             try {
                 ByteBuffer bb = ByteBuffer.allocateDirect(64 * 1024);
+                System.err.println("Accepting connect on " + ssc.getLocalAddress());
                 while (!Thread.interrupted()) {
-                    System.err.println("Accepting connect on " + ssc.getLocalAddress());
                     SocketChannel sc = ssc.accept();
                     if (BUSY)
                         sc.configureBlocking(false);
@@ -214,11 +214,11 @@ public class TcpHiccupMain {
                 StringBuilder values = new StringBuilder(RUNS + "\t" + RATE + "\t" + WARMUP + "\t" + BUSY);
                 for (double perc : new double[]{50, 90, 93, 99, 99.3, 99.9, 99.93, 99.99, 99.993, 99.999}) {
                     double oneIn = 1.0 / (1 - perc / 100);
-                    if (RUNS < Math.pow(oneIn, 2))
-                        continue;
                     heading.append("\t").append(perc).append("%");
                     long value = findPercentile(histograms, perc);
                     values.append("\t").append(inNanos(value));
+                    if (RUNS >= oneIn * oneIn - 1)
+                        break;
                 }
                 heading.append("\tworst");
                 long worst = findPercentile(histograms, 99.9999);
