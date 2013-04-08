@@ -51,7 +51,6 @@ public class DateMarshaller implements EnumeratedMarshaller<Date> {
 
     @Override
     public Date read(Excerpt excerpt) {
-        sb.setLength(0);
         excerpt.readUTF(sb);
         long time = parseLong(sb);
         return lookupDate(time);

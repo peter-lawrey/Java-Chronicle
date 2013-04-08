@@ -43,7 +43,7 @@ public class DirectMemoryReader {
     public boolean read(StringBuilder sb) {
         if (excerpt.index(currentExcerptIndex)) {
             currentExcerptIndex++;
-            excerpt.readUTF(sb);
+            excerpt.appendUTF(sb);
             excerpt.finish();
             return true;
         }

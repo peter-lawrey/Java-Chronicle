@@ -32,7 +32,6 @@ public class SmallCommand implements ExcerptMarshallable {
     @Override
     public void readMarshallable(Excerpt in) throws IllegalStateException {
         // changes often.
-        clientOrderId.setLength(0);
         in.readUTF(clientOrderId);
         // cachable.
         instrument = in.readEnum(String.class);

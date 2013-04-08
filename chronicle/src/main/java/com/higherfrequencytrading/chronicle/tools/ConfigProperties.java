@@ -51,7 +51,7 @@ public class ConfigProperties extends AbstractMap<String, String> {
                     StringBuilder sb = new StringBuilder();
                     for (int j = 0; j < parts.length; j++) {
                         if (((i >> j) & 1) != 0) {
-                            sb.append(parts[i]).append('.');
+                            sb.append(parts[j]).append('.');
                         }
                     }
                     ret.add(sb.toString());
@@ -69,9 +69,10 @@ public class ConfigProperties extends AbstractMap<String, String> {
     public String get(Object key) {
         for (String s : scopeArray) {
             String key2 = s + key;
-            String value = String.valueOf(properties.get(key2));
-            if (value != null)
-                return null;
+            Object obj = properties.get(key2);
+            if (obj == null)
+                continue;
+            return String.valueOf(obj);
         }
         return super.get(String.valueOf(key));
     }
@@ -124,6 +125,10 @@ public class ConfigProperties extends AbstractMap<String, String> {
     }
 
     public ConfigProperties addToScope(String name) {
+        if (!scope.isEmpty()) {
+            if (Arrays.asList(scope.split("\\.")).contains(name))
+                return this;
+        }
         String scope2 = scope.length() == 0 ? name : (scope + "." + name);
         return new ConfigProperties(properties, scope2);
     }

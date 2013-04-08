@@ -22,7 +22,7 @@ import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
@@ -30,15 +30,15 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author peter.lawrey
  */
-public class ListWrapperTest {
+public class SetWrapperTest {
     static final String TMP = System.getProperty("java.io.tmpdir");
 
     @Test
-    public void testListMethods() throws IOException {
-        String name = TMP + "/testListMethods";
+    public void testSetMethods() throws IOException {
+        String name = TMP + "/testSetMethods";
         ChronicleTools.deleteOnExit(name);
         {
-            ListListener stringsListener = createMock("strings", ListListener.class);
+            SetListener stringsListener = createMock("strings", SetListener.class);
             stringsListener.eventStart(1, "strings");
             stringsListener.add("Hello");
             stringsListener.eventEnd(true);
@@ -47,7 +47,7 @@ public class ListWrapperTest {
             stringsListener.add("World");
             stringsListener.eventEnd(true);
 
-            ListListener intListener = createMock("ints", ListListener.class);
+            SetListener intListener = createMock("ints", SetListener.class);
             for (int i = 0; i < 3; i++) {
                 intListener.eventStart(i * 2, "ints");
                 intListener.add(i);
@@ -67,11 +67,12 @@ public class ListWrapperTest {
 
             replay(stringsListener);
             replay(intListener);
+
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "strings", String.class, new ArrayList<String>(), 8);
+            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "strings", String.class, new LinkedHashSet<String>(), 8);
             strings.addListener(stringsListener);
-            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), 6);
+            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 6);
             ints.addListener(intListener);
 
             dataStore.start();
@@ -95,12 +96,12 @@ public class ListWrapperTest {
             chronicle.close();
         }
         {
-            ListListener stringsListener = createMock("strings", ListListener.class);
+            SetListener stringsListener = createMock("strings", SetListener.class);
             stringsListener.eventStart(7, "strings");
             stringsListener.add("!");
             stringsListener.eventEnd(true);
 
-            ListListener intListener = createMock("ints", ListListener.class);
+            SetListener intListener = createMock("ints", SetListener.class);
 
             intListener.eventStart(8, "ints");
             intListener.add(3);
@@ -111,16 +112,14 @@ public class ListWrapperTest {
 
             replay(stringsListener);
             replay(intListener);
-
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "strings", String.class, new ArrayList<String>(), 8);
+            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "strings", String.class, new LinkedHashSet<String>(), 8);
             strings.addListener(stringsListener);
-            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), 6);
+            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 6);
             ints.addListener(intListener);
-
             // assume we have  all the events written so far
-            dataStore.start(chronicle.size());
+            dataStore.start(chronicle.size() - 1);
 
             strings.add("!");
             ints.add(3);
@@ -135,29 +134,27 @@ public class ListWrapperTest {
     }
 
     @Test
-    public void testListPerformance() throws IOException {
-        String name = TMP + "/testListPerformance";
+    public void testSetPerformance() throws IOException {
+        String name = TMP + "/testSetPerformance";
         ChronicleTools.deleteOnExit(name);
         long start = System.nanoTime();
-        int size = 0;
+        int size;
         {
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "test", String.class, new ArrayList<String>(), 9);
-            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), 9);
+            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "test", String.class, new LinkedHashSet<String>(), 9);
+            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 9);
             dataStore.start();
             ints.clear();
             strings.clear();
-            for (int j = 0; j < 10000; j++) {
-                for (int i = 0; i < 100; i++) {
-                    ints.add(i);
-                    strings.add(Integer.toString(i));
-                }
-                size += Math.min(strings.size(), ints.size());
-                for (int i = 0; i < 100; i++) {
-                    ints.remove((Integer) i);
-                    strings.remove(i);
-                }
+            for (int i = 0; i < 1000000; i++) {
+                ints.add(i);
+                strings.add(Integer.toString(i));
+            }
+            size = Math.min(strings.size(), ints.size());
+            for (int i = 0; i < 1000000; i++) {
+                ints.remove(i);
+                strings.remove(Integer.toString(i));
             }
 
             chronicle.close();
@@ -166,8 +163,8 @@ public class ListWrapperTest {
         {
             Chronicle chronicle = new IndexedChronicle(name);
             DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
-            ListWrapper<String> strings = new ListWrapper<String>(dataStore, "test", String.class, new ArrayList<String>(), 9);
-            ListWrapper<Integer> ints = new ListWrapper<Integer>(dataStore, "ints", Integer.class, new ArrayList<Integer>(), 9);
+            SetWrapper<String> strings = new SetWrapper<String>(dataStore, "test", String.class, new LinkedHashSet<String>(), 9);
+            SetWrapper<Integer> ints = new SetWrapper<Integer>(dataStore, "ints", Integer.class, new LinkedHashSet<Integer>(), 9);
             dataStore.start();
             chronicle.close();
         }
