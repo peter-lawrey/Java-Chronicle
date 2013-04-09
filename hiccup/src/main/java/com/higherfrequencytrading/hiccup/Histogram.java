@@ -20,55 +20,66 @@ package com.higherfrequencytrading.hiccup;
  * @author peter.lawrey
  */
 public class Histogram {
-    private final int buckets, resolution;
-    private final int count[];
+    private final int buckets;
+    private final int resolution;
+    private final int ordersOfMagnitude;
+    private final int count[][];
+    private final int orderCount[];
     private int underflow = 0, overflow = 0;
     private long totalCount = 0;
 
-    public Histogram(int buckets, int resolution) {
+    public Histogram(int buckets, int resolution, int ordersOfMagnitude) {
         this.buckets = buckets;
         this.resolution = resolution;
-        count = new int[buckets];
+        this.ordersOfMagnitude = ordersOfMagnitude;
+        count = new int[ordersOfMagnitude][buckets];
+        orderCount = new int[ordersOfMagnitude];
     }
 
     public boolean sample(long sample) {
         totalCount++;
-        long bucket = ((sample + resolution / 2) / resolution);
         if (sample < 0) {
             underflow++;
             return false;
-        } else if (bucket >= buckets) {
+        }
+        long bucket = ((sample + resolution / 2) / resolution);
+        int order = 0;
+        while (bucket >= buckets && order < ordersOfMagnitude) {
+            bucket /= 10;
+            order++;
+        }
+        if (bucket >= buckets) {
             overflow++;
             return false;
         }
-        count[((int) bucket)]++;
+        count[order][((int) bucket)]++;
+        orderCount[order]++;
         return true;
     }
 
     public long percentile(double percentile) {
         long searchCount = (long) (totalCount * percentile / 100);
-        // forward search is faster
-        if (searchCount < totalCount * 3 / 4) {
-            searchCount -= underflow;
-            if (searchCount <= 0)
-                return Long.MIN_VALUE;
-            for (int i = 0; i < buckets; i++) {
-                searchCount -= count[i];
-                if (searchCount <= 0)
-                    return (long) i * resolution;
+        searchCount = totalCount - searchCount;
+        searchCount -= overflow;
+
+        int order;
+        for (order = ordersOfMagnitude - 1; order >= 0; order--) {
+            if (searchCount < orderCount[order]) {
+                break;
             }
-            return Long.MAX_VALUE;
-        } else {
-            searchCount = totalCount - searchCount;
-            searchCount -= overflow;
-            if (searchCount <= 0)
-                return Long.MAX_VALUE;
-            for (int i = buckets - 1; i >= 0; i--) {
-                searchCount -= count[i];
-                if (searchCount <= 0)
-                    return (long) i * resolution;
-            }
-            return Long.MIN_VALUE;
+            searchCount -= orderCount[order];
         }
+        if (searchCount <= 0)
+            return Long.MAX_VALUE;
+        for (int i = buckets - 1; i >= 0; i--) {
+            searchCount -= count[order][i];
+            if (searchCount <= 0) {
+                long l = (long) i * resolution;
+                for (int j = 0; j < order; j++)
+                    l *= 10;
+                return l;
+            }
+        }
+        return Long.MIN_VALUE;
     }
 }

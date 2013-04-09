@@ -68,6 +68,8 @@ public class TcpHiccupMain {
                 return;
 
             case 2:
+                hostname = args[0];
+                port = Integer.parseInt(args[1]);
                 for (int i = 0; i < TESTS; i++) {
                     new Sender(hostname, port).run();
                 }
@@ -185,13 +187,9 @@ public class TcpHiccupMain {
         @Override
         public void run() {
             System.err.println("... starting reader.");
-            Histogram warmup = new Histogram(1000, 10000);
-            Histogram[] histograms = new Histogram[5];
-            int scale = 1000;
-            for (int i = 0; i < histograms.length; i++) {
-                histograms[i] = new Histogram(1000, scale);
-                scale *= 10;
-            }
+            Histogram warmup = new Histogram(1000, 100, 6);
+            Histogram histo = new Histogram(1000, 100, 6);
+
             ByteBuffer time = ByteBuffer.allocateDirect(4096).order(ByteOrder.nativeOrder());
             try {
                 for (int i = 1; i <= WARMUP + RUNS; i++) {
@@ -205,9 +203,7 @@ public class TcpHiccupMain {
                     long next = time.getLong();
                     long took = System.nanoTime() - next;
                     if (i >= WARMUP)
-                        for (Histogram histogram : histograms) {
-                            histogram.sample(took);
-                        }
+                        histo.sample(took);
                     else
                         warmup.sample(took);
                     time.compact();
@@ -218,13 +214,13 @@ public class TcpHiccupMain {
                 for (double perc : new double[]{50, 90, 93, 99, 99.3, 99.9, 99.93, 99.99, 99.993, 99.999}) {
                     double oneIn = 1.0 / (1 - perc / 100);
                     heading.append("\t").append(perc).append("%");
-                    long value = findPercentile(histograms, perc);
+                    long value = histo.percentile(perc);
                     values.append("\t").append(inNanos(value));
                     if (RUNS <= oneIn * oneIn)
                         break;
                 }
                 heading.append("\tworst");
-                long worst = findPercentile(histograms, 99.9999);
+                long worst = histo.percentile(99.9999);
                 values.append("\t").append(inNanos(worst)).append("\tmicro-seconds");
                 System.out.println(heading);
                 System.out.println(values);
@@ -240,16 +236,6 @@ public class TcpHiccupMain {
                     e.printStackTrace();
                 }
             }
-        }
-
-        private long findPercentile(Histogram[] histograms, double perc) {
-            long value = Long.MAX_VALUE;
-            for (Histogram histogram : histograms) {
-                value = histogram.percentile(perc);
-                if (value < Long.MAX_VALUE)
-                    break;
-            }
-            return value;
         }
 
         private String inNanos(long value) {
