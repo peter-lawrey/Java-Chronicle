@@ -47,31 +47,34 @@ public class TcpHiccupMain {
         String hostname = "localhost";
         int port = 65432;
 
-        for (int i = 0; i < TESTS; i++) {
-            for (int busy = 0; busy <= 1; busy++) {
-                BUSY = busy != 0;
+        switch (args.length) {
+            case 0:
+                for (int i = 0; i < TESTS; i++) {
+                    for (int busy = 0; busy <= 1; busy++) {
+                        BUSY = busy != 0;
 
-                switch (args.length) {
-                    case 0:
                         Thread thread = new Thread(new Acceptor(port + i));
                         thread.setDaemon(true);
                         thread.start();
                         new Sender(hostname, port + i).run();
                         thread.interrupt();
-                        break;
-
-                    case 1:
-                        new Acceptor(port).run();
-                        // only run one.
-                        return;
-
-                    case 2:
-                        new Sender(hostname, port).run();
-                        break;
+                    }
                 }
-            }
+                break;
+
+            case 1:
+                new Acceptor(port).run();
+                // only run one.
+                return;
+
+            case 2:
+                for (int i = 0; i < TESTS; i++) {
+                    new Sender(hostname, port).run();
+                }
+                break;
         }
     }
+
 
     static class Acceptor implements Runnable {
         private final ServerSocketChannel ssc;
