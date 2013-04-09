@@ -35,9 +35,9 @@ public class TcpHiccupMain {
     // total messages to send.
     static final int WARMUP = Integer.getInteger("warmup", 12000);
     // total messages to send.
-    static final int RUNS = Integer.getInteger("runs", 10000000);
+    static int RUNS = Integer.getInteger("runs", 1000000);
     // per milli-second. (note: every message is sent twice)
-    static final int RATE = Integer.getInteger("rate", 25);
+    static int RATE = Integer.getInteger("rate", 25);
     // busy waiting
     static boolean BUSY = Boolean.getBoolean("busy");
     // number of tests
@@ -70,8 +70,12 @@ public class TcpHiccupMain {
             case 2:
                 hostname = args[0];
                 port = Integer.parseInt(args[1]);
-                for (int i = 0; i < TESTS; i++) {
-                    new Sender(hostname, port).run();
+                for (int rate : new int[]{5, 10, 25}) {
+                    RATE = rate;
+                    RUNS = rate * 10000;
+                    for (int i = 0; i < TESTS; i++) {
+                        new Sender(hostname, port).run();
+                    }
                 }
                 break;
         }
@@ -187,8 +191,8 @@ public class TcpHiccupMain {
         @Override
         public void run() {
             System.err.println("... starting reader.");
-            Histogram warmup = new Histogram(1000, 100, 6);
-            Histogram histo = new Histogram(1000, 100, 6);
+            Histogram warmup = new Histogram(1000, 100, 7);
+            Histogram histo = new Histogram(1000, 100, 7);
 
             ByteBuffer time = ByteBuffer.allocateDirect(4096).order(ByteOrder.nativeOrder());
             try {

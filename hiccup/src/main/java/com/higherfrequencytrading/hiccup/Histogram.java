@@ -44,7 +44,7 @@ public class Histogram {
         }
         long bucket = ((sample + resolution / 2) / resolution);
         int order = 0;
-        while (bucket >= buckets && order < ordersOfMagnitude) {
+        while (bucket >= buckets && order < ordersOfMagnitude - 1) {
             bucket /= 10;
             order++;
         }
