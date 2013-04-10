@@ -63,6 +63,7 @@ public class TcpHiccupMain {
                 break;
 
             case 1:
+                port = Integer.parseInt(args[0]);
                 new Acceptor(port).run();
                 // only run one.
                 return;
@@ -215,7 +216,7 @@ public class TcpHiccupMain {
 
                 StringBuilder heading = new StringBuilder("runs\trate\twarmup\tbusy");
                 StringBuilder values = new StringBuilder(RUNS + "\t" + RATE + "\t" + WARMUP + "\t" + BUSY);
-                for (double perc : new double[]{50, 90, 93, 99, 99.3, 99.9, 99.93, 99.99, 99.993, 99.999}) {
+                for (double perc : new double[]{50, 90, 99, 99.9, 99.99, 99.999}) {
                     double oneIn = 1.0 / (1 - perc / 100);
                     heading.append("\t").append(perc).append("%");
                     long value = histo.percentile(perc);

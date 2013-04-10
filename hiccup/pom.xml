@@ -26,4 +26,11 @@
     <version>0.1</version>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.higherfrequencytrading</groupId>
+            <artifactId>chronicle</artifactId>
+            <version>1.6.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

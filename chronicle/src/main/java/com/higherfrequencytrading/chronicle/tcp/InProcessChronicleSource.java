@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  * @author peter.lawrey
  */
 public class InProcessChronicleSource implements Chronicle {
-    static final int IN_SYNC_LEN = -1;
+    static final int IN_SYNC_LEN = -128;
     static final long HEARTBEAT_INTERVAL_MS = 2500;
 
     private static final int MAX_MESSAGE = 128;
@@ -132,7 +132,7 @@ public class InProcessChronicleSource implements Chronicle {
 
                     bb.clear();
                     if (first) {
-//                        System.out.println("wi "+index);
+//                        System.out.println("wi " + index);
                         bb.putLong(index);
                         first = false;
                         remaining = size + TcpUtil.HEADER_SIZE;
@@ -179,8 +179,12 @@ public class InProcessChronicleSource implements Chronicle {
 //                        System.out.println(System.currentTimeMillis() + ": wrote " + index);
                 }
             } catch (IOException e) {
-                if (!closed)
-                    logger.log(Level.INFO, "Connect " + socket + " died", e);
+                if (!closed) {
+                    if (e.getMessage().contains("reset by peer") || e.getMessage().contains("Broken pipe"))
+                        logger.log(Level.INFO, "Connect " + socket + " closed from the other end " + e);
+                    else
+                        logger.log(Level.INFO, "Connect " + socket + " died", e);
+                }
             }
         }
 

@@ -105,7 +105,6 @@ public class InProcessChronicleSink implements Chronicle {
     }
 
     private SocketChannel sc = null;
-    private long scIndex = -1;
     private boolean scFirst = true;
 
     boolean readNext() {
@@ -160,16 +159,22 @@ public class InProcessChronicleSink implements Chronicle {
                     readBuffer.clear();
                 else
                     readBuffer.compact();
-                if (sc.read(readBuffer) < 0) {
-                    sc.close();
-                    return false;
+                int minSize = scFirst ? 8 + 4 + 8 : 4 + 8;
+                while (readBuffer.position() < minSize) {
+                    if (sc.read(readBuffer) < 0) {
+                        sc.close();
+                        return false;
+                    }
                 }
                 readBuffer.flip();
             }
+//            System.out.println("rb " + readBuffer);
 
             if (scFirst) {
-                scIndex = readBuffer.getLong();
-//                    System.out.println("ri " + scIndex);
+                long scIndex = readBuffer.getLong();
+//                System.out.println("ri " + scIndex);
+                if (scIndex != chronicle.size())
+                    throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + scIndex);
                 scFirst = false;
             }
             long size = readBuffer.getInt();
@@ -178,9 +183,7 @@ public class InProcessChronicleSink implements Chronicle {
                 return false;
             }
 
-//                System.out.println("size="+size +"  rb "+readBuffer);
-            if (scIndex != chronicle.size())
-                throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + scIndex);
+//            System.out.println("size=" + size + "  rb " + readBuffer);
             if (size > 128 << 20 || size < 0)
                 throw new StreamCorruptedException("size was " + size);
 
@@ -211,12 +214,15 @@ public class InProcessChronicleSink implements Chronicle {
             }
 
             excerpt.finish();
-            scIndex++;
         } catch (IOException e) {
             if (logger.isLoggable(Level.FINE))
                 logger.log(Level.FINE, "Lost connection to " + address + " retrying", e);
             else if (logger.isLoggable(Level.INFO))
                 logger.log(Level.INFO, "Lost connection to " + address + " retrying " + e);
+            try {
+                sc.close();
+            } catch (IOException ignored) {
+            }
         }
         return true;
     }
