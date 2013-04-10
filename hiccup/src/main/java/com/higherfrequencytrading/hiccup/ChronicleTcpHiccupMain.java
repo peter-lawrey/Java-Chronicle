@@ -28,11 +28,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
+ * TODO More than a few bugs to fix, but the test basically runs.
+ *
  * @author peter.lawrey
  */
 public class ChronicleTcpHiccupMain {
     // total messages to send.
-    static final int WARMUP = Integer.getInteger("warmup", 10000);
+    static final int WARMUP = Integer.getInteger("warmup", 12000);
     // total messages to send.
     static int RUNS = Integer.getInteger("runs", 200000);
     // per milli-second. (note: every message is sent twice)
