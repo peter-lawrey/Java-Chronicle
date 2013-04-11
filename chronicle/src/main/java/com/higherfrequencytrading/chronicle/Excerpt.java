@@ -95,7 +95,7 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
     /**
      * Start a new excerpt in the Chronicle.
      *
-     * @param capacity minimum capacity to allow for.
+     * @param capacity maximum excerpt capacity in bytes.
      */
     void startExcerpt(int capacity);
 
