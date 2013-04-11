@@ -116,7 +116,7 @@ public class InProcessChronicleSource implements Chronicle {
                     while (!excerpt.index(index)) {
 //                        System.out.println("Waiting for " + index);
                         long now = System.currentTimeMillis();
-                        if (sendInSync <= now) {
+                        if (sendInSync <= now && !first) {
                             bb.clear();
                             bb.putInt(IN_SYNC_LEN);
                             bb.flip();
