@@ -72,7 +72,8 @@ public abstract class AbstractExcerpt implements Excerpt {
     @Override
     public boolean hasNextIndex() {
         readMemoryBarrier();
-        long endPosition = chronicle.getIndexData(index + 1);
+        long nextIndex = index + 1;
+        long endPosition = chronicle.getIndexData(nextIndex + 1);
         return endPosition != 0;
     }
 
