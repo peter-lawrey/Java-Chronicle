@@ -188,7 +188,7 @@ public class ChronicleTcpHiccupMain {
                         break;
                 }
                 heading.append("\tworst");
-                long worst = histo.percentile(99.9999);
+                long worst = histo.percentile(100);
                 values.append("\t").append(inNanos(worst)).append("\tmicro-seconds");
                 System.out.println(heading);
                 System.out.println(values);

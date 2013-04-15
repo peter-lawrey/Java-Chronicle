@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.hiccup;
 
+import java.util.Arrays;
+
 /**
  * @author peter.lawrey
  */
@@ -34,6 +36,29 @@ public class Histogram {
         this.ordersOfMagnitude = ordersOfMagnitude;
         count = new int[ordersOfMagnitude][buckets];
         orderCount = new int[ordersOfMagnitude];
+    }
+
+    public static Histogram add(Histogram... histograms) {
+        int buckets = histograms[0].buckets;
+        int resolution = histograms[0].resolution;
+        int ordersOfMagnitude = histograms[0].ordersOfMagnitude;
+        for (Histogram histogram : histograms) {
+            assert buckets == histogram.buckets;
+            assert resolution == histogram.resolution;
+            assert ordersOfMagnitude == histogram.ordersOfMagnitude;
+        }
+        Histogram ret = new Histogram(buckets, resolution, ordersOfMagnitude);
+        for (Histogram histogram : histograms) {
+            for (int i = 0; i < ordersOfMagnitude; i++) {
+                ret.orderCount[i] += histogram.orderCount[i];
+                for (int j = 0; j < buckets; j++)
+                    ret.count[i][j] += histogram.count[i][j];
+            }
+            ret.overflow += histogram.overflow;
+            ret.underflow += histogram.underflow;
+            ret.totalCount += histogram.totalCount;
+        }
+        return ret;
     }
 
     public boolean sample(long sample) {
@@ -60,17 +85,19 @@ public class Histogram {
     public long percentile(double percentile) {
         long searchCount = (long) (totalCount * percentile / 100);
         searchCount = totalCount - searchCount;
+        if (percentile == 100)
+            searchCount = 1;
         searchCount -= overflow;
+        if (searchCount <= 0)
+            return Long.MAX_VALUE;
 
         int order;
-        for (order = ordersOfMagnitude - 1; order >= 0; order--) {
+        for (order = ordersOfMagnitude - 1; order > 0; order--) {
             if (searchCount < orderCount[order]) {
                 break;
             }
             searchCount -= orderCount[order];
         }
-        if (searchCount <= 0)
-            return Long.MAX_VALUE;
         for (int i = buckets - 1; i >= 0; i--) {
             searchCount -= count[order][i];
             if (searchCount <= 0) {
@@ -81,5 +108,16 @@ public class Histogram {
             }
         }
         return Long.MIN_VALUE;
+    }
+
+    public long count() {
+        return totalCount;
+    }
+
+    public void clear() {
+        totalCount = underflow = overflow = 0;
+        Arrays.fill(orderCount, 0);
+        for (int[] ints : count)
+            Arrays.fill(ints, 0);
     }
 }
