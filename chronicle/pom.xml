@@ -89,24 +89,44 @@
                     <nohelp>true</nohelp>
                 </configuration>
             </plugin>
-            <!-- plugin>
-                 <groupId>org.apache.maven.plugins</groupId>
-                 <artifactId>maven-gpg-plugin</artifactId>
-                 <version>1.4</version>
-                 <configuration>
-                     <passphrase>${gpg.passphrase}</passphrase>
-                 </configuration>
-                 <executions>
-                     <execution>
-                         <id>sign-artifacts</id>
-                         <phase>verify</phase>
-                         <goals>
-                             <goal>sign</goal>
-                         </goals>
-                     </execution>
-                 </executions>
-             </plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.4</version>
+                <configuration>
+                    <passphrase>${gpg.passphrase}</passphrase>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
+    <url>http://www.higherfrequencytrading.com</url>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Peter Lawrey</name>
+            <email>peter.lawrey@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>scm:git:https://github.com/peter-lawrey/Java-Chronicle.git</url>
+    </scm>
 </project>
