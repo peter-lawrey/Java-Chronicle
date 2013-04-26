@@ -177,4 +177,14 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
      * @return last index + 1
      */
     long size();
+
+    /**
+     * Wind to the start
+     */
+    Excerpt toStart();
+
+    /**
+     * Wind tot he end
+     */
+    Excerpt toEnd();
 }

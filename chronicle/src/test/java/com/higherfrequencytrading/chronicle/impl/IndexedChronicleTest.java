@@ -89,8 +89,8 @@ public class IndexedChronicleTest {
     @Test
     public void testCloseWithNullBuffers() throws IOException {
         String basePath = TMP + File.separator + "deleteme.ict";
-        IndexedChronicle tsc = new IndexedChronicle(basePath, 12);
         deleteOnExit(basePath);
+        IndexedChronicle tsc = new IndexedChronicle(basePath, 12);
 
         tsc.clear();
         Excerpt excerpt = tsc.createExcerpt();
@@ -102,7 +102,7 @@ public class IndexedChronicleTest {
         tsc.close();
 
         tsc = new IndexedChronicle(basePath, 12);
-        tsc.close();
+        tsc.close(); // used to throw an exception.
     }
 
 
@@ -114,11 +114,9 @@ public class IndexedChronicleTest {
     @Test
     public void test_boolean() throws Exception {
         String testPath = TMP + File.separator + "chroncle-bool-test";
+        deleteOnExit(testPath);
         IndexedChronicle tsc = new IndexedChronicle(testPath, 12);
         tsc.useUnsafe(false);
-        deleteOnExit(testPath);
-
-        tsc.clear();
 
         Excerpt excerpt = tsc.createExcerpt();
         excerpt.startExcerpt(2);

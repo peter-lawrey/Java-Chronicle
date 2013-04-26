@@ -20,6 +20,7 @@ import com.higherfrequencytrading.chronicle.ByteStringAppender;
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
+import com.higherfrequencytrading.chronicle.math.MutableDecimal;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -365,47 +366,69 @@ public class WrappedExcerpt implements Excerpt {
     }
 
     public ByteStringAppender append(CharSequence s) {
-        return excerpt.append(s);
+        excerpt.append(s);
+        return this;
     }
 
     public ByteStringAppender append(CharSequence s, int start, int end) {
-        return excerpt.append(s, start, end);
+        excerpt.append(s, start, end);
+        return this;
     }
 
     public ByteStringAppender append(Enum value) {
-        return excerpt.append(value);
+        excerpt.append(value);
+        return this;
     }
 
     public ByteStringAppender append(byte[] str) {
-        return excerpt.append(str);
+        excerpt.append(str);
+        return this;
     }
 
     public ByteStringAppender append(byte[] str, int offset, int len) {
-        return excerpt.append(str, offset, len);
+        excerpt.append(str, offset, len);
+        return this;
     }
 
     public ByteStringAppender append(boolean b) {
-        return excerpt.append(b);
+        excerpt.append(b);
+        return this;
     }
 
     public ByteStringAppender append(char c) {
-        return excerpt.append(c);
+        excerpt.append(c);
+        return this;
     }
 
     public ByteStringAppender append(int num) {
-        return excerpt.append(num);
+        excerpt.append(num);
+        return this;
     }
 
     public ByteStringAppender append(long num) {
-        return excerpt.append(num);
+        excerpt.append(num);
+        return this;
     }
 
     public ByteStringAppender appendTime(long timeInMS) {
-        return excerpt.appendTime(timeInMS);
+        excerpt.appendTime(timeInMS);
+        return this;
     }
 
     public ByteStringAppender append(double d) {
-        return excerpt.append(d);
+        excerpt.append(d);
+        return this;
+    }
+
+    public ByteStringAppender append(double d, int precision) {
+        excerpt.append(d, precision);
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender append(MutableDecimal md) {
+        append(md);
+        return this;
     }
 
     public double parseDouble() {
@@ -414,10 +437,6 @@ public class WrappedExcerpt implements Excerpt {
 
     public long parseLong() {
         return excerpt.parseLong();
-    }
-
-    public ByteStringAppender append(double d, int precision) {
-        return excerpt.append(d, precision);
     }
 
     public InputStream inputStream() {
@@ -639,5 +658,32 @@ public class WrappedExcerpt implements Excerpt {
     @Override
     public long size() {
         return excerpt.size();
+    }
+
+    @Override
+    public boolean stepBackAndSkipTo(StopCharTester tester) {
+        return excerpt.stepBackAndSkipTo(tester);
+    }
+
+    @Override
+    public boolean skipTo(StopCharTester tester) {
+        return excerpt.skipTo(tester);
+    }
+
+    @Override
+    public MutableDecimal parseDecimal(MutableDecimal decimal) {
+        return excerpt.parseDecimal(decimal);
+    }
+
+    @Override
+    public Excerpt toStart() {
+        excerpt.toStart();
+        return this;
+    }
+
+    @Override
+    public Excerpt toEnd() {
+        excerpt.toEnd();
+        return this;
     }
 }

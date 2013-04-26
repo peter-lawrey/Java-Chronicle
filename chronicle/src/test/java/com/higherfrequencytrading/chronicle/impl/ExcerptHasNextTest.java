@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -69,9 +70,9 @@ public class ExcerptHasNextTest {
 
     private Chronicle createChronicle(String name) throws IOException {
         final String basePath = TMP + File.separator + name;
+        ChronicleTools.deleteOnExit(basePath);
         final IndexedChronicle chr = new IndexedChronicle(basePath);
 
-        ChronicleTools.deleteOnExit(basePath);
 
         final Excerpt excerpt = chr.createExcerpt();
 
@@ -81,7 +82,7 @@ public class ExcerptHasNextTest {
             excerpt.finish();
         }
 
-        assertTrue("Chronicle should hold all values", NUMBER_OF_ENTRIES == excerpt.size());
+        assertEquals("Chronicle should hold all values", NUMBER_OF_ENTRIES, excerpt.size());
 
         return chr;
     }

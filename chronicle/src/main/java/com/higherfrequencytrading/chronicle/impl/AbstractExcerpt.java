@@ -20,6 +20,7 @@ import com.higherfrequencytrading.chronicle.ByteStringAppender;
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
+import com.higherfrequencytrading.chronicle.math.MutableDecimal;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -79,18 +80,25 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @Override
     public boolean index(long index) throws IndexOutOfBoundsException {
+        forWrite = false;
+
         readMemoryBarrier();
         long endPosition = chronicle.getIndexData(index + 1);
         if (endPosition == 0) {
             capacity = 0;
             buffer = null;
 //            System.out.println("ep");
+            // rewind?
+            if (index == -1) {
+                this.index = -1;
+                limit = startPosition = position = capacity = 0;
+                return true;
+            }
             return false;
         }
         long startPosition = chronicle.getIndexData(index);
         capacity = (int) (endPosition - startPosition);
         index0(index, startPosition, endPosition);
-        forWrite = false;
         // TODO Assumes the start of the record won't be all 0's
         // TODO Need to determine whether this is required as a safety check or not.
         long l = readLong(0);
@@ -278,6 +286,7 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     private StringBuilder acquireUtfReader() {
         if (utfReader == null) utfReader = new StringBuilder();
+        utfReader.setLength(0);
         return utfReader;
     }
 
@@ -463,6 +472,22 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
     }
 
+    @Override
+    public boolean stepBackAndSkipTo(StopCharTester tester) {
+        if (position() > 0)
+            position(position() - 1);
+        return skipTo(tester);
+    }
+
+    @Override
+    public boolean skipTo(StopCharTester tester) {
+        while (remaining() > 0) {
+            int ch = readByte();
+            if (tester.isStopChar(ch))
+                return true;
+        }
+        return false;
+    }
 
     @Override
     public String readUTF(int offset) {
@@ -1321,6 +1346,31 @@ public abstract class AbstractExcerpt implements Excerpt {
         return asDouble(value, exp, negative, decimalPlaces);
     }
 
+
+    @Override
+    public MutableDecimal parseDecimal(MutableDecimal decimal) {
+        long num = 0, scale = Long.MIN_VALUE;
+        boolean negative = false;
+        while (true) {
+            byte b = readByte();
+//            if (b >= '0' && b <= '9')
+            if ((b - ('0' + Integer.MIN_VALUE)) <= 9 + Integer.MIN_VALUE) {
+                num = num * 10 + b - '0';
+                scale++;
+            } else if (b == '.') {
+                scale = 0;
+            } else if (b == '-') {
+                negative = true;
+            } else {
+                break;
+            }
+        }
+        if (negative)
+            num = -num;
+        decimal.set(num, scale > 0 ? (int) scale : 0);
+        return decimal;
+    }
+
     @Override
     public long parseLong() {
         long num = 0;
@@ -1400,6 +1450,14 @@ public abstract class AbstractExcerpt implements Excerpt {
     private static long power10(long l) {
         int idx = Arrays.binarySearch(TENS, l);
         return idx >= 0 ? TENS[idx] : TENS[~idx - 1];
+    }
+
+    @Override
+    public ByteStringAppender append(MutableDecimal md) {
+        StringBuilder sb = acquireUtfReader();
+        md.toString(sb);
+        append(sb);
+        return this;
     }
 
     @Override
@@ -1665,5 +1723,17 @@ public abstract class AbstractExcerpt implements Excerpt {
             throw new IllegalStateException(e);
         }
         checkEndOfBuffer();
+    }
+
+    @Override
+    public Excerpt toStart() {
+        index(-1);
+        return this;
+    }
+
+    @Override
+    public Excerpt toEnd() {
+        index(size() - 1);
+        return this;
     }
 }

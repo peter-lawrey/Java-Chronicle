@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.chronicle;
 
+import com.higherfrequencytrading.chronicle.math.MutableDecimal;
+
 /**
  * @author peter.lawrey
  */
@@ -53,4 +55,6 @@ public interface ByteStringAppender extends Appendable {
     ByteStringAppender append(double d);
 
     ByteStringAppender append(double d, int precision);
+
+    ByteStringAppender append(MutableDecimal md);
 }

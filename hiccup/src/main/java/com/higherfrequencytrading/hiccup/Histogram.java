@@ -26,16 +26,15 @@ public class Histogram {
     private final int resolution;
     private final int ordersOfMagnitude;
     private final int count[][];
-    private final int orderCount[];
     private int underflow = 0, overflow = 0;
     private long totalCount = 0;
+    private long maximum = 0;
 
     public Histogram(int buckets, int resolution, int ordersOfMagnitude) {
         this.buckets = buckets;
         this.resolution = resolution;
         this.ordersOfMagnitude = ordersOfMagnitude;
         count = new int[ordersOfMagnitude][buckets];
-        orderCount = new int[ordersOfMagnitude];
     }
 
     public static Histogram add(Histogram... histograms) {
@@ -50,7 +49,6 @@ public class Histogram {
         Histogram ret = new Histogram(buckets, resolution, ordersOfMagnitude);
         for (Histogram histogram : histograms) {
             for (int i = 0; i < ordersOfMagnitude; i++) {
-                ret.orderCount[i] += histogram.orderCount[i];
                 for (int j = 0; j < buckets; j++)
                     ret.count[i][j] += histogram.count[i][j];
             }
@@ -58,6 +56,12 @@ public class Histogram {
             ret.underflow += histogram.underflow;
             ret.totalCount += histogram.totalCount;
         }
+        long total2 = ret.underflow + ret.overflow;
+        for (int i = 0; i < ordersOfMagnitude; i++)
+            for (int j = 0; j < buckets; j++)
+                total2 += ret.count[i][j];
+        if (ret.totalCount != total2)
+            throw new AssertionError(ret.totalCount + " != " + total2);
         return ret;
     }
 
@@ -67,6 +71,8 @@ public class Histogram {
             underflow++;
             return false;
         }
+        if (sample > maximum)
+            maximum = sample;
         long bucket = ((sample + resolution / 2) / resolution);
         int order = 0;
         while (bucket >= buckets && order < ordersOfMagnitude - 1) {
@@ -78,7 +84,6 @@ public class Histogram {
             return false;
         }
         count[order][((int) bucket)]++;
-        orderCount[order]++;
         return true;
     }
 
@@ -89,22 +94,18 @@ public class Histogram {
             searchCount = 1;
         searchCount -= overflow;
         if (searchCount <= 0)
-            return Long.MAX_VALUE;
+            return maximum;
 
         int order;
-        for (order = ordersOfMagnitude - 1; order > 0; order--) {
-            if (searchCount < orderCount[order]) {
-                break;
-            }
-            searchCount -= orderCount[order];
-        }
-        for (int i = buckets - 1; i >= 0; i--) {
-            searchCount -= count[order][i];
-            if (searchCount <= 0) {
-                long l = (long) i * resolution;
-                for (int j = 0; j < order; j++)
-                    l *= 10;
-                return l;
+        for (order = ordersOfMagnitude - 1; order >= 0; order--) {
+            for (int i = buckets - 1; i >= 0; i--) {
+                searchCount -= count[order][i];
+                if (searchCount <= 0) {
+                    long l = (long) i * resolution;
+                    for (int j = 0; j < order; j++)
+                        l *= 10;
+                    return l;
+                }
             }
         }
         return Long.MIN_VALUE;
@@ -116,7 +117,6 @@ public class Histogram {
 
     public void clear() {
         totalCount = underflow = overflow = 0;
-        Arrays.fill(orderCount, 0);
         for (int[] ints : count)
             Arrays.fill(ints, 0);
     }

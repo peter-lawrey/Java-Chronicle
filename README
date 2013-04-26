@@ -22,6 +22,8 @@ IntelliJ CE - http://www.jetbrains.com - My favourite IDE.
 Version History
 ===================================
 
+Version 1.8 - Add MutableDecimal and FIX support.
+
 Version 1.7 - Add support for arbitrary events to sent such as timestamps, heartbeats, changes in stages which can picked up by listeners.
            Add support for arbitrary annotations to be added to the data model so each map/collection can have additional configuration
            Add ConfigProperties which is scoped properties i.e. a single Properties file with a rule based properties.

@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.chronicle;
 
+import com.higherfrequencytrading.chronicle.math.MutableDecimal;
+
 /**
  * @author peter.lawrey
  */
@@ -26,7 +28,25 @@ public interface ByteStringParser {
 
     public <E> E parseEnum(Class<E> eClass, StopCharTester tester);
 
+    public MutableDecimal parseDecimal(MutableDecimal decimal);
+
     public long parseLong();
 
     public double parseDouble();
+
+    /**
+     * Make sure we just read a stop character
+     *
+     * @param tester to stop at
+     * @return true if we stopped at a stop character, false if we ran out of data.
+     */
+    public boolean stepBackAndSkipTo(StopCharTester tester);
+
+    /**
+     * Wind from this position to the end of the field
+     *
+     * @param tester to stop at
+     * @return true if we stopped at a stop character, false if we ran out of data.
+     */
+    public boolean skipTo(StopCharTester tester);
 }

@@ -18,8 +18,19 @@ package com.higherfrequencytrading.chronicle;
 /**
  * @author peter.lawrey
  */
-public enum StopCharTesters {
-    ;
+public enum StopCharTesters implements StopCharTester {
+    TAB_TEXT {
+        @Override
+        public boolean isStopChar(int ch) {
+            return ch < ' ';
+        }
+    },
+    FIX_TEXT {
+        @Override
+        public boolean isStopChar(int ch) {
+            return ch <= 1;
+        }
+    };
 
     public static StopCharTester forChars(CharSequence sequence) {
         if (sequence.length() == 1)
