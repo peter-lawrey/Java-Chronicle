@@ -55,7 +55,7 @@ public static void main(String[] args) throws Exception {
 https://groups.google.com/forum/?fromgroups#!forum/java-chronicle
 
 #Software used to Develop this package
-YourKit 11.x - http://www.yourkit.com -  If you don't profile the performance of you application, you are just guessing where the performance bottlenecks are.
+YourKit 11.x - http://www.yourkit.com -  If you don't profile the performance of your application, you are just guessing where the performance bottlenecks are.
 
 IntelliJ CE - http://www.jetbrains.com - My favourite IDE.
 
