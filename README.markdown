@@ -1,3 +1,4 @@
+#Chronicle
 This library is an ultra low latency, high throughput, persisted, messaging and event driven in memory database.  The typical latency is as low as 80 nano-seconds and supports throughputs of 5-20 million messages/record updates per second.
 
 This library also supports distributed, durable, observable collections (Map, List, Set)  The performance depends on the data structures used, but simple data structures can achieve throughputs of 5 million elements or key/value pairs in batches (eg addAll or putAll) and 500K elements or key/values per second when added/updated/removed individually.
@@ -6,21 +7,60 @@ It uses almost no heap, trivial GC impact, can be much larger than your physical
 It can change the way you design your system because it allows you to have independent processes which can be running or not at the same time (as no messages are lost)  This is useful for restarting services and testing your services from canned data. e.g. like sub-microsecond durable messaging.
 You can attach any number of readers, including tools to see the exact state of the data externally. e.g. I use; od -t cx1 {file}  to see the current state.
 
-===================================
-Support Group
-===================================
+#Example
+```
+public static void main(String[] args) throws Exception {
+    final String basePath = "test";
+    ChronicleTools.deleteOnExit(basePath);
+    final Chronicle chronicle = new IntIndexedChronicle(basePath);
+    final Excerpt excerpt = chronicle.createExcerpt();
+    final int[] consolidates = new int[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+    int repeats = 10000;
+    //Write
+    for (int i = 0; i < repeats; i++) {
+        excerpt.startExcerpt(8 + 4 + 4 * consolidates.length);
+        excerpt.writeLong(System.nanoTime());
+        excerpt.writeInt(consolidates.length);
+        for (final int consolidate : consolidates) {
+            excerpt.writeInt(consolidate);
+        }
+        excerpt.finish();
+    }
+	//Read
+    long[] times = new long[repeats];
+    int[] nbcs = new int[repeats];
+    int count = 0;
+    final Excerpt excerpt2 = chronicle.createExcerpt();
+    while (excerpt2.nextIndex()) {
+        final long timestamp = excerpt2.readLong();
+        long time = System.nanoTime() - timestamp;
+        times[count] = time;
+        final int nbConsolidates = excerpt2.readInt();
+        nbcs[count] = nbConsolidates;
+        for (int i = 0; i < nbConsolidates; i++) {
+            excerpt2.readInt();
+        }
+        excerpt2.finish();
+        count++;
+    }
+    for (int i = 0; i < count; i++) {
+        System.out.print("latency: " + times[i] / repeats / 1e3 + " us average, ");
+        System.out.println("nbConsolidates: " + nbcs[i]);
+    }
+    chronicle.close();
+}
+```
+
+#Support Group
 https://groups.google.com/forum/?fromgroups#!forum/java-chronicle
 
-===================================
-Software used to Develop this package
-===================================
+#Software used to Develop this package
 YourKit 11.x - http://www.yourkit.com -  If you don't profile the performance of you application, you are just guessing where the performance bottlenecks are.
 
 IntelliJ CE - http://www.jetbrains.com - My favourite IDE.
 
-===================================
-Version History
-===================================
+
+#Version History
 
 Version 1.8 - Add MutableDecimal and FIX support.
 
@@ -66,18 +106,16 @@ Version 0.1 - Can read/write all basic data types. 26 M/second (max) multi-threa
 
 It uses memory mapped file to store "excerpts" of a "chronicle"  Initially it only supports an indexed array of data.
 
-===================================
-Throughput Test - FileLoggingMain
-===================================
+#Performance
+
+###Throughput Test - FileLoggingMain
 https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/com/higherfrequencytrading/chronicle/impl/FileLoggingMain.java
 
 This test logs one million lines of text using Chronicle compared with Logger.
 
 To log 1,000,000 messages took 0.234 seconds using Chronicle and 7.347 seconds using Logger
 
-===================================
-Throughput Test - IndexedChronicleThroughputMain
-===================================
+###Throughput Test - IndexedChronicleThroughputMain
 
 Note: These timings include Serialization.  This is important because many performance tests don't include Serialization even though it can be many times slower than the data store they are testing.
 
@@ -108,10 +146,8 @@ On a 4.6 GHz, i7-2600, 16 GB of memory, Fast SSD drive. Centos 5.7.
 
  The 14.1 M entries/sec is close to the maximum write speed of the SSD as each entry is an average of 28 bytes (with the index) => ~ 400 MB/s
 
- ===================================
- More compact Index for less than 4 GB of data
- ===================================
- https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/com/higherfrequencytrading/chronicle/impl/IntIndexedChronicleThroughputMain.java
+### More compact Index for less than 4 GB of data
+https://github.com/peter-lawrey/Java-Chronicle/blob/master/testing/src/main/java/com/higherfrequencytrading/chronicle/impl/IntIndexedChronicleThroughputMain.java
 
 on a 4.6 GHz, i7-2600
 Took 6.325 seconds to write/read 100,000,000 entries, rate was 15.8 M entries/sec - ByteBuffer (tmpfs)
@@ -119,6 +155,3 @@ Took 4.590 seconds to write/read 100,000,000 entries, rate was 21.8 M entries/se
 
 Took 7.352 seconds to write/read 100,000,000 entries, rate was 13.6 M entries/sec - ByteBuffer (ext4)
 Took 5.283 seconds to write/read 100,000,000 entries, rate was 18.9 M entries/sec - Using Unsafe (ext4)
-
-
-
