@@ -8,7 +8,7 @@ It can change the way you design your system because it allows you to have indep
 You can attach any number of readers, including tools to see the exact state of the data externally. e.g. I use; od -t cx1 {file}  to see the current state.
 
 #Example
-```
+```java
 public static void main(String[] args) throws Exception {
     final String basePath = "test";
     ChronicleTools.deleteOnExit(basePath);
