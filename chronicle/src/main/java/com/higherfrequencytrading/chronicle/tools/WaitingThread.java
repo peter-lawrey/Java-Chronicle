@@ -41,7 +41,7 @@ public class WaitingThread implements Closeable {
                             busy |= waitingRunnable.run();
                         } catch (IllegalStateException e) {
                             remove(waitingRunnable);
-                        } catch (Exception t) {
+                        } catch (Exception ex) {
                             LOGGER.log(Level.WARNING, "Task " + waitingRunnable + " failed, removing", ex);
                         }
                     }
