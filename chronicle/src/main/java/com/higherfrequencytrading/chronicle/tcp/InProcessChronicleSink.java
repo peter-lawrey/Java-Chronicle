@@ -128,7 +128,9 @@ public class InProcessChronicleSink implements Chronicle {
                 logger.info("Connected to " + address);
                 ByteBuffer bb = ByteBuffer.allocate(8);
                 bb.putLong(0, chronicle.size());
-                while (bb.remaining() > 0 && sc.write(bb) > 0) ;
+                while (bb.remaining() > 0 && sc.write(bb) > 0) {
+                    doNothing();
+                }
                 if (bb.remaining() > 0) throw new EOFException();
                 return sc;
 
@@ -146,6 +148,10 @@ public class InProcessChronicleSink implements Chronicle {
             }
         }
         return null;
+    }
+
+    private void doNothing() {
+        return;
     }
 
     private final ByteBuffer readBuffer; // minimum size

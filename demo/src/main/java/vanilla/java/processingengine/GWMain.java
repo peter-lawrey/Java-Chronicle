@@ -98,9 +98,13 @@ public class GWMain {
             gw2PeWriter.small(null, command);
 
             if (throughputTest) {
-                while (pe2GwReader.readOne()) ;
+                while (pe2GwReader.readOne()) {
+                    doNothing();
+                }
             } else {
-                while (pe2GwReader.readOne() || reportCount.get() < i - 1) ;
+                while (pe2GwReader.readOne() || reportCount.get() < i - 1) {
+                    doNothing();
+                }
             }
         }
 
@@ -119,5 +123,9 @@ public class GWMain {
         }
         gw2pe.close();
         pe2gw.close();
+    }
+
+    private void doNothing() {
+        return;
     }
 }

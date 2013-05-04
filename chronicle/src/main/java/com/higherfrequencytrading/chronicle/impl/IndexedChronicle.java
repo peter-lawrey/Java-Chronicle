@@ -99,12 +99,18 @@ public class IndexedChronicle extends AbstractChronicle {
         // find the last record.
         long indexSize = indexChannel.size() >>> indexBitSize();
         if (indexSize > 0) {
-            while (--indexSize > 0 && getIndexData(indexSize) == 0) ;
+            while (--indexSize > 0 && getIndexData(indexSize) == 0) {
+                doNothing();
+            }
             logger.info(basePath + ", size=" + indexSize);
             size = indexSize;
         } else {
             logger.info(basePath + " created.");
         }
+    }
+
+    private void doNothing() {
+        return;
     }
 
     private static String extractName(String basePath) {
