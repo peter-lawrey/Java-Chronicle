@@ -120,7 +120,9 @@ public class InProcessChronicleSource implements Chronicle {
                             bb.clear();
                             bb.putInt(IN_SYNC_LEN);
                             bb.flip();
-                            while (bb.remaining() > 0 && socket.write(bb) > 0) ;
+                            while (bb.remaining() > 0 && socket.write(bb) > 0) {
+                                doNothing();
+                            }
                             sendInSync = now + HEARTBEAT_INTERVAL_MS;
                         }
                         pause();
@@ -149,7 +151,9 @@ public class InProcessChronicleSource implements Chronicle {
                             bb.flip();
 //                        System.out.println("w " + ChronicleTools.asString(bb));
                             remaining -= bb.remaining();
-                            while (bb.remaining() > 0 && socket.write(bb) > 0) ;
+                            while (bb.remaining() > 0 && socket.write(bb) > 0) {
+                                doNothing();
+                            }
                         }
                     } else {
                         bb.limit(remaining);
@@ -170,7 +174,9 @@ public class InProcessChronicleSource implements Chronicle {
 
                         bb.flip();
 //                        System.out.println("W " + size + " wb " + bb);
-                        while (bb.remaining() > 0 && socket.write(bb) > 0) ;
+                        while (bb.remaining() > 0 && socket.write(bb) > 0) {
+                            doNothing();
+                        }
                     }
                     if (bb.remaining() > 0) throw new EOFException("Failed to send index=" + index);
                     index++;
@@ -193,10 +199,17 @@ public class InProcessChronicleSource implements Chronicle {
 
         private long readIndex(SocketChannel socket) throws IOException {
             ByteBuffer bb = ByteBuffer.allocate(8);
-            while (bb.remaining() > 0 && socket.read(bb) > 0) ;
+            while (bb.remaining() > 0 && socket.read(bb) > 0) {
+                doNothing();
+            }
             if (bb.remaining() > 0) throw new EOFException();
             return bb.getLong(0);
         }
+
+    }
+
+    void doNothing() {
+        return;
     }
 
     private final Object notifier = new Object();

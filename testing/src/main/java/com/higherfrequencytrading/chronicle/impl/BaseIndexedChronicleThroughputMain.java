@@ -61,7 +61,9 @@ public class BaseIndexedChronicleThroughputMain {
                     Excerpt excerpt = tsc.createExcerpt();
                     Excerpt excerpt2 = tsc2.createExcerpt();
                     for (int i = 0; i < RUNS; i++) {
-                        while (!excerpt.index(i)) ;
+                        while (!excerpt.index(i)) {
+                            doNothing();
+                        }
 
                         char type = excerpt.readChar();
                         if ('T' != type)
@@ -109,7 +111,9 @@ public class BaseIndexedChronicleThroughputMain {
         }
 
         for (; i2 < RUNS; i2++) {
-            while (!excerpt2.index(i2)) ;
+            while (!excerpt2.index(i2)) {
+                doNothing();
+            }
             char type = excerpt2.readChar();
             if ('R' != type)
                 assertEquals('R', type);
@@ -124,5 +128,9 @@ public class BaseIndexedChronicleThroughputMain {
         tsc.close();
         tsc2.close();
         System.out.printf("Took %.3f seconds to write/read %,d entries, rate was %.1f M entries/sec%n", time / 1e9, 2 * RUNS, 2 * RUNS * 1e3 / time);
+    }
+
+    void doNothing() {
+        return;
     }
 }
