@@ -187,4 +187,9 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
      * Wind tot he end
      */
     Excerpt toEnd();
+
+    /**
+     * @return has the Except just been created or finish() has been called
+     */
+    boolean isFinished();
 }

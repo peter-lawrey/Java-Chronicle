@@ -686,4 +686,9 @@ public class WrappedExcerpt implements Excerpt {
         excerpt.toEnd();
         return this;
     }
+
+    @Override
+    public boolean isFinished() {
+        return excerpt.isFinished();
+    }
 }

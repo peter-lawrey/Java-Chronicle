@@ -180,8 +180,10 @@ public class InProcessChronicleSource implements Chronicle {
                 }
             } catch (IOException e) {
                 if (!closed) {
-                    if (e.getMessage().contains("reset by peer") || e.getMessage().contains("Broken pipe")
-                            || e.getMessage().contains("was aborted by"))
+                    String msg = e.getMessage();
+                    if (msg != null &&
+                            (msg.contains("reset by peer") || msg.contains("Broken pipe")
+                                    || msg.contains("was aborted by")))
                         logger.log(Level.INFO, "Connect " + socket + " closed from the other end " + e);
                     else
                         logger.log(Level.INFO, "Connect " + socket + " died", e);

@@ -99,9 +99,12 @@ public class IndexedChronicleTest {
             excerpt.writeByte(1);
             excerpt.finish();
         }
+        // used to throw NPE if you have finished already.
+        excerpt.close();
         tsc.close();
 
         tsc = new IndexedChronicle(basePath, 12);
+        tsc.createExcerpt().close();
         tsc.close(); // used to throw an exception.
     }
 

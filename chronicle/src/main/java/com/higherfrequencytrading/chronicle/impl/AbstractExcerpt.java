@@ -1661,7 +1661,8 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @Override
     public void close() {
-        finish();
+        if (!isFinished())
+            finish();
     }
 
     @Override
@@ -1735,5 +1736,10 @@ public abstract class AbstractExcerpt implements Excerpt {
     public Excerpt toEnd() {
         index(size() - 1);
         return this;
+    }
+
+    @Override
+    public boolean isFinished() {
+        return buffer == null;
     }
 }

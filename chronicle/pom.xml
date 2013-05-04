@@ -24,7 +24,7 @@
     <groupId>com.higherfrequencytrading</groupId>
     <artifactId>chronicle</artifactId>
     <version>1.7.1-SNAPSHOT</version>
-    <name>chronicle</name>
+    <name>Java Chronicle</name>
     <description>High Performance Logging and Persisted Messaging</description>
 
     <properties>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
+            <version>4.11</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -108,6 +108,19 @@
                             </executions>
                         </plugin>
             -->
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.3.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.name}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                    </instructions>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
