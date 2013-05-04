@@ -21,6 +21,7 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.Arrays;
 
 import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
 
@@ -83,7 +84,7 @@ public class ListWrapper<E> implements ObservableList<E> {
     }
 
     public void setAnnotations(Annotation[] annotations) {
-        this.annotations = annotations;
+        this.annotations = Arrays.copyOf(annotations, annotations.length);
     }
 
     @SuppressWarnings("unchecked")

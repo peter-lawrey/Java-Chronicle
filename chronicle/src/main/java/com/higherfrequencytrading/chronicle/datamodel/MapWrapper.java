@@ -20,6 +20,7 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.Arrays;
 
 import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
 
@@ -66,7 +67,7 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
     }
 
     public void setAnnotations(Annotation[] annotations) {
-        this.annotations = annotations;
+        this.annotations = Arrays.copyOf(annotations, annotations.length);
     }
 
     @SuppressWarnings("unchecked")

@@ -59,7 +59,9 @@ public class BaseIndexedChronicleLatencyMain {
                     Excerpt excerpt = tsc.createExcerpt();
                     Excerpt excerpt2 = tsc2.createExcerpt();
                     for (int i = 0; i < RUNS; i++) {
-                        while (!excerpt.index(i)) ;
+                        while (!excerpt.index(i)) {
+                            doNothing();
+                        }
 
                         long time = excerpt.readLong();
                         excerpt.finish();
@@ -85,7 +87,9 @@ public class BaseIndexedChronicleLatencyMain {
             excerpt.writeLong(nanoTime());
             excerpt.finish();
 
-            while (!excerpt2.index(i)) ;
+            while (!excerpt2.index(i)) {
+                doNothing();
+            }
 
             long time1 = nanoTime();
             long time0 = excerpt2.readLong();
@@ -112,5 +116,9 @@ public class BaseIndexedChronicleLatencyMain {
     private static long nanoTime() {
         // return System.nanoTime();
         return ClockSupport.nanoTime();
+    }
+
+    private void doNothing() {
+        return;
     }
 }
