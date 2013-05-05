@@ -26,12 +26,13 @@ import java.util.Date;
  * @author peter.lawrey
  */
 public class DateMarshaller implements EnumeratedMarshaller<Date> {
-    private final Date[] interner;
+    final int size1;
+    private Date[] interner = null;
 
     public DateMarshaller(int size) {
         int size2 = 128;
         while (size2 < size && size2 < (1 << 20)) size2 <<= 1;
-        interner = new Date[size2];
+        this.size1 = size2 - 1;
     }
 
     @Override
@@ -79,6 +80,8 @@ public class DateMarshaller implements EnumeratedMarshaller<Date> {
 
     private Date lookupDate(long time) {
         int idx = hashFor(time);
+        if (interner == null)
+            interner = new Date[size1 + 1];
         Date date = interner[idx];
         if (date != null && date.getTime() == time)
             return date;
@@ -87,8 +90,8 @@ public class DateMarshaller implements EnumeratedMarshaller<Date> {
 
     private int hashFor(long time) {
         long h = time;
-        h ^= (h >>> 41) ^ (h >>> 21);
+        h ^= (h >>> 41) ^ (h >>> 20);
         h ^= (h >>> 14) ^ (h >>> 7);
-        return (int) (h & (interner.length - 1));
+        return (int) (h & size1);
     }
 }

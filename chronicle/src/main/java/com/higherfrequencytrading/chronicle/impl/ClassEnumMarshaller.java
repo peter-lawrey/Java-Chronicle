@@ -50,7 +50,7 @@ public class ClassEnumMarshaller implements EnumeratedMarshaller<Class> {
     }
 
     @SuppressWarnings("unchecked")
-    private final WeakReference<Class>[] classWeakReference = new WeakReference[CACHE_SIZE];
+    private WeakReference<Class>[] classWeakReference = null;
     private final ClassLoader classLoader;
 
     @Override
@@ -74,6 +74,8 @@ public class ClassEnumMarshaller implements EnumeratedMarshaller<Class> {
 
     private Class load(String name) {
         int hash = (name.hashCode() & 0x7fffffff) % CACHE_SIZE;
+        if (classWeakReference == null)
+            classWeakReference = new WeakReference[CACHE_SIZE];
         WeakReference<Class> ref = classWeakReference[hash];
         if (ref != null) {
             Class clazz = ref.get();
