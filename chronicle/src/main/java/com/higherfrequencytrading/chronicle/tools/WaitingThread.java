@@ -41,15 +41,15 @@ public class WaitingThread implements Closeable {
                             busy |= waitingRunnable.run();
                         } catch (IllegalStateException e) {
                             remove(waitingRunnable);
-                        } catch (Throwable t) {
-                            LOGGER.log(Level.WARNING, "Task " + waitingRunnable + " failed, removing", t);
+                        } catch (Exception ex) {
+                            LOGGER.log(Level.WARNING, "Task " + waitingRunnable + " failed, removing", ex);
                         }
                     }
                     if (!busy)
                         pause();
-                } catch (Throwable t) {
+                } catch (Exception ex) {
                     if (!closed)
-                        LOGGER.log(Level.SEVERE, "WaitingThread died unexpectedly", t);
+                        LOGGER.log(Level.SEVERE, "WaitingThread died unexpectedly", ex);
                 }
             }
         });

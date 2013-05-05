@@ -126,7 +126,9 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
                         excerpt.read(bb);
                         bb.flip();
                         remaining -= bb.remaining();
-                        while (bb.remaining() > 0 && socket.write(bb) > 0) ;
+                        while (bb.remaining() > 0 && socket.write(bb) > 0) {
+                            doNothing();
+                        }
                     }
                     if (bb.remaining() > 0) throw new EOFException("Failed to send index=" + index);
                     index++;
@@ -139,10 +141,16 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
 
         private long readIndex(SocketChannel socket) throws IOException {
             ByteBuffer bb = ByteBuffer.allocate(8);
-            while (bb.remaining() > 0 && socket.read(bb) > 0) ;
+            while (bb.remaining() > 0 && socket.read(bb) > 0) {
+                doNothing();
+            }
             if (bb.remaining() > 0) throw new EOFException();
             return bb.getLong(0);
         }
+    }
+
+    void doNothing() {
+        return;
     }
 
     protected void pause(int delayNS) {
@@ -150,8 +158,9 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
         long start = System.nanoTime();
         if (delayNS >= 1000 * 1000)
             LockSupport.parkNanos(delayNS); // only ms accuracy.
-        while (System.nanoTime() - start < delayNS)
+        while (System.nanoTime() - start < delayNS) {
             Thread.yield();
+        }
     }
 
     @Override

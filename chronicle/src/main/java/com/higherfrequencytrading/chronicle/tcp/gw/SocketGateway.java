@@ -51,7 +51,9 @@ public class SocketGateway implements WaitingRunnable, Closeable {
                 excerpt.read(byteBuffer);
                 byteBuffer.flip();
                 try {
-                    while (socket.write(byteBuffer) > 0 && byteBuffer.remaining() > 0) ;
+                    while (socket.write(byteBuffer) > 0 && byteBuffer.remaining() > 0) {
+                        doNothing();
+                    }
                 } catch (IOException e) {
                     inboundWriter.onException("Failed to write", e);
                 }
@@ -64,6 +66,10 @@ public class SocketGateway implements WaitingRunnable, Closeable {
         waitingThread.add(this);
     }
 
+    private void doNothing() {
+        return;
+    }
+    
     enum State {
         PAUSING, CONNECTING, WAITING_FOR_CONNECTION, PROCESSING
     }

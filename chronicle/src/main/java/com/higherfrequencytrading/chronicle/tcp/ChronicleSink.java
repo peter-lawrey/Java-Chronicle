@@ -105,7 +105,9 @@ public class ChronicleSink implements Closeable {
                     SocketChannel sc = SocketChannel.open(address);
                     ByteBuffer bb = ByteBuffer.allocate(8);
                     bb.putLong(0, chronicle.size());
-                    while (bb.remaining() > 0 && sc.write(bb) > 0) ;
+                    while (bb.remaining() > 0 && sc.write(bb) > 0) {
+                        doNothing();
+                    }
                     if (bb.remaining() > 0) throw new EOFException();
                     return sc;
 
@@ -162,8 +164,14 @@ public class ChronicleSink implements Closeable {
         private void readHeader(SocketChannel sc, ByteBuffer bb) throws IOException {
             bb.position(0);
             bb.limit(TcpUtil.HEADER_SIZE);
-            while (bb.remaining() > 0 && sc.read(bb) > 0) ;
+            while (bb.remaining() > 0 && sc.read(bb) > 0) {
+                doNothing();
+            }
             if (bb.remaining() > 0) throw new EOFException();
+        }
+
+        private void doNothing() {
+            return;
         }
     }
 
