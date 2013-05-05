@@ -26,6 +26,8 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
+import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractExcerpt implements Excerpt {
     private static final int MIN_SIZE = 8;
+    public static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
 
     protected final DirectChronicle chronicle;
     protected long index = -1;
@@ -1113,6 +1116,33 @@ public abstract class AbstractExcerpt implements Excerpt {
         } else {
             appendLong0(num);
         }
+        return this;
+    }
+
+    private SimpleDateFormat dateFormat = null;
+    private long lastDay = Long.MIN_VALUE;
+    private byte[] lastDateStr = null;
+
+    @Override
+    public ByteStringAppender appendDate(long timeInMS) {
+        if (dateFormat == null) {
+            dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        }
+        long date = timeInMS / 86400000;
+        if (lastDay != date) {
+            lastDateStr = dateFormat.format(new Date(timeInMS)).getBytes(ISO_8859_1);
+            lastDay = date;
+        }
+        append(lastDateStr);
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender appendDateTime(long timeInMS) {
+        appendDate(timeInMS);
+        writeByte('T');
+        appendTime(timeInMS);
         return this;
     }
 

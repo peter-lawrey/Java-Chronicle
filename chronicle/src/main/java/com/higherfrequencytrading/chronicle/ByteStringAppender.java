@@ -46,6 +46,10 @@ public interface ByteStringAppender extends Appendable {
 
     ByteStringAppender appendTime(long timeInMS);
 
+    ByteStringAppender appendDate(long timeInMS);
+
+    ByteStringAppender appendDateTime(long timeInMS);
+
 // TODO
 //   ByteStringAppender append(float f);
 

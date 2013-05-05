@@ -410,6 +410,18 @@ public class WrappedExcerpt implements Excerpt {
         return this;
     }
 
+    @Override
+    public ByteStringAppender appendDate(long timeInMS) {
+        excerpt.appendDate(timeInMS);
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender appendDateTime(long timeInMS) {
+        excerpt.appendDateTime(timeInMS);
+        return this;
+    }
+
     public ByteStringAppender appendTime(long timeInMS) {
         excerpt.appendTime(timeInMS);
         return this;

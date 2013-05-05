@@ -66,6 +66,7 @@ Version 1.8 - Add MutableDecimal and FIX support.
 
 Version 1.7.1 - Bug fix and OGSi support.
            Sonar and IntelliJ code analysis - thank you, Mani.
+           Add appendDate and appendDateTime
 
 Version 1.7 - Add support to the DataModel for arbitrary events to be sent such as timestamps, heartbeats, changes in stages which can picked up by listeners.
            Add support for the DataModel for arbitrary annotations on the data so each map/collection can have additional configuration
