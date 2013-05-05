@@ -50,6 +50,7 @@ public class PEMain {
         }
 
         long prevProcessed = 0, count = 0;
+        //noinspection InfiniteLoopStatement
         while (true) {
             boolean readOne = false;
             for (Gw2PeReader reader : readers) {

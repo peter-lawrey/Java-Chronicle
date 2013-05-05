@@ -124,7 +124,7 @@ public class FixParserGeneratorMain {
                         fieldMapByNumber.put(number, ff);
                         fieldMapByName.put(name, ff);
                     } else {
-                        doNothingOtherwise();
+                        throw new AssertionError("Unexpected " + qName + " tag");
                     }
                     break;
                 }
@@ -165,10 +165,6 @@ public class FixParserGeneratorMain {
 
         private String toCamelCase(String name) {
             return Character.toLowerCase(name.charAt(0)) + name.substring(1);
-        }
-
-        private void doNothingOtherwise() {
-            return;
         }
 
     }

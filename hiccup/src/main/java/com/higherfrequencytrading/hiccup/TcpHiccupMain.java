@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.hiccup;
 
+import com.higherfrequencytrading.chronicle.tools.IOTools;
+
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetSocketAddress;
@@ -120,8 +122,7 @@ public class TcpHiccupMain {
                         while (sc.read(bb) >= 0) {
                             bb.flip();
 //                            System.out.println("e "+bb.remaining());
-                            while (bb.remaining() > 0)
-                                sc.write(bb);
+                            IOTools.writeAllOrEOF(sc, bb);
                             bb.clear();
                         }
                     } catch (IOException e) {
@@ -162,15 +163,16 @@ public class TcpHiccupMain {
                 long start = System.nanoTime();
                 for (int i = 1; i <= WARMUP + RUNS; i++) {
                     long next = start + i * 1000000L / RATE;
-                    while (System.nanoTime() < next) ;
+                    while (System.nanoTime() < next) {
+                        /* busy wait */
+                    }
                     time.clear();
                     // when it should have been sent, not when it was.
                     time.putInt(i);
                     time.putLong(next);
                     time.flip();
 //                    System.out.println("w " + time.getInt(0) + " " + time.remaining());
-                    while (time.remaining() > 0)
-                        sc.write(time);
+                    IOTools.writeAll(sc, time);
                 }
                 future.get();
 

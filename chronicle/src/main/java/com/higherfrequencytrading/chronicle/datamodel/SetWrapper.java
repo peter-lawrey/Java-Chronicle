@@ -21,7 +21,6 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.Arrays;
 
 import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
 
@@ -147,7 +146,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     @Override
     public Iterator<E> iterator() {
         return new Iterator<E>() {
-            Iterator<E> iter = underlying.iterator();
+            final Iterator<E> iter = underlying.iterator();
             E last = null;
 
             @Override
@@ -295,9 +294,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
             if (!c.contains(e))
                 toremove.add(e);
         }
-        if (toremove.isEmpty())
-            return false;
-        return removeAll(toremove);
+        return !toremove.isEmpty() && removeAll(toremove);
     }
 
     @Override

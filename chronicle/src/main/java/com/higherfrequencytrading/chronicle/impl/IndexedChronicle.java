@@ -99,18 +99,14 @@ public class IndexedChronicle extends AbstractChronicle {
         // find the last record.
         long indexSize = indexChannel.size() >>> indexBitSize();
         if (indexSize > 0) {
-            while (--indexSize > 0 && getIndexData(indexSize) == 0) {
-                doNothing();
-            }
+            indexSize--;
+            while (indexSize > 0 && getIndexData(indexSize) == 0)
+                indexSize--;
             logger.info(basePath + ", size=" + indexSize);
             size = indexSize;
         } else {
             logger.info(basePath + " created.");
         }
-    }
-
-    private void doNothing() {
-        return;
     }
 
     private static String extractName(String basePath) {
@@ -184,7 +180,7 @@ public class IndexedChronicle extends AbstractChronicle {
         }
         try {
 //            long start = System.nanoTime();
-            MappedByteBuffer mbb = null;
+            MappedByteBuffer mbb;
             try {
                 mbb = indexChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~indexLowMask, 1 << indexBitSize);
             } catch (OutOfMemoryError e) {
@@ -222,7 +218,7 @@ public class IndexedChronicle extends AbstractChronicle {
                 return buffer;
         }
         try {
-            MappedByteBuffer mbb = null;
+            MappedByteBuffer mbb;
             try {
                 mbb = dataChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~dataLowMask, 1 << dataBitSize);
             } catch (OutOfMemoryError e) {

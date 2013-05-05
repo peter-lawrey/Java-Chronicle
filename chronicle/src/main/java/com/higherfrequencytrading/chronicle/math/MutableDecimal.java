@@ -135,8 +135,8 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
     }
 
     @Override
-    protected Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public MutableDecimal clone() throws CloneNotSupportedException {
+        return (MutableDecimal) super.clone();
     }
 
     @Override

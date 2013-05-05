@@ -19,6 +19,7 @@ package com.higherfrequencytrading.chronicle.tcp;
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import com.higherfrequencytrading.chronicle.tools.IOTools;
 
 import java.io.Closeable;
 import java.io.EOFException;
@@ -126,9 +127,7 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
                         excerpt.read(bb);
                         bb.flip();
                         remaining -= bb.remaining();
-                        while (bb.remaining() > 0 && socket.write(bb) > 0) {
-                            doNothing();
-                        }
+                        IOTools.writeAll(socket, bb);
                     }
                     if (bb.remaining() > 0) throw new EOFException("Failed to send index=" + index);
                     index++;
@@ -141,23 +140,16 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
 
         private long readIndex(SocketChannel socket) throws IOException {
             ByteBuffer bb = ByteBuffer.allocate(8);
-            while (bb.remaining() > 0 && socket.read(bb) > 0) {
-                doNothing();
-            }
-            if (bb.remaining() > 0) throw new EOFException();
+            IOTools.readFullyOrEOF(socket, bb);
             return bb.getLong(0);
         }
-    }
-
-    void doNothing() {
-        return;
     }
 
     protected void pause(int delayNS) {
         if (delayNS < 1) return;
         long start = System.nanoTime();
         if (delayNS >= 1000 * 1000)
-            LockSupport.parkNanos(delayNS); // only ms accuracy.
+            LockSupport.parkNanos(delayNS - 1000 * 1000); // only ms accuracy.
         while (System.nanoTime() - start < delayNS) {
             Thread.yield();
         }

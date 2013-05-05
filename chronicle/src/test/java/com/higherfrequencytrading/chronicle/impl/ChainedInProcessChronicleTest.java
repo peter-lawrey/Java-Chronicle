@@ -29,7 +29,7 @@ import java.io.IOException;
  * @author peter.lawrey
  */
 public class ChainedInProcessChronicleTest {
-    private static final String TMP = System.getProperty("java.io.tmp");
+    private static final String TMP = System.getProperty("java.io.tmpdir");
 
     @Test
     public void testChained() throws IOException {

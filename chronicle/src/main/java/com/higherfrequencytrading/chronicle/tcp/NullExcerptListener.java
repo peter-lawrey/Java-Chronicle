@@ -16,6 +16,7 @@
 package com.higherfrequencytrading.chronicle.tcp;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.ExcerptListener;
 
 /**
  * @author peterlawrey

@@ -20,6 +20,7 @@ import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.WrappedExcerpt;
+import com.higherfrequencytrading.chronicle.tools.IOTools;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -92,15 +93,13 @@ public class InProcessChronicleSink implements Chronicle {
 
         @Override
         public boolean nextIndex() {
-            if (super.nextIndex()) return true;
-            return readNext() && super.nextIndex();
+            return super.nextIndex() || readNext() && super.nextIndex();
         }
 
         @Override
         public boolean index(long index) throws IndexOutOfBoundsException {
             if (super.index(index)) return true;
-            if (index < 0) return false;
-            return readNext() && super.index(index);
+            return index >= 0 && readNext() && super.index(index);
         }
     }
 
@@ -112,9 +111,7 @@ public class InProcessChronicleSink implements Chronicle {
             sc = createConnection();
             scFirst = true;
         }
-        if (sc != null)
-            return readNextExcerpt(sc);
-        return false;
+        return sc != null && readNextExcerpt(sc);
     }
 
     private SocketChannel createConnection() {
@@ -128,10 +125,7 @@ public class InProcessChronicleSink implements Chronicle {
                 logger.info("Connected to " + address);
                 ByteBuffer bb = ByteBuffer.allocate(8);
                 bb.putLong(0, chronicle.size());
-                while (bb.remaining() > 0 && sc.write(bb) > 0) {
-                    doNothing();
-                }
-                if (bb.remaining() > 0) throw new EOFException();
+                IOTools.writeAllOrEOF(sc, bb);
                 return sc;
 
             } catch (IOException e) {
@@ -148,10 +142,6 @@ public class InProcessChronicleSink implements Chronicle {
             }
         }
         return null;
-    }
-
-    private void doNothing() {
-        return;
     }
 
     private final ByteBuffer readBuffer; // minimum size
@@ -212,7 +202,8 @@ public class InProcessChronicleSink implements Chronicle {
                 int size3 = (int) Math.min(readBuffer.capacity(), remaining);
                 readBuffer.limit(size3);
 //                    System.out.println("... reading");
-                if (sc.read(readBuffer) < 0) throw new EOFException();
+                if (sc.read(readBuffer) < 0)
+                    throw new EOFException();
                 readBuffer.flip();
 //                    System.out.println("r " + ChronicleTools.asString(bb));
                 remaining -= readBuffer.remaining();

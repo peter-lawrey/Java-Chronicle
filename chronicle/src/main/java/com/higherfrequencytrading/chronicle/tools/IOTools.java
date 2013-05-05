@@ -19,6 +19,8 @@ package com.higherfrequencytrading.chronicle.tools;
 import sun.reflect.Reflection;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -108,5 +110,28 @@ public enum IOTools {
         prop.load(br);
         br.close();
         return prop;
+    }
+
+    public static void writeAllOrEOF(SocketChannel sc, ByteBuffer bb) throws IOException {
+        writeAll(sc, bb);
+
+        if (bb.remaining() > 0) throw new EOFException();
+    }
+
+    public static void writeAll(SocketChannel sc, ByteBuffer bb) throws IOException {
+        while (bb.remaining() > 0)
+            if (sc.write(bb) < 0)
+                break;
+    }
+
+    public static void readFullyOrEOF(SocketChannel socket, ByteBuffer bb) throws IOException {
+        readAvailable(socket, bb);
+        if (bb.remaining() > 0) throw new EOFException();
+    }
+
+    public static void readAvailable(SocketChannel socket, ByteBuffer bb) throws IOException {
+        while (bb.remaining() > 0)
+            if (socket.read(bb) < 0)
+                break;
     }
 }

@@ -3,6 +3,7 @@ package com.higherfrequencytrading.chronicle.tcp.gw;
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import com.higherfrequencytrading.chronicle.tools.IOTools;
 import com.higherfrequencytrading.chronicle.tools.WaitingRunnable;
 import com.higherfrequencytrading.chronicle.tools.WaitingThread;
 
@@ -40,7 +41,7 @@ public class SocketGateway implements WaitingRunnable, Closeable {
         Excerpt out = outbound.createExcerpt();
         out.index(out.size());
         outboundReader = new GatewayEntryReader(out, true) {
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1 << 20);
+            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1 << 20);
 
             @Override
             protected void onEntry(long writeTimeNS, long writeTimeMS, long readTimeMS, int length, char type, Excerpt excerpt) {
@@ -51,9 +52,7 @@ public class SocketGateway implements WaitingRunnable, Closeable {
                 excerpt.read(byteBuffer);
                 byteBuffer.flip();
                 try {
-                    while (socket.write(byteBuffer) > 0 && byteBuffer.remaining() > 0) {
-                        doNothing();
-                    }
+                    IOTools.writeAll(socket, byteBuffer);
                 } catch (IOException e) {
                     inboundWriter.onException("Failed to write", e);
                 }
@@ -66,10 +65,6 @@ public class SocketGateway implements WaitingRunnable, Closeable {
         waitingThread.add(this);
     }
 
-    private void doNothing() {
-        return;
-    }
-    
     enum State {
         PAUSING, CONNECTING, WAITING_FOR_CONNECTION, PROCESSING
     }

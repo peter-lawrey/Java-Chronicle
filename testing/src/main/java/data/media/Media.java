@@ -33,8 +33,6 @@ public class Media implements Externalizable {
         JAVA, FLASH;
 
         public static Player find(String str) {
-            if (str == "JAVA") return JAVA;
-            if (str == "FLASH") return FLASH;
             if ("JAVA".equals(str)) return JAVA;
             if ("FLASH".equals(str)) return FLASH;
             String desc = (str == null) ? "NULL" : String.format("'%s'", str);
@@ -135,9 +133,8 @@ public class Media implements Externalizable {
         if (persons != null ? !persons.equals(media.persons) : media.persons != null) return false;
         if (player != media.player) return false;
         if (title != null ? !title.equals(media.title) : media.title != null) return false;
-        if (uri != null ? !uri.equals(media.uri) : media.uri != null) return false;
+        return !(uri != null ? !uri.equals(media.uri) : media.uri != null);
 
-        return true;
     }
 
     @Override

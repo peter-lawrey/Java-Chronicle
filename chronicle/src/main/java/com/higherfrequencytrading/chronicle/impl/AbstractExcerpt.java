@@ -114,8 +114,8 @@ public abstract class AbstractExcerpt implements Excerpt {
         return this.size = size;
     }
 
-    private boolean readMemoryBarrier() {
-        return barrier.get();
+    private void readMemoryBarrier() {
+        barrier.get();
     }
 
     @Override
@@ -129,6 +129,7 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     private Thread lastThread = null;
 
+    @SuppressWarnings("SameReturnValue")
     private boolean checkThread() {
         Thread thread = Thread.currentThread();
         if (lastThread == null)
@@ -801,9 +802,6 @@ public abstract class AbstractExcerpt implements Excerpt {
             }
         }
 
-        if (utflen > Integer.MAX_VALUE)
-            throw new IllegalArgumentException(new UTFDataFormatException(
-                    "encoded string too long: " + utflen + " bytes"));
         if (utflen > remaining())
             throw new IllegalArgumentException(
                     "encoded string too long: " + utflen + " bytes, remaining=" + remaining());
@@ -1604,21 +1602,14 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public <E> List<E> readEnums(Class<E> eClass) {
-        int len = readInt();
-        if (len == 0) return Collections.emptyList();
-        List<E> list = new ArrayList<E>(len);
-        for (int i = 0; i < len; i++)
-            list.add(readEnum(eClass));
-        return list;
-    }
-
-    @Override
-    public void readList(Collection list) {
+    public <E> void readList(Collection<E> list) {
         int len = readInt();
         list.clear();
-        for (int i = 0; i < len; i++)
-            list.add(readObject());
+        for (int i = 0; i < len; i++) {
+            @SuppressWarnings("unchecked")
+            E e = (E) readObject();
+            list.add(e);
+        }
     }
 
     @Override
@@ -1682,8 +1673,7 @@ public abstract class AbstractExcerpt implements Excerpt {
             }
             case SERIALIZED: {
                 try {
-                    Object o = new ObjectInputStream(this.inputStream()).readObject();
-                    return o;
+                    return new ObjectInputStream(this.inputStream()).readObject();
                 } catch (Exception e) {
                     throw new IllegalStateException(e);
                 }

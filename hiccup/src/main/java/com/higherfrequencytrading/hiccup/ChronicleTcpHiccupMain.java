@@ -45,7 +45,7 @@ public class ChronicleTcpHiccupMain {
     static final String DIR = System.getProperty("dir", System.getProperty("java.io.tmp"));
 
     public static void main(String... args) throws IOException {
-        String hostname = "localhost", hostname2 = "localhost";
+        String hostname = "localhost", hostname2;
         int port = 65410, port2 = 65420;
 
         switch (args.length) {
@@ -99,8 +99,7 @@ public class ChronicleTcpHiccupMain {
         public Repeater(int test, int port, String hostname2, int port2) throws IOException {
             IndexedChronicle store = new IndexedChronicle(DIR + "/repeater-" + test);
             InProcessChronicleSource source = new InProcessChronicleSource(store, port);
-            InProcessChronicleSink sink = new InProcessChronicleSink(source, hostname2, port2);
-            chronicle = sink;
+            chronicle = new InProcessChronicleSink(source, hostname2, port2);
         }
 
         @Override
@@ -134,7 +133,9 @@ public class ChronicleTcpHiccupMain {
                 Excerpt excerpt = source.createExcerpt();
                 for (int i = 1; i <= WARMUP + RUNS; i++) {
                     long next = start + i * 1000000L / RATE;
-                    while (System.nanoTime() < next) ;
+                    while (System.nanoTime() < next) {
+                        /* busy wait */
+                    }
                     // when it should have been sent, not when it was.
                     excerpt.startExcerpt(128);
                     excerpt.writeLong(next);
@@ -167,7 +168,9 @@ public class ChronicleTcpHiccupMain {
             Excerpt excerpt = sink.createExcerpt();
             try {
                 for (int i = 0; i < WARMUP + RUNS; i++) {
-                    while (!excerpt.index(i)) ;
+                    while (!excerpt.index(i)) {
+                        /* busy wait */
+                    }
                     long next = excerpt.readLong();
                     long took = System.nanoTime() - next;
                     if (i >= WARMUP)

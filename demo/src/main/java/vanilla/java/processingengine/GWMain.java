@@ -84,6 +84,7 @@ public class GWMain {
         long start = System.nanoTime();
         // run loop
         SmallCommand command = new SmallCommand();
+        @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
         StringBuilder clientOrderId = command.clientOrderId;
         for (int i = 0; i < orders; i++) {
             clientOrderId.setLength(0);
@@ -99,11 +100,11 @@ public class GWMain {
 
             if (throughputTest) {
                 while (pe2GwReader.readOne()) {
-                    doNothing();
+                    /* read another */
                 }
             } else {
                 while (pe2GwReader.readOne() || reportCount.get() < i - 1) {
-                    doNothing();
+                    /* read another */
                 }
             }
         }
@@ -123,9 +124,5 @@ public class GWMain {
         }
         gw2pe.close();
         pe2gw.close();
-    }
-
-    private void doNothing() {
-        return;
     }
 }

@@ -136,6 +136,7 @@ public class PackedHashedTableTest {
             iterator.found = false;
             iterator.ptr = ptr;
             pht.lookup(ptr, iterator);
+            //noinspection ConstantConditions
             if (!iterator.found)
                 assertTrue("Failed to find " + ptr, iterator.found);
         }
@@ -226,6 +227,7 @@ public class PackedHashedTableTest {
             iterator.ptr = ptr;
             iterator.onExcerpt(record);
 
+            //noinspection ConstantConditions
             if (!iterator.found)
                 assertTrue("Failed to find " + ptr, iterator.found);
         }

@@ -44,9 +44,8 @@ public class MediaContent implements Externalizable {
         MediaContent that = (MediaContent) o;
 
         if (images != null ? !images.equals(that.images) : that.images != null) return false;
-        if (media != null ? !media.equals(that.media) : that.media != null) return false;
+        return !(media != null ? !media.equals(that.media) : that.media != null);
 
-        return true;
     }
 
     @Override

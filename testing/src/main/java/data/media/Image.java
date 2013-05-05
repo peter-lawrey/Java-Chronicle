@@ -81,9 +81,8 @@ public class Image implements Externalizable {
         if (width != image.width) return false;
         if (size != image.size) return false;
         if (title != null ? !title.equals(image.title) : image.title != null) return false;
-        if (uri != null ? !uri.equals(image.uri) : image.uri != null) return false;
+        return !(uri != null ? !uri.equals(image.uri) : image.uri != null);
 
-        return true;
     }
 
     @Override

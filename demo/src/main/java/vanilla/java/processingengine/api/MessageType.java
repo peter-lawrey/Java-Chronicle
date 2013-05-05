@@ -20,5 +20,5 @@ package vanilla.java.processingengine.api;
  * @author peter.lawrey
  */
 public enum MessageType {
-    small, report;
+    small, report
 }

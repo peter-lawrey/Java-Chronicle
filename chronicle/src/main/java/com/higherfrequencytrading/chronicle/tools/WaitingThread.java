@@ -47,9 +47,11 @@ public class WaitingThread implements Closeable {
                     }
                     if (!busy)
                         pause();
-                } catch (Exception ex) {
+
+                    // needs to catch all errors otherwise the thread will die silently.
+                } catch (Throwable t) {
                     if (!closed)
-                        LOGGER.log(Level.SEVERE, "WaitingThread died unexpectedly", ex);
+                        LOGGER.log(Level.SEVERE, "WaitingThread died unexpectedly", t);
                 }
             }
         });

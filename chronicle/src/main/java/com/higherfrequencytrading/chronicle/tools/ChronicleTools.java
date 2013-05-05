@@ -40,6 +40,7 @@ public enum ChronicleTools {
     public static void deleteOnExit(String basePath) {
         for (String name : new String[]{basePath + ".data", basePath + ".index"}) {
             File file = new File(name);
+            //noinspection ResultOfMethodCallIgnored
             file.delete();
             file.deleteOnExit();
         }
@@ -118,10 +119,7 @@ public enum ChronicleTools {
             return systemProp.equals("64");
         }
         systemProp = System.getProperty("java.vm.version");
-        if (systemProp != null) {
-            return systemProp.contains("_64");
-        }
-        return false;
+        return systemProp != null && systemProp.contains("_64");
     }
 
     public static Class[] getGenericTypes(Type type, int count) {

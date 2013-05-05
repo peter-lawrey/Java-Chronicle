@@ -63,7 +63,7 @@ public class JavaSerializationHiccupMain {
                     return getHistogram();
                 }
 
-                private Histogram getHistogram() throws IOException, ClassNotFoundException, InterruptedException {
+                private Histogram getHistogram() throws InterruptedException {
                     Histogram h = new Histogram(100, 1000, 7);
                     long start = 0, last = start;
 

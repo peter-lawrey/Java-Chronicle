@@ -50,7 +50,7 @@ public class ClassEnumMarshaller implements EnumeratedMarshaller<Class> {
     }
 
     @SuppressWarnings("unchecked")
-    private WeakReference<Class>[] classWeakReference = new WeakReference[CACHE_SIZE];
+    private final WeakReference<Class>[] classWeakReference = new WeakReference[CACHE_SIZE];
     private final ClassLoader classLoader;
 
     @Override

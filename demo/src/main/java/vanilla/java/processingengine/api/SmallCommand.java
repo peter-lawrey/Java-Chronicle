@@ -23,7 +23,7 @@ import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
  * @author peter.lawrey
  */
 public class SmallCommand implements ExcerptMarshallable {
-    public StringBuilder clientOrderId = new StringBuilder();
+    public final StringBuilder clientOrderId = new StringBuilder();
     public String instrument;
     public double price;
     public int quantity;

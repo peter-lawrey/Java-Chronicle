@@ -19,6 +19,7 @@ import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptListener;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import com.higherfrequencytrading.chronicle.tools.IOTools;
 
 import java.io.Closeable;
 import java.io.EOFException;
@@ -105,10 +106,7 @@ public class ChronicleSink implements Closeable {
                     SocketChannel sc = SocketChannel.open(address);
                     ByteBuffer bb = ByteBuffer.allocate(8);
                     bb.putLong(0, chronicle.size());
-                    while (bb.remaining() > 0 && sc.write(bb) > 0) {
-                        doNothing();
-                    }
-                    if (bb.remaining() > 0) throw new EOFException();
+                    IOTools.writeAllOrEOF(sc, bb);
                     return sc;
 
                 } catch (IOException e) {
@@ -140,7 +138,8 @@ public class ChronicleSink implements Closeable {
                     while (remaining > 0) {
                         int size2 = (int) Math.min(bb.capacity(), remaining);
                         bb.limit(size2);
-                        if (sc.read(bb) < 0) throw new EOFException();
+                        if (sc.read(bb) < 0)
+                            throw new EOFException();
                         bb.flip();
                         remaining -= bb.remaining();
                         excerpt.write(bb);
@@ -164,14 +163,7 @@ public class ChronicleSink implements Closeable {
         private void readHeader(SocketChannel sc, ByteBuffer bb) throws IOException {
             bb.position(0);
             bb.limit(TcpUtil.HEADER_SIZE);
-            while (bb.remaining() > 0 && sc.read(bb) > 0) {
-                doNothing();
-            }
-            if (bb.remaining() > 0) throw new EOFException();
-        }
-
-        private void doNothing() {
-            return;
+            IOTools.readFullyOrEOF(sc, bb);
         }
     }
 

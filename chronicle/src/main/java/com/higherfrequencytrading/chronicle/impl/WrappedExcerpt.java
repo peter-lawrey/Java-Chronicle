@@ -464,10 +464,6 @@ public class WrappedExcerpt implements Excerpt {
         excerpt.readEnums(eClass, eList);
     }
 
-    public <E> List<E> readEnums(Class<E> aClass) {
-        return excerpt.readEnums(aClass);
-    }
-
     public <E> void writeEnums(Collection<E> eList) {
         excerpt.writeEnums(eList);
     }
