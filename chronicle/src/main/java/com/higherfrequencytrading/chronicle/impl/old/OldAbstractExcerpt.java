@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.higherfrequencytrading.chronicle.impl;
+package com.higherfrequencytrading.chronicle.impl.old;
 
 import com.higherfrequencytrading.chronicle.ByteStringAppender;
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
+import com.higherfrequencytrading.chronicle.impl.DirectChronicle;
 import com.higherfrequencytrading.chronicle.math.MutableDecimal;
 
 import java.io.*;
@@ -34,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author peter.lawrey
  */
-public abstract class AbstractExcerpt implements Excerpt {
+public abstract class OldAbstractExcerpt implements Excerpt {
     private static final int MIN_SIZE = 8;
     public static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
 
@@ -56,14 +57,15 @@ public abstract class AbstractExcerpt implements Excerpt {
     private static final byte[] Infinity = "Infinity".getBytes();
     private static final byte[] NaN = "NaN".getBytes();
     private static final long MAX_VALUE_DIVIDE_5 = Long.MAX_VALUE / 5;
-    private static final int MAX_NUMBER_LENGTH = 512;
-    private static final int NUMBER_BUFFER_LAST_IDX = MAX_NUMBER_LENGTH - 1;
+    private static final int MAX_NUMERAL_LENGTH = 128;
+    private static final int NUMERAL_BUFFER_LAST_IDX = MAX_NUMERAL_LENGTH - 1;
 
-    private final byte[] numberBuffer = new byte[MAX_NUMBER_LENGTH];
+    private final byte[] numeralBuffer = new byte[MAX_NUMERAL_LENGTH];
+    private int numeralBufferIdx = 0;
     private ExcerptInputStream inputStream = null;
     private ExcerptOutputStream outputStream = null;
 
-    protected AbstractExcerpt(DirectChronicle chronicle) {
+    protected OldAbstractExcerpt(DirectChronicle chronicle) {
         this.chronicle = chronicle;
     }
 
@@ -1420,20 +1422,15 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     private void appendLong0(long num) {
-        // Extract digits into the end of the numberBuffer
-        int numberBufferIdx = 0;
-        do {
-            numberBuffer[NUMBER_BUFFER_LAST_IDX - numberBufferIdx++] = (byte) (num % 10L + '0');
-            num /= 10L;
-        } while (num > 0L);
-
-        // Bulk copy the digits into the front of the buffer
-        // TODO: Can this be avoided with use of correctly offset bulk appends on Excerpt?
-        // Uses (numberBufferIdx - 1) because index was advanced one too many times
-        System.arraycopy(numberBuffer, NUMBER_BUFFER_LAST_IDX - (numberBufferIdx - 1),
-                numberBuffer, 0, numberBufferIdx);
-
-        write(numberBuffer, 0, numberBufferIdx);
+        // find the number of digits
+        long power10 = power10(num);
+        // starting from the end, write each digit
+        while (power10 > 0) {
+            // write the lowest digit.
+            writeByte((byte) (num / power10 % 10 + '0'));
+            // remove that digit.
+            power10 /= 10;
+        }
     }
 
     @Override
@@ -1461,23 +1458,18 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     private void appendDouble0(long num, int precision) {
-        // Extract digits into the end of the numberBuffer
-        // Once desired precision is reached, write the '.'
-        int numberBufferIdx = 0;
-        do {
-            numberBuffer[NUMBER_BUFFER_LAST_IDX - numberBufferIdx++] = (byte) (num % 10L + '0');
-            num /= 10L;
-            if (numberBufferIdx == precision)
-                numberBuffer[NUMBER_BUFFER_LAST_IDX - numberBufferIdx++] = (byte) '.';
-        } while (num > 0L);
-
-        // Bulk copy the digits into the front of the buffer
-        // TODO: Can this be avoided with use of correctly offset bulk appends on Excerpt?
-        // Uses (numberBufferIdx - 1) because index was advanced one too many times
-        System.arraycopy(numberBuffer, NUMBER_BUFFER_LAST_IDX - (numberBufferIdx - 1),
-                numberBuffer, 0, numberBufferIdx);
-
-        write(numberBuffer, 0, numberBufferIdx);
+        // find the number of digits
+        long power10 = Math.max(TENS[precision], power10(num));
+        // starting from the end, write each digit
+        long decimalPoint = TENS[precision - 1];
+        while (power10 > 0) {
+            if (decimalPoint == power10)
+                writeByte('.');
+            // write the lowest digit.
+            writeByte((byte) (num / power10 % 10 + '0'));
+            // remove that digit.
+            power10 /= 10;
+        }
     }
 
     private static final long[] TENS = new long[19];
@@ -1540,7 +1532,7 @@ public abstract class AbstractExcerpt implements Excerpt {
 
         @Override
         public int read(byte[] b, int off, int len) throws IOException {
-            AbstractExcerpt.this.readFully(b, off, len);
+            OldAbstractExcerpt.this.readFully(b, off, len);
             return len;
         }
 
@@ -1571,12 +1563,12 @@ public abstract class AbstractExcerpt implements Excerpt {
 
         @Override
         public void write(byte[] b) throws IOException {
-            AbstractExcerpt.this.write(b);
+            OldAbstractExcerpt.this.write(b);
         }
 
         @Override
         public void write(byte[] b, int off, int len) throws IOException {
-            AbstractExcerpt.this.write(b, off, len);
+            OldAbstractExcerpt.this.write(b, off, len);
         }
 
         @Override
