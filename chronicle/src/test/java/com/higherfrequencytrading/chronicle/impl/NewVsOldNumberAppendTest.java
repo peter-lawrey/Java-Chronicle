@@ -32,11 +32,12 @@ public class NewVsOldNumberAppendTest {
     static final String TMP = System.getProperty("java.io.tmpdir");
 
     private static final int NUM_ENTRIES_PER_RECORD = 20;
-    private static final int NUM_RECORDS = 400 * 1000;
+    private static final int NUM_RECORDS = 200 * 1000;
     private static final int NUM_WARMUP_RECORDS = 40 * 1000;
     private static final int TOTAL_RECORDS = NUM_RECORDS + NUM_WARMUP_RECORDS;
     private static final long[][] RANDOM_LONGS = new long[TOTAL_RECORDS][NUM_ENTRIES_PER_RECORD];
     private static final double[][] RANDOM_DOUBLES = new double[TOTAL_RECORDS][NUM_ENTRIES_PER_RECORD];
+    private static final int MAX_PRECISION = 8;
 
     private static final Random random = new Random();
 
@@ -49,21 +50,15 @@ public class NewVsOldNumberAppendTest {
         for (int i = 0; i < TOTAL_RECORDS; i++) {
             for (int j = 0; j < NUM_ENTRIES_PER_RECORD; j++) {
                 RANDOM_LONGS[i][j] = random.nextLong();
-                RANDOM_DOUBLES[i][j] = random.nextDouble();
+                RANDOM_DOUBLES[i][j] = Math.max(123456.789,
+                                                random.nextDouble() % (10 * 1000 * 1000));
             }
         }
     }
 
-    @Test
-    public void testNumberAppends() throws IOException {
-        System.gc();
-        timeAppends(Generation.NEW, ExcerptType.BYTE_BUFFER);
-        System.gc();
-        timeAppends(Generation.NEW, ExcerptType.UNSAFE);
-        System.gc();
-        timeAppends(Generation.OLD, ExcerptType.BYTE_BUFFER);
-        System.gc();
-        timeAppends(Generation.OLD, ExcerptType.UNSAFE);
+    private enum NumberType {
+        LONG,
+        DOUBLE
     }
 
     private enum Generation {
@@ -94,7 +89,23 @@ public class NewVsOldNumberAppendTest {
         }
     }
 
-    private void timeAppends(Generation gen, ExcerptType excerptType) throws IOException {
+    @Test
+    public void testNumberAppends() throws IOException {
+        for (NumberType type : NumberType.values()) {
+            System.gc();
+            timeAppends(Generation.NEW, ExcerptType.BYTE_BUFFER, type);
+            System.gc();
+            timeAppends(Generation.NEW, ExcerptType.UNSAFE, type);
+            System.gc();
+            timeAppends(Generation.OLD, ExcerptType.BYTE_BUFFER, type);
+            System.gc();
+            timeAppends(Generation.OLD, ExcerptType.UNSAFE, type);
+        }
+    }
+
+    private void timeAppends(Generation gen,
+                             ExcerptType excerptType,
+                             NumberType numType) throws IOException {
         String basePath = TMP + File.separator;
 
         String newPath = basePath + gen.getStringRep() + excerptType.getStringRep() + "Ic";
@@ -121,38 +132,20 @@ public class NewVsOldNumberAppendTest {
 
             excerpt.startExcerpt(2 * 10 * NUM_ENTRIES_PER_RECORD);
             for (int j = 0; j < NUM_ENTRIES_PER_RECORD; j++) {
-                excerpt.append(RANDOM_LONGS[i][j]);
-                // excerpt.append(RANDOM_DOUBLES[i][j]);
+                if (numType == NumberType.LONG)
+                    excerpt.append(RANDOM_LONGS[i][j]);
+                else if (numType == NumberType.DOUBLE)
+                    excerpt.append(RANDOM_DOUBLES[i][j], (j % MAX_PRECISION + 2));
+                else
+                    throw new AssertionError();
             }
             excerpt.finish();
         }
         newIc.close();
 
         long time = System.nanoTime() - start;
-        System.out.println(gen + " " + excerptType + " time taken " +
+        System.out.println(numType + " " + gen + " " + excerptType + " time taken " +
                            (time / 1000000) + " ms");
-
-        /*
-        // Read out values to ensure they were correct and prevent possible DCE
-        IndexedChronicle ic = new IndexedChronicle(newPath);
-        ic.useUnsafe(excerptType == ExcerptType.UNSAFE);
-        Excerpt readExcerpt = ic.createExcerpt();
-        for (int i = 0; i < TOTAL_RECORDS; i++) {
-            boolean found = readExcerpt.nextIndex();
-            if (!found)
-                assertTrue(found);
-            for (int j = 0; j < NUM_ENTRIES_PER_RECORD; j++) {
-                long l = readExcerpt.readLong();
-                double d = readExcerpt.readDouble();
-                if (l != RANDOM_LONGS[i][j])
-                    assertEquals(l, RANDOM_LONGS[i][j]);
-                if (d != RANDOM_DOUBLES[i][j])
-                    assertEquals(d, RANDOM_DOUBLES[i][j]);
-            }
-            readExcerpt.finish();
-        }
-        ic.close();
-        */
     }
 
     private static void deleteOnExit(String basePath) {

@@ -56,11 +56,10 @@ public abstract class AbstractExcerpt implements Excerpt {
     private static final byte[] Infinity = "Infinity".getBytes();
     private static final byte[] NaN = "NaN".getBytes();
     private static final long MAX_VALUE_DIVIDE_5 = Long.MAX_VALUE / 5;
-    private static final int MAX_NUMBER_LENGTH = 128;
+    private static final int MAX_NUMBER_LENGTH = 512;
     private static final int NUMBER_BUFFER_LAST_IDX = MAX_NUMBER_LENGTH - 1;
 
     private final byte[] numberBuffer = new byte[MAX_NUMBER_LENGTH];
-    private int numberBufferIdx = 0;
     private ExcerptInputStream inputStream = null;
     private ExcerptOutputStream outputStream = null;
 
@@ -1422,21 +1421,19 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     private void appendLong0(long num) {
         // Extract digits into the end of the numberBuffer
+        int numberBufferIdx = 0;
         do {
             numberBuffer[NUMBER_BUFFER_LAST_IDX - numberBufferIdx++] = (byte) (num % 10L + '0');
             num /= 10L;
         } while (num > 0L);
 
-        // numberBufferIdx was advanced one too many in last run through loop
-        final int numberLength = numberBufferIdx--;
-
         // Bulk copy the digits into the front of the buffer
         // TODO: Can this be avoided with use of correctly offset bulk appends on Excerpt?
-        System.arraycopy(numberBuffer, NUMBER_BUFFER_LAST_IDX - numberBufferIdx,
-                numberBuffer, 0, numberLength);
+        // Uses (numberBufferIdx - 1) because index was advanced one too many times
+        System.arraycopy(numberBuffer, NUMBER_BUFFER_LAST_IDX - (numberBufferIdx - 1),
+                numberBuffer, 0, numberBufferIdx);
 
-        write(numberBuffer, 0, numberLength);
-        numberBufferIdx = 0;
+        write(numberBuffer, 0, numberBufferIdx);
     }
 
     @Override
@@ -1464,18 +1461,23 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     private void appendDouble0(long num, int precision) {
-        // find the number of digits
-        long power10 = Math.max(TENS[precision], power10(num));
-        // starting from the end, write each digit
-        long decimalPoint = TENS[precision - 1];
-        while (power10 > 0) {
-            if (decimalPoint == power10)
-                writeByte('.');
-            // write the lowest digit.
-            writeByte((byte) (num / power10 % 10 + '0'));
-            // remove that digit.
-            power10 /= 10;
-        }
+        // Extract digits into the end of the numberBuffer
+        // Once desired precision is reached, write the '.'
+        int numberBufferIdx = 0;
+        do {
+            numberBuffer[NUMBER_BUFFER_LAST_IDX - numberBufferIdx++] = (byte) (num % 10L + '0');
+            num /= 10L;
+            if (numberBufferIdx == precision)
+                numberBuffer[NUMBER_BUFFER_LAST_IDX - numberBufferIdx++] = (byte) '.';
+        } while (num > 0L);
+
+        // Bulk copy the digits into the front of the buffer
+        // TODO: Can this be avoided with use of correctly offset bulk appends on Excerpt?
+        // Uses (numberBufferIdx - 1) because index was advanced one too many times
+        System.arraycopy(numberBuffer, NUMBER_BUFFER_LAST_IDX - (numberBufferIdx - 1),
+                numberBuffer, 0, numberBufferIdx);
+
+        write(numberBuffer, 0, numberBufferIdx);
     }
 
     private static final long[] TENS = new long[19];
