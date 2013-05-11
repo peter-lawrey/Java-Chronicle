@@ -173,11 +173,20 @@ public class IndexedChronicle extends AbstractChronicle {
                 return lastIndexBuffer;
 
         } else {
-            while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
+            if (indexBuffers.size() <= indexBufferId)
+                fillIndexBufferWithNulls(indexBufferId);
             MappedByteBuffer buffer = indexBuffers.get(indexBufferId);
             if (buffer != null)
                 return buffer;
         }
+        return createIndexBuffer(startPosition, indexBufferId);
+    }
+
+    private void fillIndexBufferWithNulls(int indexBufferId) {
+        while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
+    }
+
+    private MappedByteBuffer createIndexBuffer(long startPosition, int indexBufferId) {
         try {
 //            long start = System.nanoTime();
             MappedByteBuffer mbb;
@@ -212,11 +221,20 @@ public class IndexedChronicle extends AbstractChronicle {
                 return lastDataBuffer;
             }
         } else {
-            while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
+            if (dataBuffers.size() <= dataBufferId)
+                fillDataBuffersWithNulls(dataBufferId);
             MappedByteBuffer buffer = dataBuffers.get(dataBufferId);
             if (buffer != null)
                 return buffer;
         }
+        return createDataBuffer(startPosition, dataBufferId);
+    }
+
+    private void fillDataBuffersWithNulls(int dataBufferId) {
+        while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
+    }
+
+    private MappedByteBuffer createDataBuffer(long startPosition, int dataBufferId) {
         try {
             MappedByteBuffer mbb;
             try {

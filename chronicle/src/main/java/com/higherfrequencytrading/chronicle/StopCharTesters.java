@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.higherfrequencytrading.chronicle;
 
 /**
@@ -65,6 +66,15 @@ public enum StopCharTesters implements StopCharTester {
         @Override
         public boolean isStopChar(int ch) {
             return this.ch == ch;
+        }
+    }
+
+    public static StopCharTester CONTROL_STOP = new ControlStopCSTester();
+
+    static class ControlStopCSTester implements StopCharTester {
+        @Override
+        public boolean isStopChar(int ch) {
+            return ch < ' ';
         }
     }
 }

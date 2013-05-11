@@ -56,8 +56,8 @@ public abstract class AbstractExcerpt implements Excerpt {
     private static final byte[] Infinity = "Infinity".getBytes();
     private static final byte[] NaN = "NaN".getBytes();
     private static final long MAX_VALUE_DIVIDE_5 = Long.MAX_VALUE / 5;
-    private static final int MAX_NUMBER_LENGTH = 512;
-    private static final int NUMBER_BUFFER_LAST_IDX = MAX_NUMBER_LENGTH - 1;
+    // extra 1 for decimal place.
+    static final int MAX_NUMBER_LENGTH = 1 + (int) Math.ceil(Math.log10(Long.MAX_VALUE));
 
     private final byte[] numberBuffer = new byte[MAX_NUMBER_LENGTH];
     private ExcerptInputStream inputStream = null;
@@ -1421,19 +1421,67 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     private void appendLong0(long num) {
         // Extract digits into the end of the numberBuffer
-        int numberBufferIdx = 0;
-        do {
-            numberBuffer[NUMBER_BUFFER_LAST_IDX - numberBufferIdx++] = (byte) (num % 10L + '0');
-            num /= 10L;
-        } while (num > 0L);
+        int endIndex = appendLong1(num);
 
         // Bulk copy the digits into the front of the buffer
-        // TODO: Can this be avoided with use of correctly offset bulk appends on Excerpt?
-        // Uses (numberBufferIdx - 1) because index was advanced one too many times
-        System.arraycopy(numberBuffer, NUMBER_BUFFER_LAST_IDX - (numberBufferIdx - 1),
-                numberBuffer, 0, numberBufferIdx);
+        write(numberBuffer, endIndex, MAX_NUMBER_LENGTH - endIndex);
+    }
 
-        write(numberBuffer, 0, numberBufferIdx);
+    private int appendLong1(long num) {
+        numberBuffer[19] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 19;
+        numberBuffer[18] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 18;
+        numberBuffer[17] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 17;
+        numberBuffer[16] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 16;
+        numberBuffer[15] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 15;
+        numberBuffer[14] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 14;
+        numberBuffer[13] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 13;
+        numberBuffer[12] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 12;
+        numberBuffer[11] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 11;
+        numberBuffer[10] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 10;
+        numberBuffer[9] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 9;
+        numberBuffer[8] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 8;
+        numberBuffer[7] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 7;
+        numberBuffer[6] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 6;
+        numberBuffer[5] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 5;
+        numberBuffer[4] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 4;
+        numberBuffer[3] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return 3;
+        numberBuffer[2] = (byte) (num % 10L + '0');
+        num /= 10;
+        return 2;
     }
 
     @Override
@@ -1463,21 +1511,109 @@ public abstract class AbstractExcerpt implements Excerpt {
     private void appendDouble0(long num, int precision) {
         // Extract digits into the end of the numberBuffer
         // Once desired precision is reached, write the '.'
-        int numberBufferIdx = 0;
-        do {
-            numberBuffer[NUMBER_BUFFER_LAST_IDX - numberBufferIdx++] = (byte) (num % 10L + '0');
-            num /= 10L;
-            if (numberBufferIdx == precision)
-                numberBuffer[NUMBER_BUFFER_LAST_IDX - numberBufferIdx++] = (byte) '.';
-        } while (num > 0L);
+        int endIndex = appendDouble1(num, precision);
 
         // Bulk copy the digits into the front of the buffer
         // TODO: Can this be avoided with use of correctly offset bulk appends on Excerpt?
         // Uses (numberBufferIdx - 1) because index was advanced one too many times
-        System.arraycopy(numberBuffer, NUMBER_BUFFER_LAST_IDX - (numberBufferIdx - 1),
-                numberBuffer, 0, numberBufferIdx);
 
-        write(numberBuffer, 0, numberBufferIdx);
+        write(numberBuffer, endIndex, MAX_NUMBER_LENGTH - endIndex);
+    }
+
+    private int appendDouble1(long num, final int precision) {
+        int endIndex = AbstractExcerpt.MAX_NUMBER_LENGTH;
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 1)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 2)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 3)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 4)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 5)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 6)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 7)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 8)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 9)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 10)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 11)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 12)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 13)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 14)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 15)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 16)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 17)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        num /= 10;
+        if (num <= 0) return endIndex;
+        if (precision == 18)
+            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+        return endIndex;
     }
 
     private static final long[] TENS = new long[19];
