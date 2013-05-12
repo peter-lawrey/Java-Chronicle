@@ -89,7 +89,7 @@ public class ExampleRewriteMain {
         }
         Arrays.sort(times);
         for (double perc : new double[]{50, 90, 99, 99.9, 99.99}) {
-            System.out.printf("%s%% took %.1f µs,  ", perc, times[((int) (repeats * perc / 100))] / 1000.0);
+            System.out.printf("%s%% took %.1f µs, ", perc, times[((int) (repeats * perc / 100))] / 1000.0);
         }
         System.out.printf("worst took %d µs%n", times[times.length - 1] / 1000);
         chronicle.close();

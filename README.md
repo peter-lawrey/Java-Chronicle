@@ -69,7 +69,7 @@ public static void main(String... ignored) throws IOException {
     }
     Arrays.sort(times);
     for (double perc : new double[]{50, 90, 99, 99.9, 99.99}) {
-        System.out.printf("%s%% took %.1f µs,  ", perc, times[((int) (repeats * perc / 100))] / 1000.0);
+        System.out.printf("%s%% took %.1f µs, ", perc, times[((int) (repeats * perc / 100))] / 1000.0);
     }
     System.out.printf("worst took %d µs%n", times[times.length - 1] / 1000);
     chronicle.close();
@@ -78,7 +78,7 @@ public static void main(String... ignored) throws IOException {
 prints an output like (note: this test does 20 million in a matter of seconds and the first half a million is for warming up)
 
 ```
-50.0% took 0.3 µs,  90.0% took 0.4 µs,  99.0% took 33.5 µs,  99.9% took 66.9 µs,  99.99% took 119.7 µs,  worst took 183 µs
+50.0% took 0.3 µs, 90.0% took 0.4 µs, 99.0% took 33.5 µs, 99.9% took 66.9 µs, 99.99% took 119.7 µs, worst took 183 µs
 ```
 
 #Support Group
