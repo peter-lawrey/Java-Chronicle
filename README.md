@@ -9,46 +9,76 @@ You can attach any number of readers, including tools to see the exact state of 
 
 #Example
 ```java
-public static void main(String[] args) throws Exception {
-    final String basePath = "test";
+public static void main(String... ignored) throws IOException {
+    final String basePath = System.getProperty("java.io.tmpdir") + File.separator + "test";
     ChronicleTools.deleteOnExit(basePath);
-    final Chronicle chronicle = new IntIndexedChronicle(basePath);
-    final Excerpt excerpt = chronicle.createExcerpt();
-    final int[] consolidates = new int[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
-    int repeats = 10000;
+    final int[] consolidates = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    final int warmup = 500000;
+    final int repeats = 20000000;
     //Write
-    for (int i = 0; i < repeats; i++) {
-        excerpt.startExcerpt(8 + 4 + 4 * consolidates.length);
-        excerpt.writeLong(System.nanoTime());
-        excerpt.writeInt(consolidates.length);
-        for (final int consolidate : consolidates) {
-            excerpt.writeInt(consolidate);
+    Thread t = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            try {
+                final IndexedChronicle chronicle = new IndexedChronicle(basePath);
+                chronicle.useUnsafe(true); // for benchmarks.
+                final Excerpt excerpt = chronicle.createExcerpt();
+                for (int i = -warmup; i < repeats; i++) {
+                    doSomeThinking();
+                    excerpt.startExcerpt(8 + 4 + 4 * consolidates.length);
+                    excerpt.writeLong(System.nanoTime());
+                    excerpt.writeUnsignedShort(consolidates.length);
+                    for (final int consolidate : consolidates) {
+                        excerpt.writeStopBit(consolidate);
+                    }
+                    excerpt.finish();
+                }
+                chronicle.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void doSomeThinking() {
+            // real programs do some work between messages
+            // this has an impact on the worst case latencies.
+            Thread.yield();
+        }
+    });
+    t.start();
+    //Read
+    final IndexedChronicle chronicle = new IndexedChronicle(basePath);
+    chronicle.useUnsafe(true); // for benchmarks.
+    final Excerpt excerpt = chronicle.createExcerpt();
+    int[] times = new int[repeats];
+    for (int count = -warmup; count < repeats; count++) {
+        while (!excerpt.nextIndex()) {
+        /* busy wait */
+        }
+        final long timestamp = excerpt.readLong();
+        long time = System.nanoTime() - timestamp;
+        if (count >= 0)
+            times[count] = (int) time;
+        final int nbConsolidates = excerpt.readUnsignedShort();
+        assert nbConsolidates == consolidates.length;
+        for (int i = 0; i < nbConsolidates; i++) {
+            excerpt.readStopBit();
         }
         excerpt.finish();
-    }
-	//Read
-    long[] times = new long[repeats];
-    int[] nbcs = new int[repeats];
-    int count = 0;
-    final Excerpt excerpt2 = chronicle.createExcerpt();
-    while (excerpt2.nextIndex()) {
-        final long timestamp = excerpt2.readLong();
-        long time = System.nanoTime() - timestamp;
-        times[count] = time;
-        final int nbConsolidates = excerpt2.readInt();
-        nbcs[count] = nbConsolidates;
-        for (int i = 0; i < nbConsolidates; i++) {
-            excerpt2.readInt();
-        }
-        excerpt2.finish();
         count++;
     }
-    for (int i = 0; i < count; i++) {
-        System.out.print("latency: " + times[i] / repeats / 1e3 + " us average, ");
-        System.out.println("nbConsolidates: " + nbcs[i]);
+    Arrays.sort(times);
+    for (double perc : new double[]{50, 90, 99, 99.9, 99.99}) {
+        System.out.printf("%s%% took %.1f µs,  ", perc, times[((int) (repeats * perc / 100))] / 1000.0);
     }
+    System.out.printf("worst took %d µs%n", times[times.length - 1] / 1000);
     chronicle.close();
 }
+```
+prints an output like (note: this test does 20 million in a matter of seconds and the first half a million is for warming up)
+
+```
+50.0% took 0.3 µs,  90.0% took 0.4 µs,  99.0% took 33.5 µs,  99.9% took 66.9 µs,  99.99% took 119.7 µs,  worst took 183 µs
 ```
 
 #Support Group
