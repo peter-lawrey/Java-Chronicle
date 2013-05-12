@@ -79,6 +79,9 @@ prints an output like (note: this test does 20 million in a matter of seconds an
 
 ```
 50.0% took 0.3 µs, 90.0% took 0.4 µs, 99.0% took 33.5 µs, 99.9% took 66.9 µs, 99.99% took 119.7 µs, worst took 183 µs
+50.0% took 0.4 µs, 90.0% took 0.5 µs, 99.0% took 0.6 µs, 99.9% took 9.3 µs, 99.99% took 60.1 µs, worst took 883 µs
+50.0% took 0.3 µs, 90.0% took 0.4 µs, 99.0% took 0.6 µs, 99.9% took 21.9 µs, 99.99% took 62.0 µs, worst took 234 µs
+50.0% took 0.3 µs, 90.0% took 0.4 µs, 99.0% took 0.6 µs, 99.9% took 9.3 µs, 99.99% took 55.8 µs, worst took 199 µs
 ```
 
 #Support Group
