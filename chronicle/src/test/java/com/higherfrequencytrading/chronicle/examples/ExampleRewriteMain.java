@@ -34,7 +34,7 @@ public class ExampleRewriteMain {
         ChronicleTools.deleteOnExit(basePath);
         final int[] consolidates = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
         final int warmup = 500000;
-        final int repeats = 20000000;
+        final int repeats = 1000000;
         //Write
         Thread t = new Thread(new Runnable() {
             @Override

@@ -105,6 +105,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
         long startPosition = chronicle.getIndexData(index);
         capacity = (int) (endPosition - startPosition);
+        assert capacity >= MIN_SIZE : "end=" + endPosition + ", start=" + startPosition;
         index0(index, startPosition, endPosition);
         // TODO Assumes the start of the record won't be all 0's
         // TODO Need to determine whether this is required as a safety check or not.
@@ -157,6 +158,7 @@ public abstract class AbstractExcerpt implements Excerpt {
             chronicle.setIndexData(index + 1, endPosition);
             chronicle.incrementSize();
             capacity = (int) length;
+            assert capacity >= MIN_SIZE : "len=" + length;
             writeMemoryBarrier();
         }
         buffer = null;
