@@ -72,9 +72,9 @@ public class ExampleRewriteMain {
         final Excerpt excerpt = chronicle.createExcerpt();
         int[] times = new int[repeats];
         for (int count = -warmup; count < repeats; count++) {
-            while (!excerpt.nextIndex()) {
+            do {
             /* busy wait */
-            }
+            } while (!excerpt.nextIndex());
             final long timestamp = excerpt.readLong();
             long time = System.nanoTime() - timestamp;
             if (count >= 0)

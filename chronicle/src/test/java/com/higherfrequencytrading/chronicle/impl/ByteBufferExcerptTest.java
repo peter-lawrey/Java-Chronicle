@@ -35,7 +35,7 @@ public class ByteBufferExcerptTest {
     @Test
     public void mockTest() {
         DirectChronicle dc = createMock(DirectChronicle.class);
-        expect(dc.getIndexData(1)).andReturn(1L);
+        expect(dc.getIndexData(1)).andReturn(8L);
         expect(dc.getIndexData(0)).andReturn(0L);
         MappedByteBuffer mbb = createMock(MappedByteBuffer.class);
         expect(mbb.getLong(0)).andReturn(128L);
@@ -43,7 +43,8 @@ public class ByteBufferExcerptTest {
         expect(mbb.get(0)).andReturn((byte) -128);
         expect(dc.acquireDataBuffer(0)).andReturn(mbb);
         expect(dc.positionInBuffer(0)).andReturn(0);
-        expect(dc.positionInBuffer(0)).andReturn(0);
+        expect(dc.positionInBuffer(7)).andReturn(0);
+        expect(dc.multiThreaded()).andReturn(true);
         replay(dc);
         replay(mbb);
         ByteBufferExcerpt aei = new ByteBufferExcerpt(dc);
@@ -60,12 +61,13 @@ public class ByteBufferExcerptTest {
         ByteBuffer bb = ByteBuffer.allocate(8 * 1024);
 
         DirectChronicle dc = createMock(DirectChronicle.class);
-        expect(dc.getIndexData(1)).andReturn(1L);
+        expect(dc.getIndexData(1)).andReturn(8L);
         expect(dc.getIndexData(0)).andReturn(0L);
         MappedByteBuffer mbb = createMock(MappedByteBuffer.class);
         expect(dc.acquireDataBuffer(0)).andReturn(mbb);
+        expect(dc.positionInBuffer(7)).andReturn(0);
         expect(dc.positionInBuffer(0)).andReturn(0);
-        expect(dc.positionInBuffer(0)).andReturn(0);
+        expect(mbb.getLong(0)).andReturn(128L);
         replay(dc);
         replay(mbb);
         ByteBufferExcerpt aei = new ByteBufferExcerpt(dc);

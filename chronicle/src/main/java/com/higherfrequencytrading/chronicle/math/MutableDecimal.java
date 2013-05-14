@@ -117,18 +117,20 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
         }
         for (int s2 = scale; s2 < 0; s2++)
             sb.append('0');
-        while (v != 0 || s >= 0) {
-            int digit = (int) (v % 10);
-            // MIN_VALUE
-            if (digit < 0) {
-                digit = 8;
-                v = (v >>> 1) / 5;
-            } else {
-                v /= 10;
-            }
-            sb.append((char) ('0' + digit));
-            if (--s == 0)
-                sb.append('.');
+        if (v != 0 || s >= 0) {
+            do {
+                int digit = (int) (v % 10);
+                // MIN_VALUE
+                if (digit < 0) {
+                    digit = 8;
+                    v = (v >>> 1) / 5;
+                } else {
+                    v /= 10;
+                }
+                sb.append((char) ('0' + digit));
+                if (--s == 0)
+                    sb.append('.');
+            } while (v != 0 || s >= 0);
         }
         if (neg)
             sb.append('-');

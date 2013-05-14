@@ -57,7 +57,7 @@ public class DirectMemoryReader {
         long last = System.nanoTime();
         StringBuilder sb = new StringBuilder();
         //noinspection InfiniteLoopStatement
-        while (true) {
+        do {
             if (dmr.read(sb)) {
                 System.out.println(sb);
                 sb.setLength(0);
@@ -69,6 +69,6 @@ public class DirectMemoryReader {
                     last = now;
                 }
             }
-        }
+        } while (true);
     }
 }

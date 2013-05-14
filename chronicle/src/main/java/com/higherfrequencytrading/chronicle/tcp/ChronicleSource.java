@@ -112,7 +112,10 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
                 long index = readIndex(socket);
                 Excerpt excerpt = chronicle.createExcerpt();
                 ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
-                while (!closed) {
+                if (closed) {
+                    return;
+                }
+                do {
                     while (!excerpt.index(index))
                         pause(delayNS);
                     int size = excerpt.capacity();
@@ -131,7 +134,7 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
                     }
                     if (bb.remaining() > 0) throw new EOFException("Failed to send index=" + index);
                     index++;
-                }
+                } while (!closed);
             } catch (IOException e) {
                 if (!closed)
                     logger.log(Level.INFO, "Connect " + socket + " died", e);

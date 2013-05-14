@@ -56,6 +56,11 @@ public interface Chronicle extends Closeable {
     void close();
 
     /**
+     * @param multiThreaded if true, allow multiple threads to access the Excerpt
+     */
+    void multiThreaded(boolean multiThreaded);
+
+    /**
      * Add an enumerated type or override the default implementation for a class.
      *
      * @param marshaller to add for marshaled types.

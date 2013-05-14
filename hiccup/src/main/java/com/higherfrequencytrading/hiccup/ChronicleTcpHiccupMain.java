@@ -105,9 +105,9 @@ public class ChronicleTcpHiccupMain {
         @Override
         public void run() {
             Excerpt excerpt = chronicle.createExcerpt();
-            while (!Thread.interrupted()) {
+            do {
                 excerpt.nextIndex();
-            }
+            } while (!Thread.interrupted());
             chronicle.close();
         }
     }
@@ -133,9 +133,9 @@ public class ChronicleTcpHiccupMain {
                 Excerpt excerpt = source.createExcerpt();
                 for (int i = 1; i <= WARMUP + RUNS; i++) {
                     long next = start + i * 1000000L / RATE;
-                    while (System.nanoTime() < next) {
+                    do {
                         /* busy wait */
-                    }
+                    } while (System.nanoTime() < next);
                     // when it should have been sent, not when it was.
                     excerpt.startExcerpt(128);
                     excerpt.writeLong(next);
@@ -168,9 +168,9 @@ public class ChronicleTcpHiccupMain {
             Excerpt excerpt = sink.createExcerpt();
             try {
                 for (int i = 0; i < WARMUP + RUNS; i++) {
-                    while (!excerpt.index(i)) {
+                    do {
                         /* busy wait */
-                    }
+                    } while (!excerpt.index(i));
                     long next = excerpt.readLong();
                     long took = System.nanoTime() - next;
                     if (i >= WARMUP)

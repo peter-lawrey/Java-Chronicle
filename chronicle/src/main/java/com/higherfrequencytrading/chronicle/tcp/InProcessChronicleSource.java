@@ -69,6 +69,11 @@ public class InProcessChronicleSource implements Chronicle {
         service.execute(new Acceptor());
     }
 
+    @Override
+    public void multiThreaded(boolean multiThreaded) {
+        chronicle.multiThreaded(multiThreaded);
+    }
+
     public void setTcpNoDelay(Boolean tcpNoDelay) {
         this.tcpNoDelay = tcpNoDelay;
     }

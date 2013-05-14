@@ -89,7 +89,7 @@
                     <nohelp>true</nohelp>
                 </configuration>
             </plugin>
-            <plugin>
+            <!-- plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>1.4</version>
@@ -105,7 +105,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin -->
 
             <plugin>
                 <groupId>org.apache.felix</groupId>

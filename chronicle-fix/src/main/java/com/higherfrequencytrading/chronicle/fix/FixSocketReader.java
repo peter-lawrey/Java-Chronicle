@@ -43,10 +43,13 @@ public class FixSocketReader {
             return false;
         // search back for the end of the message
         int end = buffer.position(), pos = end;
-        while (buffer.get(--pos) != END_OF_FIX_MESSAGE)
-            if (pos <= 0)
-                return false;
-        while (true) {
+        if (buffer.get(--pos) != END_OF_FIX_MESSAGE) {
+            do {
+                if (pos <= 0)
+                    return false;
+            } while (buffer.get(--pos) != END_OF_FIX_MESSAGE);
+        }
+        do {
             int pos2 = pos;
             while (buffer.get(--pos2) != END_OF_FIX_MESSAGE)
                 if (pos2 <= MIN_FIX_MSG_SIZE)
@@ -71,7 +74,7 @@ public class FixSocketReader {
                 return true;
             }
             pos = pos2;
-        }
+        } while (true);
     }
 
     protected long currentTimeNS() {

@@ -56,9 +56,9 @@ public class ExampleSimpleWriteReadMain {
         ic.useUnsafe(true); // for benchmarks
         Excerpt excerpt = ic.createExcerpt();
         for (int i = 1; i <= runs; i++) {
-            while (!excerpt.nextIndex()) {
+            do {
                 // busy wait
-            }
+            } while (!excerpt.nextIndex());
             char ch = (char) excerpt.readUnsignedByte();
             long l = excerpt.readLong();
             double d = excerpt.readDouble();
