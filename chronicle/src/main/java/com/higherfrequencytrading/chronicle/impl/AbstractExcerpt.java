@@ -1757,7 +1757,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     @Override
     public <E> void writeEnum(E e) {
         Class aClass;
-        if (e == null)
+        if (e == null || e instanceof CharSequence)
             aClass = String.class;
         else
             aClass = (Class) e.getClass();
