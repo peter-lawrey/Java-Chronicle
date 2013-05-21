@@ -1558,92 +1558,92 @@ public abstract class AbstractExcerpt implements Excerpt {
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 1)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 2)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 3)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 4)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 5)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 6)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 7)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 8)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 9)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 10)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 11)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 12)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 13)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 14)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 15)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 16)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 17)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 18)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         return endIndex;
     }

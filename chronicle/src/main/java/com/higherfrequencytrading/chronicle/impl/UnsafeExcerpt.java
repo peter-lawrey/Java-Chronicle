@@ -241,7 +241,6 @@ public class UnsafeExcerpt extends AbstractExcerpt {
 
     static {
         try {
-
             @SuppressWarnings("ALL")
             Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
             theUnsafe.setAccessible(true);
