@@ -85,7 +85,6 @@ public class ExampleRewriteMain {
                 excerpt.readStopBit();
             }
             excerpt.finish();
-            count++;
         }
         Arrays.sort(times);
         for (double perc : new double[]{50, 90, 99, 99.9, 99.99}) {

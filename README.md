@@ -65,7 +65,6 @@ public static void main(String... ignored) throws IOException {
             excerpt.readStopBit();
         }
         excerpt.finish();
-        count++;
     }
     Arrays.sort(times);
     for (double perc : new double[]{50, 90, 99, 99.9, 99.99}) {
