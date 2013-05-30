@@ -65,8 +65,9 @@ public class IntIndexedChronicleThroughputMain {
                     Excerpt excerpt = tsc.createExcerpt();
                     Excerpt excerpt2 = tsc2.createExcerpt();
                     for (int i = 0; i < RUNS; i++) {
-                        while (!excerpt.index(i))
+                        do {
                             BusyWaiter.pause();
+                        } while (!excerpt.index(i));
 
                         char type = excerpt.readChar();
                         if ('T' != type)
@@ -120,8 +121,9 @@ public class IntIndexedChronicleThroughputMain {
         }
 
         for (; i2 < RUNS; i2++) {
-            while (!excerpt2.index(i2))
+            do {
                 BusyWaiter.pause();
+            } while (!excerpt2.index(i2));
             char type = excerpt2.readChar();
             if ('R' != type)
                 assertEquals('R', type);

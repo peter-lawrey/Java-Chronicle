@@ -51,7 +51,7 @@ public class PEMain {
 
         long prevProcessed = 0, count = 0;
         //noinspection InfiniteLoopStatement
-        while (true) {
+        do {
             boolean readOne = false;
             for (Gw2PeReader reader : readers) {
                 readOne |= reader.readOne();
@@ -67,7 +67,7 @@ public class PEMain {
                     prevProcessed = processed;
                 }
             }
-        }
+        } while (true);
     }
 
     static class PEEvents implements Gw2PeEvents {

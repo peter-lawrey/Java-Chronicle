@@ -116,9 +116,10 @@ public abstract class AbstractExcerpt implements Excerpt {
     @Override
     public long size() {
         readMemoryBarrier();
-        long size = this.size;
-        while (chronicle.getIndexData(size + 1) != 0)
+        long size = this.size - 1;
+        do {
             size++;
+        } while (chronicle.getIndexData(size + 1) != 0);
         return this.size = size;
     }
 
@@ -149,7 +150,7 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @Override
     public void finish() {
-        assert checkThread();
+        assert chronicle.multiThreaded() || checkThread();
         long length = checkEndOfBuffer();
         if (forWrite) {
             if (chronicle.synchronousMode())
@@ -228,8 +229,11 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @Override
     public void readFully(byte[] b, int off, int len) {
-        while (len-- > 0)
+        if (len-- <= 0)
+            return;
+        do {
             b[off++] = readByte();
+        } while (len-- > 0);
     }
 
 
@@ -332,17 +336,26 @@ public abstract class AbstractExcerpt implements Excerpt {
             return false;
         int utflen = (int) len;
         int count = 0;
-        while (count < utflen) {
-            int c = readByte();
-            if (c < 0) {
-                position(position() - 1);
-                break;
-            }
-            count++;
-            appendable.append((char) c);
+        if (count < utflen) {
+            do {
+                int c = readByte();
+                if (c < 0) {
+                    position(position() - 1);
+                    break;
+                }
+                count++;
+                appendable.append((char) c);
+            } while (count < utflen);
         }
 
-        while (count < utflen) {
+        if (count < utflen) {
+            append1(appendable, utflen, count);
+        }
+        return true;
+    }
+
+    private void append1(Appendable appendable, int utflen, int count) throws IOException {
+        do {
             int c = readUnsignedByte();
             switch (c >> 4) {
                 case 0:
@@ -353,13 +366,13 @@ public abstract class AbstractExcerpt implements Excerpt {
                 case 5:
                 case 6:
                 case 7:
-                    /* 0xxxxxxx*/
+                /* 0xxxxxxx*/
                     count++;
                     appendable.append((char) c);
                     break;
                 case 12:
                 case 13: {
-                    /* 110x xxxx   10xx xxxx*/
+                /* 110x xxxx   10xx xxxx*/
                     count += 2;
                     if (count > utflen)
                         throw new UTFDataFormatException(
@@ -374,7 +387,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                     break;
                 }
                 case 14: {
-                    /* 1110 xxxx  10xx xxxx  10xx xxxx */
+                /* 1110 xxxx  10xx xxxx  10xx xxxx */
                     count += 3;
                     if (count > utflen)
                         throw new UTFDataFormatException(
@@ -392,12 +405,11 @@ public abstract class AbstractExcerpt implements Excerpt {
                     break;
                 }
                 default:
-                    /* 10xx xxxx,  1111 xxxx */
+                /* 10xx xxxx,  1111 xxxx */
                     throw new UTFDataFormatException(
                             "malformed input around byte " + count);
             }
-        }
-        return true;
+        } while (count < utflen);
     }
 
     @Override
@@ -427,7 +439,13 @@ public abstract class AbstractExcerpt implements Excerpt {
             appendable.append((char) c);
         }
 
-        while (remaining() > 0) {
+        if (remaining() > 0) {
+            readUTF1(appendable, tester);
+        }
+    }
+
+    private void readUTF1(Appendable appendable, StopCharTester tester) throws IOException {
+        do {
             int c = readUnsignedByte();
             switch (c >> 4) {
                 case 0:
@@ -438,14 +456,14 @@ public abstract class AbstractExcerpt implements Excerpt {
                 case 5:
                 case 6:
                 case 7:
-                    /* 0xxxxxxx*/
+                /* 0xxxxxxx*/
                     if (tester.isStopChar(c))
                         return;
                     appendable.append((char) c);
                     break;
                 case 12:
                 case 13: {
-                    /* 110x xxxx   10xx xxxx*/
+                /* 110x xxxx   10xx xxxx*/
                     int char2 = readUnsignedByte();
                     if ((char2 & 0xC0) != 0x80)
                         throw new UTFDataFormatException(
@@ -458,7 +476,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                     break;
                 }
                 case 14: {
-                    /* 1110 xxxx  10xx xxxx  10xx xxxx */
+                /* 1110 xxxx  10xx xxxx  10xx xxxx */
 
                     int char2 = readUnsignedByte();
                     int char3 = readUnsignedByte();
@@ -475,11 +493,11 @@ public abstract class AbstractExcerpt implements Excerpt {
                     break;
                 }
                 default:
-                    /* 10xx xxxx,  1111 xxxx */
+                /* 10xx xxxx,  1111 xxxx */
                     throw new UTFDataFormatException(
                             "malformed input around byte ");
             }
-        }
+        } while (remaining() > 0);
     }
 
     @Override
@@ -491,11 +509,14 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @Override
     public boolean skipTo(StopCharTester tester) {
-        while (remaining() > 0) {
+        if (remaining() <= 0) {
+            return false;
+        }
+        do {
             int ch = readByte();
             if (tester.isStopChar(ch))
                 return true;
-        }
+        } while (remaining() > 0);
         return false;
     }
 
@@ -633,12 +654,21 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @Override
     public long readStopBit() {
-        long l = 0, b;
+        long b;
+        if ((b = readByte()) >= 0)
+            return b;
+
+        return readStopBit0(b);
+    }
+
+    private long readStopBit0(long b) {
+        long l = 0;
         int count = 0;
-        while ((b = readByte()) < 0) {
+        do {
             l |= (b & 0x7FL) << count;
             count += 7;
-        }
+        } while ((b = readByte()) < 0);
+
         if (b == 0 && count > 0)
             return ~l;
         return l | (b << count);
@@ -1013,7 +1043,7 @@ public abstract class AbstractExcerpt implements Excerpt {
             neg = true;
             n = ~n;
         }
-        while (true) {
+        do {
             long n2 = n >>> 7;
             if (n2 != 0) {
                 writeByte((byte) (0x80 | (n & 0x7F)));
@@ -1027,7 +1057,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                 }
                 break;
             }
-        }
+        } while (true);
     }
 
     @Override
@@ -1358,7 +1388,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         int exp = 0;
         boolean negative = false;
         int decimalPlaces = Integer.MIN_VALUE;
-        while (true) {
+        do {
             byte ch = readByte();
             if (ch >= '0' && ch <= '9') {
                 while (value >= MAX_VALUE_DIVIDE_10) {
@@ -1374,7 +1404,7 @@ public abstract class AbstractExcerpt implements Excerpt {
             } else {
                 break;
             }
-        }
+        } while (true);
 
         return asDouble(value, exp, negative, decimalPlaces);
     }
@@ -1384,7 +1414,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     public MutableDecimal parseDecimal(MutableDecimal decimal) {
         long num = 0, scale = Long.MIN_VALUE;
         boolean negative = false;
-        while (true) {
+        do {
             byte b = readByte();
 //            if (b >= '0' && b <= '9')
             if ((b - ('0' + Integer.MIN_VALUE)) <= 9 + Integer.MIN_VALUE) {
@@ -1397,7 +1427,7 @@ public abstract class AbstractExcerpt implements Excerpt {
             } else {
                 break;
             }
-        }
+        } while (true);
         if (negative)
             num = -num;
         decimal.set(num, scale > 0 ? (int) scale : 0);
@@ -1408,7 +1438,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     public long parseLong() {
         long num = 0;
         boolean negative = false;
-        while (true) {
+        do {
             byte b = readByte();
 //            if (b >= '0' && b <= '9')
             if ((b - ('0' + Integer.MIN_VALUE)) <= 9 + Integer.MIN_VALUE)
@@ -1417,7 +1447,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                 negative = true;
             else
                 break;
-        }
+        } while (true);
         return negative ? -num : num;
     }
 
@@ -1528,92 +1558,92 @@ public abstract class AbstractExcerpt implements Excerpt {
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 1)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 2)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 3)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 4)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 5)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 6)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 7)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 8)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 9)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 10)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 11)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 12)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 13)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 14)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 15)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 16)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 17)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         num /= 10;
         if (num <= 0) return endIndex;
         if (precision == 18)
-            numberBuffer[--endIndex] = (byte) (num % 10L + '0');
+            numberBuffer[--endIndex] = (byte) '.';
         numberBuffer[--endIndex] = (byte) (num % 10L + '0');
         return endIndex;
     }
@@ -1727,7 +1757,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     @Override
     public <E> void writeEnum(E e) {
         Class aClass;
-        if (e == null)
+        if (e == null || e instanceof CharSequence)
             aClass = String.class;
         else
             aClass = (Class) e.getClass();

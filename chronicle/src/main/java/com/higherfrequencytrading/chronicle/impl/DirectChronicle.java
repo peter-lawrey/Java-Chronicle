@@ -43,4 +43,6 @@ public interface DirectChronicle extends Chronicle {
     <E> EnumeratedMarshaller<E> acquireMarshaller(Class<E> aClass);
 
     boolean synchronousMode();
+
+    boolean multiThreaded();
 }

@@ -18,6 +18,7 @@ package com.higherfrequencytrading.chronicle.examples;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 
 import java.io.IOException;
 
@@ -26,10 +27,10 @@ import java.io.IOException;
  */
 public class ExampleSimpleWriteReadMain {
     public static void main(String... args) throws IOException {
-        final long runs = 20 * 1000 * 1000000L;
+        final long runs = 1000 * 1000000L;
         long start = System.nanoTime();
         final String basePath = System.getProperty("java.io.tmpdir") + "/ExampleSimpleWriteReadMain";
-//        ChronicleTools.deleteOnExit(basePath);
+        ChronicleTools.deleteOnExit(basePath);
 
         new Thread(new Runnable() {
             @Override

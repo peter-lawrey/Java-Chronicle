@@ -60,9 +60,9 @@ public class BaseIndexedChronicleLatencyMain {
                     Excerpt excerpt2 = tsc2.createExcerpt();
 
                     for (int i = 0; i < RUNS; i++) {
-                        while (!excerpt.index(i)) {
+                        do {
                             /* try again */
-                        }
+                        } while (!excerpt.index(i));
 
                         long time = excerpt.readLong();
                         excerpt.finish();

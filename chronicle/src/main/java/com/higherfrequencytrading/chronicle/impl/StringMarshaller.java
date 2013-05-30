@@ -23,7 +23,7 @@ import com.higherfrequencytrading.chronicle.StopCharTester;
 /**
  * @author peter.lawrey
  */
-public class StringMarshaller implements EnumeratedMarshaller<String> {
+public class StringMarshaller implements EnumeratedMarshaller<CharSequence> {
     private final int size1;
     private String[] interner;
 
@@ -34,12 +34,12 @@ public class StringMarshaller implements EnumeratedMarshaller<String> {
     }
 
     @Override
-    public Class<String> classMarshaled() {
-        return String.class;
+    public Class<CharSequence> classMarshaled() {
+        return CharSequence.class;
     }
 
     @Override
-    public void write(Excerpt excerpt, String s) {
+    public void write(Excerpt excerpt, CharSequence s) {
         excerpt.writeUTF(s);
     }
 

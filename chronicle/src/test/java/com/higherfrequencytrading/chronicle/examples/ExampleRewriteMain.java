@@ -72,9 +72,9 @@ public class ExampleRewriteMain {
         final Excerpt excerpt = chronicle.createExcerpt();
         int[] times = new int[repeats];
         for (int count = -warmup; count < repeats; count++) {
-            while (!excerpt.nextIndex()) {
+            do {
             /* busy wait */
-            }
+            } while (!excerpt.nextIndex());
             final long timestamp = excerpt.readLong();
             long time = System.nanoTime() - timestamp;
             if (count >= 0)
@@ -85,7 +85,6 @@ public class ExampleRewriteMain {
                 excerpt.readStopBit();
             }
             excerpt.finish();
-            count++;
         }
         Arrays.sort(times);
         for (double perc : new double[]{50, 90, 99, 99.9, 99.99}) {

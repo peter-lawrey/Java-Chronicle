@@ -32,6 +32,7 @@ public abstract class AbstractChronicle implements DirectChronicle {
     private final Map<Class, EnumeratedMarshaller> marshallerMap = new LinkedHashMap<Class, EnumeratedMarshaller>();
 
     protected long size = 0;
+    private boolean multiThreaded = false;
 
     protected AbstractChronicle(String name) {
         this.name = name;
@@ -40,6 +41,16 @@ public abstract class AbstractChronicle implements DirectChronicle {
         marshallerMap.put(CharSequence.class, stringMarshaller);
         marshallerMap.put(Class.class, new ClassEnumMarshaller(Thread.currentThread().getContextClassLoader()));
         marshallerMap.put(Date.class, new DateMarshaller(10191));
+    }
+
+    @Override
+    public boolean multiThreaded() {
+        return multiThreaded;
+    }
+
+    @Override
+    public void multiThreaded(boolean multiThreaded) {
+        this.multiThreaded = multiThreaded;
     }
 
     public String name() {

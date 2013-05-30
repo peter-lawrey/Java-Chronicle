@@ -56,6 +56,11 @@ public class InProcessChronicleSink implements Chronicle {
     }
 
     @Override
+    public void multiThreaded(boolean multiThreaded) {
+        chronicle.multiThreaded(multiThreaded);
+    }
+
+    @Override
     public String name() {
         return chronicle.name();
     }

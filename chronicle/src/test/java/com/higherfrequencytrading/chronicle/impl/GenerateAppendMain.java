@@ -59,7 +59,7 @@ public class GenerateAppendMain {
                 if (i > 0)
                     System.out.println(
                             "        if (precision == " + i + ") \n" +
-                                    "            numberBuffer[--endIndex] = (byte) (num % 10L + '0');");
+                                    "            numberBuffer[--endIndex] = (byte) '.';");
                 System.out.println(
                         "        numberBuffer[--endIndex] = (byte) (num % 10L + '0');");
 

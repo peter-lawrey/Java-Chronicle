@@ -163,9 +163,9 @@ public class TcpHiccupMain {
                 long start = System.nanoTime();
                 for (int i = 1; i <= WARMUP + RUNS; i++) {
                     long next = start + i * 1000000L / RATE;
-                    while (System.nanoTime() < next) {
+                    do {
                         /* busy wait */
-                    }
+                    } while (System.nanoTime() < next);
                     time.clear();
                     // when it should have been sent, not when it was.
                     time.putInt(i);

@@ -102,7 +102,10 @@ public class ChronicleSink implements Closeable {
         }
 
         private SocketChannel createConnection() {
-            while (!closed) {
+            if (closed) {
+                return null;
+            }
+            do {
                 try {
                     SocketChannel sc = SocketChannel.open(address);
                     ByteBuffer bb = ByteBuffer.allocate(8);
@@ -116,39 +119,41 @@ public class ChronicleSink implements Closeable {
                     else if (logger.isLoggable(Level.INFO))
                         logger.log(Level.INFO, "Failed to connect to " + address + " retrying " + e);
                 }
-            }
+            } while (!closed);
             return null;
         }
 
         private void readNextExcerpt(SocketChannel sc) {
             ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
             try {
-                while (!closed) {
-                    readHeader(sc, bb);
-                    long index = bb.getLong(0);
-                    long size = bb.getInt(8);
-                    if (index != chronicle.size())
-                        throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + index);
-                    if (size > Integer.MAX_VALUE || size < 0)
-                        throw new StreamCorruptedException("size was " + size);
+                if (!closed) {
+                    do {
+                        readHeader(sc, bb);
+                        long index = bb.getLong(0);
+                        long size = bb.getInt(8);
+                        if (index != chronicle.size())
+                            throw new StreamCorruptedException("Expected index " + chronicle.size() + " but got " + index);
+                        if (size > Integer.MAX_VALUE || size < 0)
+                            throw new StreamCorruptedException("size was " + size);
 
-                    excerpt.startExcerpt((int) size);
-                    // perform a progressive copy of data.
-                    long remaining = size;
-                    bb.position(0);
-                    while (remaining > 0) {
-                        int size2 = (int) Math.min(bb.capacity(), remaining);
-                        bb.limit(size2);
-                        if (sc.read(bb) < 0)
-                            throw new EOFException();
-                        bb.flip();
-                        remaining -= bb.remaining();
-                        excerpt.write(bb);
-                    }
-                    excerpt.finish();
+                        excerpt.startExcerpt((int) size);
+                        // perform a progressive copy of data.
+                        long remaining = size;
+                        bb.position(0);
+                        while (remaining > 0) {
+                            int size2 = (int) Math.min(bb.capacity(), remaining);
+                            bb.limit(size2);
+                            if (sc.read(bb) < 0)
+                                throw new EOFException();
+                            bb.flip();
+                            remaining -= bb.remaining();
+                            excerpt.write(bb);
+                        }
+                        excerpt.finish();
 
-                    excerpt.index(index);
-                    listener.onExcerpt(excerpt);
+                        excerpt.index(index);
+                        listener.onExcerpt(excerpt);
+                    } while (!closed);
                 }
             } catch (IOException e) {
                 if (!closed)
