@@ -20,7 +20,7 @@ package com.higherfrequencytrading.chronicle;
  * @author peter.lawrey
  */
 public enum StopCharTesters implements StopCharTester {
-    TAB_TEXT {
+    CONTROL_STOP {
         @Override
         public boolean isStopChar(int ch) {
             return ch < ' ';
@@ -66,15 +66,6 @@ public enum StopCharTesters implements StopCharTester {
         @Override
         public boolean isStopChar(int ch) {
             return this.ch == ch;
-        }
-    }
-
-    public static StopCharTester CONTROL_STOP = new ControlStopCSTester();
-
-    static class ControlStopCSTester implements StopCharTester {
-        @Override
-        public boolean isStopChar(int ch) {
-            return ch < ' ';
         }
     }
 }
