@@ -19,17 +19,17 @@ package com.higherfrequencytrading.chronicle.examples;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
-import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 
 import java.io.IOException;
-import java.util.Random;
 
 /**
  * @author peter.lawrey
  */
 public class ExampleSimpleWriteReadMain {
     public static void main(String... args) throws IOException {
-        final int runs = 100 * 1000000;
+        final long runs = 1000 * 1000000L;
+        final int batchSize = 10;
+        System.out.printf("Messages to write %,d in batches of %,d%n", runs, batchSize);
         long start = System.nanoTime();
         final String basePath = System.getProperty("java.io.tmpdir") + "/ExampleSimpleWriteReadMain";
         ChronicleTools.deleteOnExit(basePath);
