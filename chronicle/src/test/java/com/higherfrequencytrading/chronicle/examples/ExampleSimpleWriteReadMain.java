@@ -18,18 +18,20 @@ package com.higherfrequencytrading.chronicle.examples;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * @author peter.lawrey
  */
 public class ExampleSimpleWriteReadMain {
     public static void main(String... args) throws IOException {
-        final int runs = 100 * 1000000;
+        final int runs = 5;
         long start = System.nanoTime();
         final String basePath = System.getProperty("user.home") + "/ExampleSimpleWriteReadMain";
-//        ChronicleTools.deleteOnExit(basePath);
+        ChronicleTools.deleteOnExit(basePath);
 
         new Thread(new Runnable() {
             @Override
@@ -38,10 +40,11 @@ public class ExampleSimpleWriteReadMain {
                     IndexedChronicle ic = new IndexedChronicle(basePath);
                     ic.useUnsafe(true); // for benchmarks
                     Excerpt excerpt = ic.createExcerpt();
+                    Random random = new Random();
                     for (int i = 1; i <= runs; i++) {
                         excerpt.startExcerpt(17);
                         excerpt.writeUnsignedByte('M'); // message type
-                        excerpt.writeLong(i); // e.g. time stamp
+                        excerpt.writeLong(random.nextInt(90) + 1); // e.g. time stamp
                         excerpt.writeDouble(i);
                         excerpt.finish();
                     }
@@ -62,9 +65,10 @@ public class ExampleSimpleWriteReadMain {
             char ch = (char) excerpt.readUnsignedByte();
             long l = excerpt.readLong();
             double d = excerpt.readDouble();
-            assert ch == 'M';
-            assert l == i;
-            assert d == i;
+            System.out.println(l);
+//            assert ch == 'M';
+//            assert l == i;
+//            assert d == i;
             excerpt.finish();
         }
         ic.close();

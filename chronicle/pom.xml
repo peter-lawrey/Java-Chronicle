@@ -44,6 +44,12 @@
             <version>4.11</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>net.sf.trove4j</groupId>
+            <artifactId>trove4j</artifactId>
+            <version>3.0.3</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
