@@ -47,9 +47,12 @@ public class IndexedChronicleTest {
 
     private void doRewriteableEntries(boolean useUnsafe, boolean minimiseByteBuffers, boolean synchronousMode) throws IOException {
         String basePath = TMP + File.separator + "deleteme.ict";
-        IndexedChronicle tsc = new IndexedChronicle(basePath, IndexedChronicle.DEFAULT_DATA_BITS_SIZE32,
-                ByteOrder.nativeOrder(), minimiseByteBuffers, synchronousMode);
-        tsc.useUnsafe(useUnsafe);
+        IndexedChronicle tsc = ChronicleBuilder.newIndexedChronicleBuilder(basePath)
+            .dataBitSizeHint(IndexedChronicle.DEFAULT_DATA_BITS_SIZE32)
+            .minimiseByteBuffers(minimiseByteBuffers)
+            .useSynchronousMode(synchronousMode)
+            .useUnsafe(useUnsafe).build();
+
         deleteOnExit(basePath);
 
         tsc.clear();
