@@ -67,7 +67,7 @@ public class ExampleKeyedExcerptMain {
         ExampleKeyedExcerptMain map = new ExampleKeyedExcerptMain(basePath);
         map.load();
         long start = System.nanoTime();
-        int keys = 1000000;
+        int keys = 10000000;
         for (int i = 0; i < keys; i++) {
             Map<String, String> props = new LinkedHashMap<String, String>();
             props.put("a", Integer.toString(i)); // an int.
