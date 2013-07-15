@@ -55,7 +55,7 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
      *
      * @param index within the Chronicle
      * @return true if the index could be set to a valid entry.
-     * @throws IndexOutOfBoundsException If index < 0
+     * @throws IndexOutOfBoundsException If index &lt; 0
      */
     boolean index(long index) throws IndexOutOfBoundsException;
 
