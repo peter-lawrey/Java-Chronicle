@@ -19,6 +19,7 @@ package com.higherfrequencytrading.chronicle.datamodel;
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
+import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 
 import java.io.Closeable;
@@ -57,14 +58,17 @@ public class DataStore implements Closeable {
 
             case READ_ONLY:
                 final String name = chronicle.name();
-                updater = Executors.newSingleThreadExecutor(new ThreadFactory() {
-                    @Override
-                    public Thread newThread(Runnable r) {
-                        Thread t = new Thread(r, name + "data store updater");
-                        t.setDaemon(true);
-                        return t;
-                    }
-                });
+                if (chronicle instanceof InProcessChronicleSink)
+                    updater = Executors.newSingleThreadExecutor(new ThreadFactory() {
+                        @Override
+                        public Thread newThread(Runnable r) {
+                            Thread t = new Thread(r, name + "data store updater");
+                            t.setDaemon(true);
+                            return t;
+                        }
+                    });
+                else
+                    updater = null;
                 break;
 
             default:
@@ -157,24 +161,25 @@ public class DataStore implements Closeable {
                 break;
 
             case READ_ONLY:
-                updater.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        excerpt = chronicle.createExcerpt();
-                        while (!closed) {
-                            boolean found = excerpt.nextIndex();
-                            if (found) {
-                                processNextEvent(excerpt.index() <= lastEvent);
+                if (updater != null)
+                    updater.submit(new Runnable() {
+                        @Override
+                        public void run() {
+                            excerpt = chronicle.createExcerpt();
+                            while (!closed) {
+                                boolean found = excerpt.nextIndex();
+                                if (found) {
+                                    processNextEvent(excerpt.index() <= lastEvent);
 
-                            } else {
-                                for (Wrapper wrapper : wrappersArray) {
-                                    wrapper.notifyOff(false);
-                                    wrapper.inSync();
+                                } else {
+                                    for (Wrapper wrapper : wrappersArray) {
+                                        wrapper.notifyOff(false);
+                                        wrapper.inSync();
+                                    }
                                 }
                             }
                         }
-                    }
-                });
+                    });
                 break;
 
             default:
@@ -232,5 +237,19 @@ public class DataStore implements Closeable {
         if (updater != null)
             updater.shutdown();
         chronicle.close();
+    }
+
+    /**
+     * Should only be used for plain IndexChronicle.
+     *
+     * @return was a new entry found.
+     */
+    public boolean nextEvent() {
+        assert updater == null;
+        if (excerpt.nextIndex()) {
+            processNextEvent(false);
+            return true;
+        }
+        return false;
     }
 }
