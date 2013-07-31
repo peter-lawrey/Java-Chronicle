@@ -184,7 +184,7 @@ public class InProcessChronicleSource implements Chronicle {
 //                    if (index % 20000 == 0)
 //                        System.out.println(System.currentTimeMillis() + ": wrote " + index);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 if (!closed) {
                     String msg = e.getMessage();
                     if (msg != null &&

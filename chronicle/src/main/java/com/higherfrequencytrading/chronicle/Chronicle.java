@@ -47,7 +47,9 @@ public interface Chronicle extends Closeable {
 
     /**
      * @return The byte order of the index and data in the chronicle.
+     * @deprecated This will be dropped in Chronicle 2.0
      */
+    @Deprecated
     ByteOrder byteOrder();
 
     /**
@@ -57,6 +59,7 @@ public interface Chronicle extends Closeable {
 
     /**
      * @param multiThreaded if true, allow multiple threads to access the Excerpt
+     * @deprecated This will be dropped in Chronicle 2.0
      */
     void multiThreaded(boolean multiThreaded);
 
