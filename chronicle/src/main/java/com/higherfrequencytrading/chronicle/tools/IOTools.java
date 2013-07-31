@@ -16,8 +16,6 @@
 
 package com.higherfrequencytrading.chronicle.tools;
 
-import sun.reflect.Reflection;
-
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -63,8 +61,7 @@ public enum IOTools {
      * @throws IOException If the file was not found, or the GZIP Stream was corrupt.
      */
     public static InputStream asStream(String name) throws IOException {
-        ClassLoader classLoader = Reflection.getCallerClass(3).getClassLoader();
-        return asStream(name, classLoader);
+        return asStream(name, null);
     }
 
     public static InputStream asStream(String name, ClassLoader classLoader) throws IOException {
@@ -75,6 +72,8 @@ public enum IOTools {
         try {
             in = new FileInputStream(name2);
         } catch (FileNotFoundException e) {
+            if (classLoader == null)
+                classLoader = Thread.currentThread().getContextClassLoader();
             in = classLoader.getResourceAsStream(name2);
             if (in == null)
                 throw e;
@@ -93,8 +92,7 @@ public enum IOTools {
      * @throws IOException if the file was not found or the stream was corrupt.
      */
     public static BufferedReader asReader(String name) throws IOException {
-        ClassLoader classLoader = Reflection.getCallerClass(3).getClassLoader();
-        return new BufferedReader(new InputStreamReader(asStream(name, classLoader), UTF_8));
+        return new BufferedReader(new InputStreamReader(asStream(name, null), UTF_8));
     }
 
     /**

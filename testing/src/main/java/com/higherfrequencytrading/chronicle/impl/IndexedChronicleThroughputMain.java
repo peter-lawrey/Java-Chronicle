@@ -28,7 +28,7 @@ import static junit.framework.Assert.assertEquals;
 
 /**
  * @author peter.lawrey
- *         <p/>
+ *         <p>
  *         on a 4.6 GHz, i7-2600, 16 GB Centos 6.2 -Dtest.size=100
  *         Took 12.893 seconds to write/read 200,000,000 entries, rate was 15.5 M entries/sec - ByteBuffer (tmpfs)
  *         Took 9.855 seconds to write/read 200,000,000 entries, rate was 20.3 M entries/sec - Using Unsafe (tmpfs)
