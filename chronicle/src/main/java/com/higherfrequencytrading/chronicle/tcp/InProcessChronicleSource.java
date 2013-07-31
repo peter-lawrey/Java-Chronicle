@@ -56,7 +56,6 @@ public class InProcessChronicleSource implements Chronicle {
     private final Logger logger;
 
     private volatile boolean closed = false;
-    private Boolean tcpNoDelay;
 
     public InProcessChronicleSource(Chronicle chronicle, int port) throws IOException {
         this.chronicle = chronicle;
@@ -74,14 +73,6 @@ public class InProcessChronicleSource implements Chronicle {
         chronicle.multiThreaded(multiThreaded);
     }
 
-    public void setTcpNoDelay(Boolean tcpNoDelay) {
-        this.tcpNoDelay = tcpNoDelay;
-    }
-
-    public Boolean getTcpNoDelay() {
-        return tcpNoDelay;
-    }
-
     private class Acceptor implements Runnable {
         @Override
         public void run() {
@@ -94,6 +85,8 @@ public class InProcessChronicleSource implements Chronicle {
             } catch (IOException e) {
                 if (!closed)
                     logger.log(Level.SEVERE, "Acceptor dying", e);
+            } finally {
+                service.shutdown();
             }
         }
     }
@@ -104,9 +97,7 @@ public class InProcessChronicleSource implements Chronicle {
         public Handler(SocketChannel socket) throws SocketException {
             this.socket = socket;
             socket.socket().setSendBufferSize(256 * 1024);
-            Boolean tcpNoDelay = getTcpNoDelay();
-            if (tcpNoDelay != null)
-                socket.socket().setTcpNoDelay(tcpNoDelay);
+            socket.socket().setTcpNoDelay(true);
         }
 
         @Override
