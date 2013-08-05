@@ -93,11 +93,11 @@ public class SinkMain {
                 for (int i = 0; i < timings.length; i++) {
                     Arrays.sort(timings[i]);
                     long t0 = timings[i][0];
-                    long t50 = timings[i][timings.length / 2];
-                    long t90 = timings[i][timings.length * 9 / 10];
-                    long t99 = timings[i][timings.length * 99 / 100];
-                    long t99_9 = timings[i][timings.length * 999 / 1000];
-                    long t99_99 = timings[i][timings.length - timings.length / 10000];
+                    long t50 = timings[i][count / 2];
+                    long t90 = timings[i][count * 9 / 10];
+                    long t99 = timings[i][count * 99 / 100];
+                    long t99_9 = timings[i][count * 999 / 1000];
+                    long t99_99 = timings[i][count - count / 10000];
                     switch (VALUES[i]) {
                         case SourceWrite:
                         case SinkWrite:
