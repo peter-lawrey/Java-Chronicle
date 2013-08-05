@@ -108,11 +108,13 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
 
     /**
      * @return a wrapper for this excerpt as an InputStream
+     * @deprecated This will be dropped in Chronicle 2.0
      */
     InputStream inputStream();
 
     /**
      * @return a wrapper for this excerpt as an OutputStream
+     * @deprecated This will be dropped in Chronicle 2.0
      */
     OutputStream outputStream();
 
@@ -147,6 +149,8 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
 
     /**
      * Write a map or enumerated keys and values.
+     *
+     * @deprecated This will be altered to include the class types in Chronicle 2.0
      */
     <K, V> void writeMap(Map<K, V> map);
 
