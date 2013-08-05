@@ -61,10 +61,18 @@ public class SourceMain {
                 update.acquireLevel().init(1.3253, 4e6, 1.3260, 8e6);
                 update.acquireLevel().init(1.3252, 5e6, 1.3261, 10e6);
                 writer.onMarketData(null, update);
+                pause(10 * 1000);
             }
         }
         System.out.println("Messages written");
         Thread.sleep(1000);
         source.close();
+    }
+
+    private static void pause(int nanos) {
+        long end = System.nanoTime() + nanos;
+        while (System.nanoTime() < end) {
+            // busy wait.
+        }
     }
 }
