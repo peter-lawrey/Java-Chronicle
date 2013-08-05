@@ -32,7 +32,8 @@ import java.io.IOException;
  */
 public class SourceMain {
     static final int RATE = Integer.getInteger("rate", 10); // per milli-second.
-    static final int MESSAGES = Integer.getInteger("messages", 100 * 1000);
+    static final int WARMUP = Integer.getInteger("warmup", 20 * 1000);
+    static final int MESSAGES = Integer.getInteger("messages", 1000 * 1000);
     static final int PORT = Integer.getInteger("port", 54321);
     static final String TMP = System.getProperty("java.io.tmpdir");
 
@@ -50,7 +51,7 @@ public class SourceMain {
         Thread.sleep(1000);
         System.out.println("Sending messages.");
 
-        for (int i = 0; i < MESSAGES; i += RATE) {
+        for (int i = -WARMUP; i <= MESSAGES; i += RATE) {
             Thread.sleep(1);
             for (int j = 0; j < RATE; j++) {
                 update.resetLevels("EUR/USD");

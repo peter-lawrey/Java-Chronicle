@@ -35,6 +35,7 @@ import java.util.Arrays;
 public class SinkMain {
     static final String HOST3 = System.getProperty("host3", "localhost");
     static final int PORT3 = Integer.getInteger("port3", SourceMain.PORT + 2);
+    static final int WARMUP = SourceMain.WARMUP;
     static final int MESSAGES = SourceMain.MESSAGES;
     static final String TMP = System.getProperty("java.io.tmpdir");
 
@@ -70,7 +71,7 @@ public class SinkMain {
                 new VanillaDifferencer(), // same host
 //                new RunningMinimum(30 * 1000), // engine to sink
         };
-        int count = 0;
+        int count = -WARMUP;
 
         @Override
         public void onMarketData(MetaData metaData, Update update) {
@@ -82,9 +83,9 @@ public class SinkMain {
             }
             if (count % 10000 == 0) {
                 System.out.println(count);
-                for (int i = 0; i < VALUES.length; i++) {
-                    System.out.println(VALUES[i] + ": " + metaData.getTimeStamp(VALUES[i]));
-                }
+//                for (int i = 0; i < VALUES.length; i++) {
+//                    System.out.println(VALUES[i] + ": " + metaData.getTimeStamp(VALUES[i]));
+//                }
             }
             count++;
 
