@@ -29,7 +29,7 @@ public class RunningMinimum implements Differencer {
     private long minimum = Long.MAX_VALUE;
 
     public RunningMinimum(long actualMinimum) {
-        this(actualMinimum, 100 * 1000);
+        this(actualMinimum, 10 * 1000);
     }
 
     public RunningMinimum(long actualMinimum, int drift) {

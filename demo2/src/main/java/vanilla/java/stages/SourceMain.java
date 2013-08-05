@@ -49,9 +49,11 @@ public class SourceMain {
         Update update = new Update();
         System.out.println("Allowing connection.");
         Thread.sleep(1000);
-        System.out.println("Sending messages.");
+        System.out.println("Warming up.");
 
         for (int i = -WARMUP; i <= MESSAGES; i += RATE) {
+            if (i == 0)
+                System.out.println("Sending messages.");
             Thread.sleep(1);
             for (int j = 0; j < RATE; j++) {
                 update.resetLevels("EUR/USD");
