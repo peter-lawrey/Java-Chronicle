@@ -17,7 +17,7 @@ import java.io.IOException;
  */
 public class SourceMain {
     static final int RATE = Integer.getInteger("rate", 10); // per milli-second.
-    static final int MESSAGES = Integer.getInteger("messages", 1000 * 1000);
+    static final int MESSAGES = Integer.getInteger("messages", 100 * 1000);
     static final int PORT = Integer.getInteger("port", 54321);
     static final String TMP = System.getProperty("java.io.tmpdir");
 

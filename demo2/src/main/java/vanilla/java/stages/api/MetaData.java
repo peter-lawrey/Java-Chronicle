@@ -55,7 +55,7 @@ public class MetaData implements ExcerptMarshallable {
         count = (int) in.readStopBit();
         for (int i = 0; i < count; i++)
             timings[i] = in.readLong();
-        if (readStage != null && timings[readStage.ordinal()] != 0) {
+        if (readStage != null && timings[readStage.ordinal()] == 0) {
             long now = setTimeStamp(readStage);
             in.writeLong(in.position() - 8, now);
         }

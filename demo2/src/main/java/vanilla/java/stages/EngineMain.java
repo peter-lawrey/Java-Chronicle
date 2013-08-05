@@ -34,7 +34,8 @@ public class EngineMain {
 
         Chronicle chronicle1 = new IndexedChronicle(basePath1);
         InProcessChronicleSink sink = new InProcessChronicleSink(chronicle1, HOST, PORT);
-        final EventsReader sinkReader = new EventsReader(sink.createExcerpt(), new BrokerEvents(writer2), TimingStage.SinkRead, TimingStage.EngineWrite);
+        final EventsReader sinkReader = new EventsReader(sink.createExcerpt(), new BrokerEvents(writer2),
+                TimingStage.SourceRead, TimingStage.EngineWrite);
 
         Thread cbt = new Thread(new Runnable() {
             @Override
@@ -74,6 +75,7 @@ public class EngineMain {
 
     private static void pause() {
         // nothing for now.
+        Thread.yield();
     }
 
     static class BrokerEvents implements Events {

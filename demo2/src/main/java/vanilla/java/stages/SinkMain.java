@@ -20,6 +20,7 @@ import java.util.Arrays;
 public class SinkMain {
     static final String HOST3 = System.getProperty("host3", "localhost");
     static final int PORT3 = Integer.getInteger("port3", SourceMain.PORT + 2);
+    static final int MESSAGES = SourceMain.MESSAGES;
     static final String TMP = System.getProperty("java.io.tmpdir");
 
     public static void main(String... ignored) throws IOException, InterruptedException {
@@ -60,20 +61,26 @@ public class SinkMain {
                 long start = metaData.getTimeStamp(VALUES[i]);
                 long end = metaData.getTimeStamp(VALUES[i + 1]);
                 long delay = differencers[i].sample(start, end);
-                timings[i][count] = (int) (delay / 1000);
+                timings[i][count] = (int) (delay / 100);
+            }
+            if (count % 10000 == 0) {
+                System.out.println(count);
+                for (int i = 0; i < VALUES.length; i++) {
+                    System.out.println(VALUES[i] + ": " + metaData.getTimeStamp(VALUES[i]));
+                }
             }
             count++;
 
-            if (count == timings.length) {
-                System.out.printf("latencies\t50%%\t90%%\t99%%\t99.9%%n");
+            if (count == MESSAGES) {
+                System.out.printf("latencies\t50%%\t90%%\t99%%\t99.9%%%n");
                 for (int i = 0; i < timings.length; i++) {
                     Arrays.sort(timings[i]);
-                    System.out.printf("%s-%s\t%,d\t%,d\t%,d\t%,d%n",
+                    System.out.printf("%s-%s\t%s\t%s\t%s\t%s%n",
                             VALUES[i].name(), VALUES[i + 1].name(),
-                            timings[i][timings.length / 2],
-                            timings[i][timings.length * 9 / 10],
-                            timings[i][timings.length * 99 / 100],
-                            timings[i][timings.length * 999 / 1000]
+                            timings[i][timings.length / 2] / 10.0,
+                            timings[i][timings.length * 9 / 10] / 10.0,
+                            timings[i][timings.length * 99 / 100] / 10,
+                            timings[i][timings.length * 999 / 1000] / 10
                     );
                 }
                 System.out.println();
