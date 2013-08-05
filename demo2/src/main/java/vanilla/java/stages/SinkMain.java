@@ -6,7 +6,6 @@ import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 import vanilla.java.stages.api.*;
 import vanilla.java.stages.testing.Differencer;
-import vanilla.java.stages.testing.RunningMinimum;
 import vanilla.java.stages.testing.VanillaDifferencer;
 
 import java.io.IOException;
@@ -44,14 +43,16 @@ public class SinkMain {
 
     static class LatencyEvents implements Events {
         static final TimingStage[] VALUES = TimingStage.values();
-        final int[][] timings = new int[VALUES.length - 1][SourceMain.MESSAGES];
+        final long[][] timings = new long[VALUES.length - 1][SourceMain.MESSAGES];
         final Differencer[] differencers = {
                 new VanillaDifferencer(), // same host
-                new RunningMinimum(30 * 1000), // source to engine
+                new VanillaDifferencer(), // same host
+//                new RunningMinimum(30 * 1000), // source to engine
                 new VanillaDifferencer(), // same host
                 new VanillaDifferencer(), // same host
                 new VanillaDifferencer(), // same host
-                new RunningMinimum(30 * 1000), // engine to sink
+                new VanillaDifferencer(), // same host
+//                new RunningMinimum(30 * 1000), // engine to sink
         };
         int count = 0;
 
@@ -61,7 +62,7 @@ public class SinkMain {
                 long start = metaData.getTimeStamp(VALUES[i]);
                 long end = metaData.getTimeStamp(VALUES[i + 1]);
                 long delay = differencers[i].sample(start, end);
-                timings[i][count] = (int) (delay / 100);
+                timings[i][count] = delay;
             }
             if (count % 10000 == 0) {
                 System.out.println(count);
@@ -72,15 +73,33 @@ public class SinkMain {
             count++;
 
             if (count == MESSAGES) {
-                System.out.printf("latencies\t50%%\t90%%\t99%%\t99.9%%%n");
+                System.out.printf("latencies\t50%%\t90%%\t99%%\t99.9%%\t99.99%%n");
                 for (int i = 0; i < timings.length; i++) {
                     Arrays.sort(timings[i]);
-                    System.out.printf("%s-%s\t%s\t%s\t%s\t%s%n",
+                    long t0 = timings[i][0];
+                    long t50 = timings[i][timings.length / 2];
+                    long t90 = timings[i][timings.length * 9 / 10];
+                    long t99 = timings[i][timings.length * 99 / 100];
+                    long t99_9 = timings[i][timings.length * 999 / 1000];
+                    long t99_99 = timings[i][timings.length - timings.length / 10000];
+                    switch (VALUES[i]) {
+                        case SourceWrite:
+                        case SinkWrite:
+                            long correction = 30 * 1000 - t0;
+                            t50 += correction;
+                            t90 += correction;
+                            t99 += correction;
+                            t99_9 += correction;
+                            t99_99 += correction;
+                            break;
+                    }
+                    System.out.printf("%s-%s\t%s\t%s\t%s\t%s\t%sus%n",
                             VALUES[i].name(), VALUES[i + 1].name(),
-                            timings[i][timings.length / 2] / 10.0,
-                            timings[i][timings.length * 9 / 10] / 10.0,
-                            timings[i][timings.length * 99 / 100] / 10,
-                            timings[i][timings.length * 999 / 1000] / 10
+                            t50 / 1e3,
+                            t90 / 1e3,
+                            t99 / 1e3,
+                            t99_9 / 1e3,
+                            t99_99 / 1e3
                     );
                 }
                 System.out.println();

@@ -75,7 +75,6 @@ public class EngineMain {
 
     private static void pause() {
         // nothing for now.
-        Thread.yield();
     }
 
     static class BrokerEvents implements Events {
