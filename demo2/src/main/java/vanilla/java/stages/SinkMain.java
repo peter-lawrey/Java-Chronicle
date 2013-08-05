@@ -35,14 +35,25 @@ import java.util.Arrays;
  */
 
 /*
- on a home 1 Gb/s network.
- latencies	50%	90%	99%	99.9%	99.99%
- Start-SourceWrite	0.3	1.0	1.6	12	75 us
- SourceWrite-SourceRead	88.8	152.7	1279.6	1391	5416 us
- SourceRead-EngineWrite	0.3	0.9	1.0	2	11 us
- EngineWrite-EngineRead	1.6	3.1	4.5	6	15 us
- EngineRead-SinkWrite	0.3	0.5	1.1	1	5 us
- SinkWrite-SinkRead	86.8	127.8	202.8	1345	4375 us
+All on one machine
+
+latencies	50%	90%	99%	99.9%	99.99%
+Start-SourceWrite	0.1	0.4	0.6	2	7 us
+SourceWrite-SourceRead	35.5	47.2	1101.4	1114	1142 us
+SourceRead-EngineWrite	0.6	1.1	1.4	3	11 us
+EngineWrite-EngineRead	0.9	2.6	5.0	7	14 us
+EngineRead-SinkWrite	0.4	1.0	2.0	2	7 us
+SinkWrite-SinkRead	36.4	47.9	1105.5	1134	1160 us
+Start-SinkRead	36.0	50.9	1105.5	1136	1176 us
+
+On a home 1 Gb/s network.
+latencies	50%	90%	99%	99.9%	99.99%
+Start-SourceWrite	0.3	1.0	1.6	12	75 us
+SourceWrite-SourceRead	88.8	152.7	1279.6	1391	5416 us
+SourceRead-EngineWrite	0.3	0.9	1.0	2	11 us
+EngineWrite-EngineRead	1.6	3.1	4.5	6	15 us
+EngineRead-SinkWrite	0.3	0.5	1.1	1	5 us
+SinkWrite-SinkRead	86.8	127.8	202.8	1345	4375 us
  */
 public class SinkMain {
     static final String HOST3 = System.getProperty("host3", "localhost");
