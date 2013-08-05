@@ -6,7 +6,6 @@ import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSource;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 import vanilla.java.stages.api.EventsWriter;
 import vanilla.java.stages.api.Update;
-import vanilla.java.stages.api.UpdateLevel;
 
 import java.io.IOException;
 
@@ -39,9 +38,11 @@ public class SourceMain {
             Thread.sleep(1);
             for (int j = 0; j < RATE; j++) {
                 update.resetLevels("EUR/USD");
-                for (int k = 0; k < 5; k++) {
-                    UpdateLevel upLevel = update.acquireLevel();
-                }
+                update.acquireLevel().init(1.3256, 1e6, 1.3257, 2e6);
+                update.acquireLevel().init(1.3255, 2e6, 1.3258, 4e6);
+                update.acquireLevel().init(1.3254, 3e6, 1.3259, 6e6);
+                update.acquireLevel().init(1.3253, 4e6, 1.3260, 8e6);
+                update.acquireLevel().init(1.3252, 5e6, 1.3261, 10e6);
                 writer.onMarketData(null, update);
             }
         }
