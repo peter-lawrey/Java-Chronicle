@@ -151,6 +151,7 @@
         <module>chronicle</module>
         <module>testing</module>
         <module>demo</module>
+        <module>demo2</module>
         <module>chronicle-fix</module>
     </modules>
 </project>
