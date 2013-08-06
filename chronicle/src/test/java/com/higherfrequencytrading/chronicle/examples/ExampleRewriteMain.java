@@ -33,8 +33,8 @@ public class ExampleRewriteMain {
         final String basePath = System.getProperty("java.io.tmpdir") + File.separator + "test";
         ChronicleTools.deleteOnExit(basePath);
         final int[] consolidates = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-        final int warmup = 500000;
-        final int repeats = 1000000;
+        final int warmup = 1000000;
+        final int repeats = 10000000;
         //Write
         Thread t = new Thread(new Runnable() {
             @Override
@@ -88,7 +88,7 @@ public class ExampleRewriteMain {
         }
         Arrays.sort(times);
         for (double perc : new double[]{50, 90, 99, 99.9, 99.99}) {
-            System.out.printf("%s%% took %.1f µs, ", perc, times[((int) (repeats * perc / 100))] / 1000.0);
+            System.out.printf("%s%% took %.2f µs, ", perc, times[((int) (repeats * perc / 100))] / 1000.0);
         }
         System.out.printf("worst took %d µs%n", times[times.length - 1] / 1000);
         chronicle.close();

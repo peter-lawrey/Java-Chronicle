@@ -55,6 +55,7 @@ public class InProcessChronicleSource implements Chronicle {
     private final ExecutorService service;
     private final Logger logger;
 
+    private long busyWaitTimeNS = 100 * 1000;
     private volatile boolean closed = false;
 
     public InProcessChronicleSource(Chronicle chronicle, int port) throws IOException {
@@ -66,6 +67,10 @@ public class InProcessChronicleSource implements Chronicle {
         logger = Logger.getLogger(getClass().getName() + "." + name);
         service = Executors.newCachedThreadPool(new NamedThreadFactory(name));
         service.execute(new Acceptor());
+    }
+
+    public void busyWaitTimeNS(long busyWaitTimeNS) {
+        this.busyWaitTimeNS = busyWaitTimeNS;
     }
 
     @Override
@@ -123,6 +128,7 @@ public class InProcessChronicleSource implements Chronicle {
                         pause();
                         if (closed) break OUTER;
                     }
+                    pauseReset();
 //                    System.out.println("Writing " + index);
                     final int size = excerpt.capacity();
                     int remaining;
@@ -196,9 +202,17 @@ public class InProcessChronicleSource implements Chronicle {
 
     }
 
+    private long lastUnpausedNS = 0;
+
+    private void pauseReset() {
+        lastUnpausedNS = System.nanoTime();
+    }
+
     private final Object notifier = new Object();
 
     protected void pause() {
+        if (lastUnpausedNS + busyWaitTimeNS > System.nanoTime())
+            return;
         try {
             synchronized (notifier) {
                 notifier.wait(HEARTBEAT_INTERVAL_MS / 2);
