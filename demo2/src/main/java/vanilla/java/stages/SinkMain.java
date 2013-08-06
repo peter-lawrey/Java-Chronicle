@@ -38,13 +38,13 @@ import java.util.Arrays;
 All on one machine
 
 latencies	50%	90%	99%	99.9%	99.99%
-Start-SourceWrite	0.1	0.4	0.6	2	7 us
-SourceWrite-SourceRead	35.5	47.2	1101.4	1114	1142 us
-SourceRead-EngineWrite	0.6	1.1	1.4	3	11 us
-EngineWrite-EngineRead	0.9	2.6	5.0	7	14 us
-EngineRead-SinkWrite	0.4	1.0	2.0	2	7 us
-SinkWrite-SinkRead	36.4	47.9	1105.5	1134	1160 us
-Start-SinkRead	36.0	50.9	1105.5	1136	1176 us
+Start-SourceWrite	0.1	0.3	1.2	2	5 us
+SourceWrite-SourceRead	9.9	13.3	20.1	40	57 us
+SourceRead-EngineWrite	0.9	1.3	1.5	4	11 us
+EngineWrite-EngineRead	0.8	1.2	4.7	6	12 us
+EngineRead-SinkWrite	0.3	0.5	1.1	1	4 us
+SinkWrite-SinkRead	10.7	13.8	19.3	42	78 us
+Start-SinkRead	23.4	29.2	39.9	61	125 us
 
 On a home 1 Gb/s network.
 latencies	50%	90%	99%	99.9%	99.99%
@@ -61,6 +61,7 @@ public class SinkMain {
     static final int WARMUP = SourceMain.WARMUP;
     static final int MESSAGES = SourceMain.MESSAGES;
     static final String TMP = System.getProperty("java.io.tmpdir");
+    public static final int NET_LATENCY = Integer.getInteger("net.latency", 30 * 1000);
 
     public static void main(String... ignored) throws IOException, InterruptedException {
         String basePath3 = TMP + "/3-sink";
@@ -87,11 +88,11 @@ public class SinkMain {
         final long[] endToEndTimings = new long[SourceMain.MESSAGES];
         final Differencer[] differencers = {
                 new VanillaDifferencer(), // same host
-                new RunningMinimum(30 * 1000), // source to engine
+                NET_LATENCY == 0 ? new VanillaDifferencer() : new RunningMinimum(NET_LATENCY), // source to engine
                 new VanillaDifferencer(), // same host
                 new VanillaDifferencer(), // same host
                 new VanillaDifferencer(), // same host
-                new RunningMinimum(30 * 1000), // engine to sink
+                NET_LATENCY == 0 ? new VanillaDifferencer() : new RunningMinimum(NET_LATENCY), // engine to sink
         };
         int count = -WARMUP;
 

@@ -43,6 +43,7 @@ public class SourceMain {
 
         Chronicle chronicle = new IndexedChronicle(basePath);
         InProcessChronicleSource source = new InProcessChronicleSource(chronicle, PORT);
+        source.busyWaitTimeNS(2 * 1000 * 1000);
 
         EventsWriter writer = new EventsWriter(source);
 

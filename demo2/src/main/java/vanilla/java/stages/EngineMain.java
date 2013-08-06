@@ -67,7 +67,8 @@ public class EngineMain {
         cbt.start();
 
         Chronicle chronicle3 = new IndexedChronicle(basePath3);
-        Chronicle source3 = new InProcessChronicleSource(chronicle3, PORT3);
+        InProcessChronicleSource source3 = new InProcessChronicleSource(chronicle3, PORT3);
+        source3.busyWaitTimeNS(2 * 1000 * 1000);
         EventsWriter writer3 = new EventsWriter(source3);
 
         Chronicle chronicle2r = new IndexedChronicle(basePath2);
