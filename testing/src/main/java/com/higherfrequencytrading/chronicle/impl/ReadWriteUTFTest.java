@@ -70,4 +70,24 @@ public class ReadWriteUTFTest {
         excerpt.finish();
         assertEquals(null, text);
     }
+
+    @Test
+    public void testWrite_é() throws IOException {
+        final String basePath = BASE_DIR + "text";
+        deleteOnExit(basePath);
+
+        IndexedChronicle tsc = new IndexedChronicle(basePath);
+        tsc.useUnsafe(USE_UNSAFE);
+        tsc.clear();
+        Excerpt excerpt = tsc.createExcerpt();
+        excerpt.startExcerpt(4);
+        String é = "é";
+        excerpt.writeUTF(é);
+        excerpt.finish();
+
+        assertTrue(excerpt.index(0));
+        String e2 = excerpt.readUTF();
+        excerpt.finish();
+        assertEquals(e2, é);
+    }
 }
