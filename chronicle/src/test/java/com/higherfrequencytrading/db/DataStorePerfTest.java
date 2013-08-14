@@ -1,6 +1,5 @@
 package com.higherfrequencytrading.db;
 
-import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.datamodel.DataStore;
 import com.higherfrequencytrading.chronicle.datamodel.MapWrapper;
 import com.higherfrequencytrading.chronicle.datamodel.ModelMode;
@@ -24,7 +23,8 @@ public class DataStorePerfTest {
 	public static void main(String[] args) throws IOException {
 		String basePath = TMP + "/DataStorePerfTest";
 		ChronicleTools.deleteOnExit(basePath);
-		Chronicle chronicle = new IndexedChronicle(basePath);
+		IndexedChronicle chronicle = new IndexedChronicle(basePath);
+		chronicle.useUnsafe(true);
 		DataStore dataStore = new DataStore(chronicle, ModelMode.MASTER);
 		MapWrapper<String, byte[]> map = new MapWrapper<String, byte[]>(dataStore, "map",
 				String.class, byte[].class, new LinkedHashMap<String, byte[]>(), 160);
