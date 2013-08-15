@@ -31,73 +31,73 @@ import java.util.Map;
  * @author peter.lawrey
  */
 public class ClassEnumMarshaller implements EnumeratedMarshaller<Class> {
-    private static final int CACHE_SIZE = 1019;
-    private static final Map<String, Class> SC_SHORT_NAME = new LinkedHashMap<String, Class>();
-    private static final Map<Class, String> CS_SHORT_NAME = new LinkedHashMap<Class, String>();
+	private static final int CACHE_SIZE = 1019;
+	private static final Map<String, Class> SC_SHORT_NAME = new LinkedHashMap<String, Class>();
+	private static final Map<Class, String> CS_SHORT_NAME = new LinkedHashMap<Class, String>();
 
-    static {
-        Class[] classes = {Boolean.class, Byte.class, Character.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
-                String.class, Class.class, BigInteger.class, BigDecimal.class, Date.class};
-        for (Class clazz : classes) {
-            String simpleName = clazz.getSimpleName();
-            SC_SHORT_NAME.put(simpleName, clazz);
-            CS_SHORT_NAME.put(clazz, simpleName);
-        }
-    }
+	static {
+		Class[] classes = {Boolean.class, Byte.class, Character.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
+				String.class, Class.class, BigInteger.class, BigDecimal.class, Date.class};
+		for (Class clazz : classes) {
+			String simpleName = clazz.getSimpleName();
+			SC_SHORT_NAME.put(simpleName, clazz);
+			CS_SHORT_NAME.put(clazz, simpleName);
+		}
+	}
 
-    public ClassEnumMarshaller(ClassLoader classLoader) {
-        this.classLoader = classLoader;
-    }
+	public ClassEnumMarshaller(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+	}
 
-    @SuppressWarnings("unchecked")
-    private WeakReference<Class>[] classWeakReference = null;
-    private final ClassLoader classLoader;
+	@SuppressWarnings("unchecked")
+	private WeakReference<Class>[] classWeakReference = null;
+	private final ClassLoader classLoader;
 
-    @Override
-    public Class<Class> classMarshaled() {
-        return Class.class;
-    }
+	@Override
+	public Class<Class> classMarshaled() {
+		return Class.class;
+	}
 
-    @Override
-    public void write(Excerpt excerpt, Class aClass) {
-        String s = CS_SHORT_NAME.get(aClass);
-        if (s == null)
-            s = aClass.getName();
-        excerpt.writeUTF(s);
-    }
+	@Override
+	public void write(Excerpt excerpt, Class aClass) {
+		String s = CS_SHORT_NAME.get(aClass);
+		if (s == null)
+			s = aClass.getName();
+		excerpt.writeEnum(s);
+	}
 
-    @Override
-    public Class read(Excerpt excerpt) {
-        String name = excerpt.readUTF();
-        return load(name);
-    }
+	@Override
+	public Class read(Excerpt excerpt) {
+		String name = excerpt.readEnum(String.class);
+		return load(name);
+	}
 
-    private Class load(String name) {
-        int hash = (name.hashCode() & 0x7fffffff) % CACHE_SIZE;
-        if (classWeakReference == null)
-            classWeakReference = new WeakReference[CACHE_SIZE];
-        WeakReference<Class> ref = classWeakReference[hash];
-        if (ref != null) {
-            Class clazz = ref.get();
-            if (clazz != null && clazz.getName().equals(name))
-                return clazz;
-        }
-        try {
+	private Class load(String name) {
+		int hash = (name.hashCode() & 0x7fffffff) % CACHE_SIZE;
+		if (classWeakReference == null)
+			classWeakReference = new WeakReference[CACHE_SIZE];
+		WeakReference<Class> ref = classWeakReference[hash];
+		if (ref != null) {
+			Class clazz = ref.get();
+			if (clazz != null && clazz.getName().equals(name))
+				return clazz;
+		}
+		try {
 
-            Class<?> clazz = SC_SHORT_NAME.get(name);
-            if (clazz != null)
-                return clazz;
-            clazz = classLoader.loadClass(name);
-            classWeakReference[hash] = new WeakReference<Class>(clazz);
-            return clazz;
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException(e);
-        }
-    }
+			Class<?> clazz = SC_SHORT_NAME.get(name);
+			if (clazz != null)
+				return clazz;
+			clazz = classLoader.loadClass(name);
+			classWeakReference[hash] = new WeakReference<Class>(clazz);
+			return clazz;
+		} catch (ClassNotFoundException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
 
-    @Override
-    public Class parse(Excerpt excerpt, StopCharTester tester) {
-        String name = excerpt.parseUTF(tester);
-        return load(name);
-    }
+	@Override
+	public Class parse(Excerpt excerpt, StopCharTester tester) {
+		String name = excerpt.parseUTF(tester);
+		return load(name);
+	}
 }
