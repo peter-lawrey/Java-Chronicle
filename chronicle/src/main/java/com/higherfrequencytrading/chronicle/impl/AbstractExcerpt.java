@@ -102,11 +102,6 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public long index() {
-        return index;
-    }
-
-    @Override
     public boolean index(long index) throws IndexOutOfBoundsException {
         forWrite = false;
 
@@ -134,10 +129,15 @@ public abstract class AbstractExcerpt implements Excerpt {
         return l != 0L;
     }
 
-    protected abstract void index0(long index, long startPosition, long endPosition);
-
     private void readMemoryBarrier() {
         barrier.get();
+    }
+
+    protected abstract void index0(long index, long startPosition, long endPosition);
+
+    @Override
+    public long index() {
+        return index;
     }
 
     @Override
@@ -204,13 +204,11 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public int readUnsignedByte() {
-        return readByte() & 0xFF;
-    }
-
-    @Override
-    public int capacity() {
-        return (int) (limit - start);
+    public Excerpt position(int position) {
+        if (position < 0 || position > capacity())
+            throw new IndexOutOfBoundsException();
+        this.position = start + position; // start has to be added
+        return this;
     }
 
     @Override
@@ -219,11 +217,13 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public Excerpt position(int position) {
-        if (position < 0 || position > capacity())
-            throw new IndexOutOfBoundsException();
-        this.position = start + position; // start has to be added
-        return this;
+    public int capacity() {
+        return (int) (limit - start);
+    }
+
+    @Override
+    public int readUnsignedByte() {
+        return readByte() & 0xFF;
     }
 
     @Override
@@ -266,28 +266,6 @@ public abstract class AbstractExcerpt implements Excerpt {
         return true;
     }
 
-    @Override
-    public long readStopBit() {
-        long b;
-        if ((b = readByte()) >= 0)
-            return b;
-
-        return readStopBit0(b);
-    }
-
-    private long readStopBit0(long b) {
-        long l = 0;
-        int count = 0;
-        do {
-            l |= (b & 0x7FL) << count;
-            count += 7;
-        } while ((b = readByte()) < 0);
-
-        if (b == 0 && count > 0)
-            return ~l;
-        return l | (b << count);
-    }
-
     private void append1(Appendable appendable, int utflen, int count) throws IOException {
         do {
             int c = readUnsignedByte();
@@ -321,7 +299,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                     break;
                 }
                 case 14: {
-				/* 1110 xxxx 10xx xxxx 10xx xxxx */
+                /* 1110 xxxx 10xx xxxx 10xx xxxx */
                     count += 3;
                     if (count > utflen)
                         throw new UTFDataFormatException(
@@ -339,7 +317,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                     break;
                 }
                 default:
-				/* 10xx xxxx, 1111 xxxx */
+                /* 10xx xxxx, 1111 xxxx */
                     throw new UTFDataFormatException(
                             "malformed input around byte " + count);
             }
@@ -347,9 +325,38 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
+    public long readStopBit() {
+        long b;
+        if ((b = readByte()) >= 0)
+            return b;
+
+        return readStopBit0(b);
+    }
+
+    private long readStopBit0(long b) {
+        long l = 0;
+        int count = 0;
+        do {
+            l |= (b & 0x7FL) << count;
+            count += 7;
+        } while ((b = readByte()) < 0);
+
+        if (b == 0 && count > 0)
+            return ~l;
+        return l | (b << count);
+    }
+
+    @Override
     public String parseUTF(StopCharTester tester) {
         parseUTF(acquireUtfReader(), tester);
         return utfReader.toString();
+    }
+
+    private StringBuilder acquireUtfReader() {
+        if (utfReader == null)
+            utfReader = new StringBuilder();
+        utfReader.setLength(0);
+        return utfReader;
     }
 
     @Override
@@ -376,6 +383,11 @@ public abstract class AbstractExcerpt implements Excerpt {
         if (remaining() > 0) {
             readUTF1(appendable, tester);
         }
+    }
+
+    @Override
+    public int remaining() {
+        return (int) (limit - position);
     }
 
     private void readUTF1(Appendable appendable, StopCharTester tester) throws IOException {
@@ -432,18 +444,6 @@ public abstract class AbstractExcerpt implements Excerpt {
                             "malformed input around byte ");
             }
         } while (remaining() > 0);
-    }
-
-    @Override
-    public int remaining() {
-        return (int) (limit - position);
-    }
-
-    private StringBuilder acquireUtfReader() {
-        if (utfReader == null)
-            utfReader = new StringBuilder();
-        utfReader.setLength(0);
-        return utfReader;
     }
 
     @Override
@@ -539,13 +539,13 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public int readUnsignedShort(int offset) {
-        return readShort(offset) & 0xFFFF;
+    public int readUnsignedByte(int offset) {
+        return readByte(offset) & 0xFF;
     }
 
     @Override
-    public int readUnsignedByte(int offset) {
-        return readByte(offset) & 0xFF;
+    public int readUnsignedShort(int offset) {
+        return readShort(offset) & 0xFFFF;
     }
 
     @Override
@@ -906,13 +906,13 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void writeUnsignedShort(int offset, int v) {
-        writeShort(offset, v);
+    public void writeUnsignedByte(int offset, int v) {
+        write(offset, v);
     }
 
     @Override
-    public void writeUnsignedByte(int offset, int v) {
-        write(offset, v);
+    public void writeUnsignedShort(int offset, int v) {
+        writeShort(offset, v);
     }
 
     @Override
@@ -1088,6 +1088,18 @@ public abstract class AbstractExcerpt implements Excerpt {
         return this;
     }
 
+    @Override
+    public ByteStringAppender append(byte[] str) {
+        write(str);
+        return this;
+    }
+
+    // // RandomOutputStream
+    @Override
+    public void write(byte[] b) {
+        write(b, 0, b.length);
+    }
+
     private void appendLong0(long num) {
         // Extract digits into the end of the numberBuffer
         int endIndex = appendLong1(num);
@@ -1171,22 +1183,25 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public ByteStringAppender append(byte[] str) {
-        write(str);
-        return this;
-    }
-
-    // // RandomOutputStream
-    @Override
-    public void write(byte[] b) {
-        write(b, 0, b.length);
-    }
-
-    @Override
     public ByteStringAppender appendDateTime(long timeInMS) {
         appendDate(timeInMS);
         writeByte('T');
         appendTime(timeInMS);
+        return this;
+    }
+
+    @Override
+    public ByteStringAppender appendDate(long timeInMS) {
+        if (dateFormat == null) {
+            dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        }
+        long date = timeInMS / 86400000;
+        if (lastDay != date) {
+            lastDateStr = dateFormat.format(new Date(timeInMS)).getBytes(ISO_8859_1);
+            lastDay = date;
+        }
+        append(lastDateStr);
         return this;
     }
 
@@ -1212,21 +1227,6 @@ public abstract class AbstractExcerpt implements Excerpt {
         writeByte((char) (millis / 100 + '0'));
         writeByte((char) (millis / 10 % 10 + '0'));
         writeByte((char) (millis % 10 + '0'));
-        return this;
-    }
-
-    @Override
-    public ByteStringAppender appendDate(long timeInMS) {
-        if (dateFormat == null) {
-            dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        }
-        long date = timeInMS / 86400000;
-        if (lastDay != date) {
-            lastDateStr = dateFormat.format(new Date(timeInMS)).getBytes(ISO_8859_1);
-            lastDay = date;
-        }
-        append(lastDateStr);
         return this;
     }
 
@@ -1681,8 +1681,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         Class<?> clazz = obj.getClass();
         EnumeratedMarshaller em = chronicle.getMarshaller(clazz);
         if (em == null && autoGenerateMarshaller(obj))
-            ;
-        em = chronicle.acquireMarshaller(clazz);
+            em = chronicle.acquireMarshaller(clazz);
 
         if (em != null) {
             writeByte(ENUMED);
@@ -1701,17 +1700,6 @@ public abstract class AbstractExcerpt implements Excerpt {
         checkEndOfBuffer();
     }
 
-    private boolean autoGenerateMarshaller(Object obj) {
-        return (obj instanceof Comparable && obj.getClass().getPackage().getName().startsWith("java")) || obj instanceof Externalizable;
-    }
-
-    @Override
-    public OutputStream outputStream() {
-        if (outputStream == null)
-            outputStream = new ExcerptOutputStream();
-        return outputStream;
-    }
-
     private long checkEndOfBuffer() {
         long length = position - start;
         if (length < MIN_SIZE)
@@ -1721,6 +1709,17 @@ public abstract class AbstractExcerpt implements Excerpt {
         if (readLong(0) == 0)
             throw new IllegalStateException("The first 8 bytes cannot be all zero");
         return length;
+    }
+
+    @Override
+    public OutputStream outputStream() {
+        if (outputStream == null)
+            outputStream = new ExcerptOutputStream();
+        return outputStream;
+    }
+
+    private boolean autoGenerateMarshaller(Object obj) {
+        return (obj instanceof Comparable && obj.getClass().getPackage().getName().startsWith("java")) || obj instanceof Externalizable;
     }
 
     @Override
@@ -1843,11 +1842,6 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public boolean isFinished() {
-        return buffer == null;
-    }
-
-    @Override
     public void finish() {
         assert chronicle.multiThreaded() || checkThread();
         long length = checkEndOfBuffer();
@@ -1864,10 +1858,6 @@ public abstract class AbstractExcerpt implements Excerpt {
         buffer = null;
     }
 
-    private void writeMemoryBarrier() {
-        barrier.lazySet(true);
-    }
-
     @SuppressWarnings("SameReturnValue")
     private boolean checkThread() {
         Thread thread = Thread.currentThread();
@@ -1876,6 +1866,15 @@ public abstract class AbstractExcerpt implements Excerpt {
         else if (lastThread != thread)
             throw new AssertionError("Excerpt used by two threads " + thread + " and " + lastThread);
         return true;
+    }
+
+    private void writeMemoryBarrier() {
+        barrier.lazySet(true);
+    }
+
+    @Override
+    public boolean isFinished() {
+        return buffer == null;
     }
 
     @Override
