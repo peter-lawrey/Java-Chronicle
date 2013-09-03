@@ -25,6 +25,7 @@ import com.higherfrequencytrading.chronicle.StopCharTester;
  */
 public class StringMarshaller implements EnumeratedMarshaller<CharSequence> {
     private final int size1;
+    private final StringBuilder reader = new StringBuilder();
     private String[] interner;
 
     public StringMarshaller(int size) {
@@ -43,20 +44,11 @@ public class StringMarshaller implements EnumeratedMarshaller<CharSequence> {
         excerpt.writeUTF(s);
     }
 
-    private final StringBuilder reader = new StringBuilder();
-
     @Override
     public String read(Excerpt excerpt) {
         if (excerpt.readUTF(reader))
             return builderToString();
         return null;
-    }
-
-    @Override
-    public String parse(Excerpt excerpt, StopCharTester tester) {
-        reader.setLength(0);
-        excerpt.parseUTF(reader, tester);
-        return builderToString();
     }
 
     private String builderToString() {
@@ -85,5 +77,12 @@ public class StringMarshaller implements EnumeratedMarshaller<CharSequence> {
         h ^= (h >>> 41) ^ (h >>> 20);
         h ^= (h >>> 14) ^ (h >>> 7);
         return (int) (h & size1);
+    }
+
+    @Override
+    public String parse(Excerpt excerpt, StopCharTester tester) {
+        reader.setLength(0);
+        excerpt.parseUTF(reader, tester);
+        return builderToString();
     }
 }

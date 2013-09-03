@@ -56,6 +56,11 @@ public class ExternalizableMarshaller<E extends Externalizable> implements Enume
     }
 
     @Override
+    public E parse(Excerpt excerpt, StopCharTester tester) {
+        return read(excerpt);
+    }
+
+    @Override
     public E read(Excerpt excerpt) {
         try {
             E e = constructor.newInstance();
@@ -64,10 +69,5 @@ public class ExternalizableMarshaller<E extends Externalizable> implements Enume
         } catch (Exception e2) {
             throw new IllegalStateException(e2);
         }
-    }
-
-    @Override
-    public E parse(Excerpt excerpt, StopCharTester tester) {
-        return read(excerpt);
     }
 }

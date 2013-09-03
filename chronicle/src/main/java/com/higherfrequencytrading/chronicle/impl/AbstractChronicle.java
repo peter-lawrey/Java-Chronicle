@@ -28,66 +28,65 @@ import java.util.Map;
  * @author peter.lawrey
  */
 public abstract class AbstractChronicle implements DirectChronicle {
-	private final String name;
-	private final Map<Class, EnumeratedMarshaller> marshallerMap = new LinkedHashMap<Class, EnumeratedMarshaller>();
+    private final String name;
+    private final Map<Class, EnumeratedMarshaller> marshallerMap = new LinkedHashMap<Class, EnumeratedMarshaller>();
+    protected long size = 0;
+    private boolean multiThreaded = false;
 
-	protected long size = 0;
-	private boolean multiThreaded = false;
+    protected AbstractChronicle(String name) {
+        this.name = name;
+        StringMarshaller stringMarshaller = new StringMarshaller(16 * 1024);
+        marshallerMap.put(String.class, stringMarshaller);
+        marshallerMap.put(CharSequence.class, stringMarshaller);
+        marshallerMap.put(Class.class, new ClassEnumMarshaller(Thread.currentThread().getContextClassLoader()));
+        marshallerMap.put(Date.class, new DateMarshaller(10191));
+        marshallerMap.put(byte[].class, new BytesMarshaller());
+    }
 
-	protected AbstractChronicle(String name) {
-		this.name = name;
-		StringMarshaller stringMarshaller = new StringMarshaller(16 * 1024);
-		marshallerMap.put(String.class, stringMarshaller);
-		marshallerMap.put(CharSequence.class, stringMarshaller);
-		marshallerMap.put(Class.class, new ClassEnumMarshaller(Thread.currentThread().getContextClassLoader()));
-		marshallerMap.put(Date.class, new DateMarshaller(10191));
-		marshallerMap.put(byte[].class, new BytesMarshaller());
-	}
+    @Override
+    public boolean multiThreaded() {
+        return multiThreaded;
+    }
 
-	@Override
-	public boolean multiThreaded() {
-		return multiThreaded;
-	}
+    @Override
+    public void multiThreaded(boolean multiThreaded) {
+        this.multiThreaded = multiThreaded;
+    }
 
-	@Override
-	public void multiThreaded(boolean multiThreaded) {
-		this.multiThreaded = multiThreaded;
-	}
+    public String name() {
+        return name;
+    }
 
-	public String name() {
-		return name;
-	}
+    @Override
+    public long size() {
+        return size;
+    }
 
-	@Override
-	public long size() {
-		return size;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller) {
+        marshallerMap.put(marshaller.classMarshaled(), marshaller);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller) {
-		marshallerMap.put(marshaller.classMarshaled(), marshaller);
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <E> EnumeratedMarshaller<E> acquireMarshaller(Class<E> aClass) {
+        EnumeratedMarshaller<E> em = marshallerMap.get(aClass);
+        if (em == null)
+            if (aClass.isEnum())
+                marshallerMap.put(aClass, em = new VanillaEnumMarshaller(aClass, null));
+            else if (ExcerptMarshallable.class.isAssignableFrom(aClass))
+                marshallerMap.put(aClass, em = new ExcerptMarshaller((Class) aClass));
+            else if (Externalizable.class.isAssignableFrom(aClass))
+                marshallerMap.put(aClass, em = new ExternalizableMarshaller((Class) aClass));
+            else
+                marshallerMap.put(aClass, em = new GenericEnumMarshaller<E>(aClass, 1000));
+        return em;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <E> EnumeratedMarshaller<E> acquireMarshaller(Class<E> aClass) {
-		EnumeratedMarshaller<E> em = marshallerMap.get(aClass);
-		if (em == null)
-			if (aClass.isEnum())
-				marshallerMap.put(aClass, em = new VanillaEnumMarshaller(aClass, null));
-			else if (ExcerptMarshallable.class.isAssignableFrom(aClass))
-				marshallerMap.put(aClass, em = new ExcerptMarshaller((Class) aClass));
-			else if (Externalizable.class.isAssignableFrom(aClass))
-				marshallerMap.put(aClass, em = new ExternalizableMarshaller((Class) aClass));
-			else
-				marshallerMap.put(aClass, em = new GenericEnumMarshaller<E>(aClass, 1000));
-		return em;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> aClass) {
-		return marshallerMap.get(aClass);
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> aClass) {
+        return marshallerMap.get(aClass);
+    }
 }

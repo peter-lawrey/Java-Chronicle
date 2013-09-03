@@ -41,15 +41,15 @@ public class IntIndexedChronicle extends IndexedChronicle {
     }
 
     @Override
-    protected int indexBitSize() {
-        return 2;
-    }
-
-    @Override
     public long getIndexData(long indexId) {
         long indexOffset = indexId << indexBitSize();
         ByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
         return indexBuffer.getInt((int) (indexOffset & indexLowMask)) & LONG_MASK;
+    }
+
+    @Override
+    protected int indexBitSize() {
+        return 2;
     }
 
     @Override

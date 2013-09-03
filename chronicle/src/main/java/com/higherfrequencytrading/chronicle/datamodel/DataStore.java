@@ -39,12 +39,11 @@ import java.util.logging.Logger;
  */
 public class DataStore implements Closeable {
     private static final Logger LOGGER = Logger.getLogger(DataStore.class.getName());
+    protected final Map<String, Wrapper> wrappers = new ConcurrentHashMap<String, Wrapper>();
     private final Chronicle chronicle;
     private final ModelMode mode;
-    private Excerpt excerpt = null;
-
-    protected final Map<String, Wrapper> wrappers = new ConcurrentHashMap<String, Wrapper>();
     protected Wrapper[] wrappersArray = {};
+    private Excerpt excerpt = null;
     private ExecutorService updater;
     private volatile boolean closed = false;
 
@@ -141,10 +140,6 @@ public class DataStore implements Closeable {
         start(-1);
     }
 
-    public void startAtEnd() {
-        start(chronicle.size() - 1);
-    }
-
     public void start(final long lastEvent) {
         switch (mode) {
             case MASTER:
@@ -199,6 +194,10 @@ public class DataStore implements Closeable {
         return false;
     }
 
+    public void startAtEnd() {
+        start(chronicle.size() - 1);
+    }
+
     public void add(String name, Wrapper wrapper) {
         wrappers.put(name, wrapper);
         wrappersArray = wrappers.values().toArray(new Wrapper[wrappers.size()]);
@@ -209,6 +208,10 @@ public class DataStore implements Closeable {
         excerpt.startExcerpt(capacity + 2 + name.length());
         excerpt.writeEnum(name);
         return excerpt;
+    }
+
+    private void checkStarted() {
+        if (excerpt == null) throw new AssertionError("Not start()ed");
     }
 
     public boolean enumeratedClass(Class eClass) {
@@ -226,10 +229,6 @@ public class DataStore implements Closeable {
     public long events() {
         checkStarted();
         return excerpt.index() + 1;
-    }
-
-    private void checkStarted() {
-        if (excerpt == null) throw new AssertionError("Not start()ed");
     }
 
     public void close() {

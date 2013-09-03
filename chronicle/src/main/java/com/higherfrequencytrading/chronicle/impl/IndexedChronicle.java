@@ -41,26 +41,25 @@ public class IndexedChronicle extends AbstractChronicle {
     public static final int DEFAULT_DATA_BITS_SIZE = 27; // 1 << 27 or 128 MB.
     public static final int DEFAULT_DATA_BITS_SIZE32 = 22; // 1 << 22 or 4 MB.
     private static final Logger logger = Logger.getLogger(IndexedChronicle.class.getName());
-
+    protected final int indexLowMask;
     // used if minimiseByteBuffers is false.  This is faster but uses much more virtual memory.
     private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
     private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();
+    // end of used.
+    private final int indexBitSize;
+    private final int dataBitSize;
+    private final int dataLowMask;
+    private final FileChannel indexChannel;
+    private final FileChannel dataChannel;
+    private final ByteOrder byteOrder;
+    private final boolean minimiseByteBuffers;
+    private final boolean synchronousMode;
     // used if minimiseByteBuffers is true;
     private int lastIndexId = -1;
     private MappedByteBuffer lastIndexBuffer = null;
     private int lastDataId = -1;
     private MappedByteBuffer lastDataBuffer = null;
-    // end of used.
-    private final int indexBitSize;
-    protected final int indexLowMask;
-    private final int dataBitSize;
-    private final int dataLowMask;
-    private final FileChannel indexChannel;
-    private final FileChannel dataChannel;
     private boolean useUnsafe = false;
-    private final ByteOrder byteOrder;
-    private final boolean minimiseByteBuffers;
-    private final boolean synchronousMode;
 
     public IndexedChronicle(String basePath) throws IOException {
         this(basePath, ChronicleTools.is64Bit() ? DEFAULT_DATA_BITS_SIZE : DEFAULT_DATA_BITS_SIZE32);
@@ -109,54 +108,6 @@ public class IndexedChronicle extends AbstractChronicle {
         }
     }
 
-    private static String extractName(String basePath) {
-        File file = new File(basePath);
-        String name = file.getName();
-        if (name != null && name.length() > 0)
-            return name;
-        file = file.getParentFile();
-        if (file == null) return "chronicle";
-        name = file.getName();
-        if (name != null && name.length() > 0)
-            return name;
-        return "chronicle";
-    }
-
-    @Override
-    public long sizeInBytes() {
-        try {
-            return indexChannel.size() + dataChannel.size();
-        } catch (IOException ignored) {
-            return -1;
-        }
-    }
-
-    protected int indexBitSize() {
-        return 3;
-    }
-
-    public void useUnsafe(boolean useUnsafe) {
-        this.useUnsafe = useUnsafe && byteOrder == ByteOrder.nativeOrder();
-    }
-
-    public boolean useUnsafe() {
-        return useUnsafe;
-    }
-
-    public ByteOrder byteOrder() {
-        return byteOrder;
-    }
-
-    @Override
-    public boolean synchronousMode() {
-        return synchronousMode;
-    }
-
-    @Override
-    public Excerpt createExcerpt() {
-        return useUnsafe ? new UnsafeExcerpt(this) : new ByteBufferExcerpt(this);
-    }
-
     @Override
     public long getIndexData(long indexId) {
         long indexOffset = indexId << indexBitSize();
@@ -182,8 +133,8 @@ public class IndexedChronicle extends AbstractChronicle {
         return createIndexBuffer(startPosition, indexBufferId);
     }
 
-    private void fillIndexBufferWithNulls(int indexBufferId) {
-        while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
+    private MappedByteBuffer throwByteOrderIsIncorrect() {
+        throw new IllegalStateException("ByteOrder is incorrect.");
     }
 
     private MappedByteBuffer createIndexBuffer(long startPosition, int indexBufferId) {
@@ -211,6 +162,53 @@ public class IndexedChronicle extends AbstractChronicle {
         }
     }
 
+    private void fillIndexBufferWithNulls(int indexBufferId) {
+        while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
+    }
+
+    protected int indexBitSize() {
+        return 3;
+    }
+
+    private static String extractName(String basePath) {
+        File file = new File(basePath);
+        String name = file.getName();
+        if (name != null && name.length() > 0)
+            return name;
+        file = file.getParentFile();
+        if (file == null) return "chronicle";
+        name = file.getName();
+        if (name != null && name.length() > 0)
+            return name;
+        return "chronicle";
+    }
+
+    @Override
+    public long sizeInBytes() {
+        try {
+            return indexChannel.size() + dataChannel.size();
+        } catch (IOException ignored) {
+            return -1;
+        }
+    }
+
+    public void useUnsafe(boolean useUnsafe) {
+        this.useUnsafe = useUnsafe && byteOrder == ByteOrder.nativeOrder();
+    }
+
+    public boolean useUnsafe() {
+        return useUnsafe;
+    }
+
+    public ByteOrder byteOrder() {
+        return byteOrder;
+    }
+
+    @Override
+    public Excerpt createExcerpt() {
+        return useUnsafe ? new UnsafeExcerpt(this) : new ByteBufferExcerpt(this);
+    }
+
     @Override
     public MappedByteBuffer acquireDataBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
@@ -228,10 +226,6 @@ public class IndexedChronicle extends AbstractChronicle {
                 return buffer;
         }
         return createDataBuffer(startPosition, dataBufferId);
-    }
-
-    private void fillDataBuffersWithNulls(int dataBufferId) {
-        while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
     }
 
     private MappedByteBuffer createDataBuffer(long startPosition, int dataBufferId) {
@@ -256,22 +250,13 @@ public class IndexedChronicle extends AbstractChronicle {
         }
     }
 
-    private MappedByteBuffer throwByteOrderIsIncorrect() {
-        throw new IllegalStateException("ByteOrder is incorrect.");
+    private void fillDataBuffersWithNulls(int dataBufferId) {
+        while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
     }
 
     @Override
     public int positionInBuffer(long startPosition) {
         return (int) (startPosition & dataLowMask);
-    }
-
-    @Override
-    public void setIndexData(long indexId, long indexData) {
-        long indexOffset = indexId << indexBitSize();
-        MappedByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
-        indexBuffer.putLong((int) (indexOffset & indexLowMask), indexData);
-        if (synchronousMode())
-            indexBuffer.force();
     }
 
     @Override
@@ -300,6 +285,20 @@ public class IndexedChronicle extends AbstractChronicle {
     public void clear() {
         size = 0;
         setIndexData(1, 0);
+    }
+
+    @Override
+    public void setIndexData(long indexId, long indexData) {
+        long indexOffset = indexId << indexBitSize();
+        MappedByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
+        indexBuffer.putLong((int) (indexOffset & indexLowMask), indexData);
+        if (synchronousMode())
+            indexBuffer.force();
+    }
+
+    @Override
+    public boolean synchronousMode() {
+        return synchronousMode;
     }
 
     public void close() {

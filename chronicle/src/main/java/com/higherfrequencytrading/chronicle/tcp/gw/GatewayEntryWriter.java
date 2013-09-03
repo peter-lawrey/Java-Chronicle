@@ -39,16 +39,6 @@ public class GatewayEntryWriter {
         };
     }
 
-    public Excerpt startExceprt(int capacity, char type) {
-        excerpt.startExcerpt(HEADER_LENGTH + capacity);
-        excerpt.writeLong(System.currentTimeMillis());
-        excerpt.writeLong(System.nanoTime());
-        excerpt.writeLong(0L); // read timestamp
-        excerpt.writeInt24(0); // the length.
-        excerpt.writeByte(type); // the message type.
-        return excerpt;
-    }
-
     public void onException(String message, Throwable t) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
@@ -58,5 +48,15 @@ public class GatewayEntryWriter {
         excerpt.writeUTF(message);
         excerpt.writeUTF(text);
         excerpt.finish();
+    }
+
+    public Excerpt startExceprt(int capacity, char type) {
+        excerpt.startExcerpt(HEADER_LENGTH + capacity);
+        excerpt.writeLong(System.currentTimeMillis());
+        excerpt.writeLong(System.nanoTime());
+        excerpt.writeLong(0L); // read timestamp
+        excerpt.writeInt24(0); // the length.
+        excerpt.writeByte(type); // the message type.
+        return excerpt;
     }
 }

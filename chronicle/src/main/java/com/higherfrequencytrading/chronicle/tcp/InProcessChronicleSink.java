@@ -45,14 +45,17 @@ public class InProcessChronicleSink implements Chronicle {
     private final SocketAddress address;
     private final Excerpt excerpt;
     private final Logger logger;
+    private final ByteBuffer readBuffer; // minimum size
     private volatile boolean closed = false;
+    private SocketChannel sc = null;
+    private boolean scFirst = true;
 
     public InProcessChronicleSink(Chronicle chronicle, String hostname, int port) {
         this.chronicle = chronicle;
         this.address = new InetSocketAddress(hostname, port);
         logger = Logger.getLogger(getClass().getName() + '.' + chronicle);
         excerpt = chronicle.createExcerpt();
-        readBuffer = TcpUtil.createBuffer(256 * 1024, chronicle);
+        readBuffer = TcpUtil.createBuffer(256 * 1024, chronicle.byteOrder());
     }
 
     @Override
@@ -90,27 +93,6 @@ public class InProcessChronicleSink implements Chronicle {
         chronicle.setEnumeratedMarshaller(marshaller);
     }
 
-    private class SinkExcerpt extends WrappedExcerpt {
-        @SuppressWarnings("unchecked")
-        public SinkExcerpt() {
-            super(chronicle.createExcerpt());
-        }
-
-        @Override
-        public boolean nextIndex() {
-            return super.nextIndex() || readNext() && super.nextIndex();
-        }
-
-        @Override
-        public boolean index(long index) throws IndexOutOfBoundsException {
-            if (super.index(index)) return true;
-            return index >= 0 && readNext() && super.index(index);
-        }
-    }
-
-    private SocketChannel sc = null;
-    private boolean scFirst = true;
-
     boolean readNext() {
         if (sc == null || !sc.isOpen()) {
             sc = createConnection();
@@ -118,38 +100,6 @@ public class InProcessChronicleSink implements Chronicle {
         }
         return sc != null && readNextExcerpt(sc);
     }
-
-    private SocketChannel createConnection() {
-        while (!closed) {
-            try {
-                readBuffer.clear();
-                readBuffer.limit(0);
-
-                SocketChannel sc = SocketChannel.open(address);
-                sc.socket().setReceiveBufferSize(256 * 1024);
-                logger.info("Connected to " + address);
-                ByteBuffer bb = ByteBuffer.allocate(8);
-                bb.putLong(0, chronicle.size());
-                IOTools.writeAllOrEOF(sc, bb);
-                return sc;
-
-            } catch (IOException e) {
-                if (logger.isLoggable(Level.FINE))
-                    logger.log(Level.FINE, "Failed to connect to " + address + " retrying", e);
-                else if (logger.isLoggable(Level.INFO))
-                    logger.log(Level.INFO, "Failed to connect to " + address + " retrying " + e);
-            }
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return null;
-            }
-        }
-        return null;
-    }
-
-    private final ByteBuffer readBuffer; // minimum size
 
     private boolean readNextExcerpt(SocketChannel sc) {
         try {
@@ -229,6 +179,43 @@ public class InProcessChronicleSink implements Chronicle {
         return true;
     }
 
+    private SocketChannel createConnection() {
+        while (!closed) {
+            try {
+                readBuffer.clear();
+                readBuffer.limit(0);
+
+                SocketChannel sc = SocketChannel.open(address);
+                sc.socket().setReceiveBufferSize(256 * 1024);
+                logger.info("Connected to " + address);
+                ByteBuffer bb = ByteBuffer.allocate(8);
+                bb.putLong(0, chronicle.size());
+                IOTools.writeAllOrEOF(sc, bb);
+                return sc;
+
+            } catch (IOException e) {
+                if (logger.isLoggable(Level.FINE))
+                    logger.log(Level.FINE, "Failed to connect to " + address + " retrying", e);
+                else if (logger.isLoggable(Level.INFO))
+                    logger.log(Level.INFO, "Failed to connect to " + address + " retrying " + e);
+            }
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return null;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void close() {
+        closed = true;
+        closeSocket(sc);
+//        chronicle.close();
+    }
+
     void closeSocket(SocketChannel sc) {
         if (sc != null)
             try {
@@ -239,14 +226,25 @@ public class InProcessChronicleSink implements Chronicle {
     }
 
     @Override
-    public void close() {
-        closed = true;
-        closeSocket(sc);
-//        chronicle.close();
-    }
-
-    @Override
     public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> eClass) {
         return chronicle.getMarshaller(eClass);
+    }
+
+    private class SinkExcerpt extends WrappedExcerpt {
+        @SuppressWarnings("unchecked")
+        public SinkExcerpt() {
+            super(chronicle.createExcerpt());
+        }
+
+        @Override
+        public boolean nextIndex() {
+            return super.nextIndex() || readNext() && super.nextIndex();
+        }
+
+        @Override
+        public boolean index(long index) throws IndexOutOfBoundsException {
+            if (super.index(index)) return true;
+            return index >= 0 && readNext() && super.index(index);
+        }
     }
 }

@@ -48,11 +48,9 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
     private final C chronicle;
     private final ServerSocketChannel server;
     private final int delayNS;
-
     private final String name;
     private final ExecutorService service;
     private final Logger logger;
-
     private volatile boolean closed = false;
 
     public ChronicleSource(C chronicle, int port, int delayNS) throws IOException {
@@ -83,6 +81,28 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
         new ChronicleSource<IndexedChronicle>(ic, port, delayNS);
     }
 
+    protected void pause(int delayNS) {
+        if (delayNS < 1) return;
+        long start = System.nanoTime();
+        if (delayNS >= 1000 * 1000)
+            LockSupport.parkNanos(delayNS - 1000 * 1000); // only ms accuracy.
+        while (System.nanoTime() - start < delayNS) {
+            Thread.yield();
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        closed = true;
+        service.shutdown();
+        try {
+            service.awaitTermination(1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        chronicle.close();
+    }
+
     class Acceptor implements Runnable {
         @Override
         public void run() {
@@ -111,7 +131,7 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
             try {
                 long index = readIndex(socket);
                 Excerpt excerpt = chronicle.createExcerpt();
-                ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
+                ByteBuffer bb = TcpUtil.createBuffer(1, chronicle.byteOrder()); // minimum size
                 if (closed) {
                     return;
                 }
@@ -146,28 +166,6 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
             IOTools.readFullyOrEOF(socket, bb);
             return bb.getLong(0);
         }
-    }
-
-    protected void pause(int delayNS) {
-        if (delayNS < 1) return;
-        long start = System.nanoTime();
-        if (delayNS >= 1000 * 1000)
-            LockSupport.parkNanos(delayNS - 1000 * 1000); // only ms accuracy.
-        while (System.nanoTime() - start < delayNS) {
-            Thread.yield();
-        }
-    }
-
-    @Override
-    public void close() throws IOException {
-        closed = true;
-        service.shutdown();
-        try {
-            service.awaitTermination(1, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        chronicle.close();
     }
 
 }

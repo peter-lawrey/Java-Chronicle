@@ -27,12 +27,12 @@ public abstract class AbstractListListener<E> extends AbstractCollectionListener
     }
 
     @Override
-    public void add(int index, E element) {
-        add(element);
+    public void remove(int index, E element) {
+        remove(element);
     }
 
     @Override
-    public void remove(int index, E element) {
-        remove(element);
+    public void add(int index, E element) {
+        add(element);
     }
 }

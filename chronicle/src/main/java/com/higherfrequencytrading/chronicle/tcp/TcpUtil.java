@@ -16,9 +16,8 @@
 
 package com.higherfrequencytrading.chronicle.tcp;
 
-import com.higherfrequencytrading.chronicle.Chronicle;
-
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * @author peter.lawrey
@@ -28,8 +27,8 @@ enum TcpUtil {
     static final int HEADER_SIZE = 12;
     static final int INITIAL_BUFFER_SIZE = 64 * 1024;
 
-    public static ByteBuffer createBuffer(int minSize, Chronicle chronicle) {
+    public static ByteBuffer createBuffer(int minSize, ByteOrder byteOrder) {
         int newSize = (minSize + INITIAL_BUFFER_SIZE - 1) / INITIAL_BUFFER_SIZE * INITIAL_BUFFER_SIZE;
-        return ByteBuffer.allocateDirect(newSize).order(chronicle.byteOrder());
+        return ByteBuffer.allocateDirect(newSize).order(byteOrder);
     }
 }

@@ -42,12 +42,13 @@ public class SocketGateway implements WaitingRunnable, Closeable {
     private final InetSocketAddress address;
     private final Chronicle outbound;
     private final Chronicle inbound;
-
     private final GatewayEntryReader outboundReader;
     private final GatewayEntryWriter inboundWriter;
+    private final ByteBuffer bb = ByteBuffer.allocateDirect(1 << 20);
     private SocketChannel socket;
-
     private volatile boolean closed = false;
+    private volatile State state = State.PAUSING;
+    private long pauseTimeout = System.currentTimeMillis() + 100;
 
     public SocketGateway(final InetSocketAddress address, Chronicle outbound, Chronicle inbound, WaitingThread waitingThread) {
         this.address = address;
@@ -81,13 +82,15 @@ public class SocketGateway implements WaitingRunnable, Closeable {
         waitingThread.add(this);
     }
 
-    enum State {
-        PAUSING, CONNECTING, WAITING_FOR_CONNECTION, PROCESSING
+    public static void main(String... args) throws IOException {
+        String outboundPath = args[0];
+        String inboundPath = args[1];
+        String hostname = args[2];
+        int port = Integer.parseInt(args[3]);
+        WaitingThread thread = new WaitingThread(1, "SocketGateway " + hostname + ":" + port, false);
+        new SocketGateway(new InetSocketAddress(hostname, port),
+                new IndexedChronicle(outboundPath), new IndexedChronicle(inboundPath), thread);
     }
-
-    private volatile State state = State.PAUSING;
-    private long pauseTimeout = System.currentTimeMillis() + 100;
-    private final ByteBuffer bb = ByteBuffer.allocateDirect(1 << 20);
 
     @Override
     public boolean run() throws IllegalStateException {
@@ -151,13 +154,7 @@ public class SocketGateway implements WaitingRunnable, Closeable {
         closed = true;
     }
 
-    public static void main(String... args) throws IOException {
-        String outboundPath = args[0];
-        String inboundPath = args[1];
-        String hostname = args[2];
-        int port = Integer.parseInt(args[3]);
-        WaitingThread thread = new WaitingThread(1, "SocketGateway " + hostname + ":" + port, false);
-        new SocketGateway(new InetSocketAddress(hostname, port),
-                new IndexedChronicle(outboundPath), new IndexedChronicle(inboundPath), thread);
+    enum State {
+        PAUSING, CONNECTING, WAITING_FOR_CONNECTION, PROCESSING
     }
 }

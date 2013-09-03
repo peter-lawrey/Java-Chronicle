@@ -26,6 +26,26 @@ import java.lang.reflect.Field;
  */
 public class UnsafeExcerpt extends AbstractExcerpt {
 
+    /**
+     * *** Access the Unsafe class *****
+     */
+    @SuppressWarnings("ALL")
+    private static final Unsafe UNSAFE;
+    private static final int BYTES_OFFSET;
+
+    // RandomDataInput
+    static {
+        try {
+            @SuppressWarnings("ALL")
+            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+            theUnsafe.setAccessible(true);
+            UNSAFE = (Unsafe) theUnsafe.get(null);
+            BYTES_OFFSET = UNSAFE.arrayBaseOffset(byte[].class);
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
+    }
+
     protected UnsafeExcerpt(DirectChronicle chronicle) {
         super(chronicle);
     }
@@ -42,8 +62,6 @@ public class UnsafeExcerpt extends AbstractExcerpt {
 
         assert limit > start && position < limit && endPosition > startPosition;
     }
-
-    // RandomDataInput
 
     @Override
     public byte readByte() {
@@ -230,24 +248,5 @@ public class UnsafeExcerpt extends AbstractExcerpt {
         UNSAFE.copyMemory(null, position, b, BYTES_OFFSET + off, len);
         position += len;
         return len;
-    }
-
-    /**
-     * *** Access the Unsafe class *****
-     */
-    @SuppressWarnings("ALL")
-    private static final Unsafe UNSAFE;
-    private static final int BYTES_OFFSET;
-
-    static {
-        try {
-            @SuppressWarnings("ALL")
-            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
-            theUnsafe.setAccessible(true);
-            UNSAFE = (Unsafe) theUnsafe.get(null);
-            BYTES_OFFSET = UNSAFE.arrayBaseOffset(byte[].class);
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
     }
 }

@@ -30,10 +30,13 @@ import static com.higherfrequencytrading.chronicle.tools.IOTools.loadProperties;
  */
 public class ConfigProperties extends AbstractMap<String, String> {
     private static final String[] NO_STRINGS = {};
-
     private final Properties properties;
     private final String scope;
     private final String[] scopeArray;
+
+    public ConfigProperties(String path, String scopeArray) throws IOException {
+        this(loadProperties(path), scopeArray);
+    }
 
     public ConfigProperties(Properties properties, String scope) {
         this.properties = properties;
@@ -61,8 +64,9 @@ public class ConfigProperties extends AbstractMap<String, String> {
         return ret.toArray(new String[ret.size()]);
     }
 
-    public ConfigProperties(String path, String scopeArray) throws IOException {
-        this(loadProperties(path), scopeArray);
+    public String get(String name, String defaultValue) {
+        String value = get(name);
+        return value == null ? defaultValue : value;
     }
 
     @Override
@@ -75,11 +79,6 @@ public class ConfigProperties extends AbstractMap<String, String> {
             return String.valueOf(obj);
         }
         return super.get(String.valueOf(key));
-    }
-
-    public String get(String name, String defaultValue) {
-        String value = get(name);
-        return value == null ? defaultValue : value;
     }
 
     public int getInt(String name, int defaultValue) {

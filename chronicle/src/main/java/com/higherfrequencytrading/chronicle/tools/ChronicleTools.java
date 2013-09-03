@@ -32,6 +32,8 @@ import java.util.Arrays;
 public enum ChronicleTools {
     ;
 
+    private static final boolean IS64BIT = is64Bit0();
+
     /**
      * Delete a chronicle now and on exit, for testing
      *
@@ -101,8 +103,6 @@ public enum ChronicleTools {
         }
         return sb.toString();
     }
-
-    private static final boolean IS64BIT = is64Bit0();
 
     public static boolean is64Bit() {
         return IS64BIT;

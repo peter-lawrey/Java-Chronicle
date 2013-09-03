@@ -33,20 +33,6 @@ public enum IOTools {
     public static final Charset UTF_8 = Charset.forName("UTF-8");
 
     /**
-     * Provide a normalised path name which can contain SimpleDateFormat syntax.
-     * <p/>
-     * e.g.  'directory/'yyyyMMdd would produce something like "directory/20130225"
-     *
-     * @param pathName to use. If it starts or ends with a single quote ' treat as a date format and use the current time
-     * @return returns the normalise path.
-     */
-    public static String normalisePath(String pathName) {
-        if (pathName.startsWith("'") || pathName.endsWith("'"))
-            return new SimpleDateFormat(pathName).format(new Date());
-        return pathName;
-    }
-
-    /**
      * Convert a path to a Stream. It looks first in local file system and then the class path.
      * This allows you to override local any file int he class path.
      * <p/>
@@ -85,14 +71,17 @@ public enum IOTools {
     }
 
     /**
-     * Reader wrapper for asStream above.
+     * Provide a normalised path name which can contain SimpleDateFormat syntax.
+     * <p/>
+     * e.g.  'directory/'yyyyMMdd would produce something like "directory/20130225"
      *
-     * @param name of the path
-     * @return the BufferedReader
-     * @throws IOException if the file was not found or the stream was corrupt.
+     * @param pathName to use. If it starts or ends with a single quote ' treat as a date format and use the current time
+     * @return returns the normalise path.
      */
-    public static BufferedReader asReader(String name) throws IOException {
-        return new BufferedReader(new InputStreamReader(asStream(name, null), UTF_8));
+    public static String normalisePath(String pathName) {
+        if (pathName.startsWith("'") || pathName.endsWith("'"))
+            return new SimpleDateFormat(pathName).format(new Date());
+        return pathName;
     }
 
     /**
@@ -108,6 +97,17 @@ public enum IOTools {
         prop.load(br);
         br.close();
         return prop;
+    }
+
+    /**
+     * Reader wrapper for asStream above.
+     *
+     * @param name of the path
+     * @return the BufferedReader
+     * @throws IOException if the file was not found or the stream was corrupt.
+     */
+    public static BufferedReader asReader(String name) throws IOException {
+        return new BufferedReader(new InputStreamReader(asStream(name, null), UTF_8));
     }
 
     public static void writeAllOrEOF(SocketChannel sc, ByteBuffer bb) throws IOException {

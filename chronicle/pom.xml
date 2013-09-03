@@ -23,9 +23,10 @@
 
     <groupId>com.higherfrequencytrading</groupId>
     <artifactId>chronicle</artifactId>
-    <version>1.7.3-SNAPSHOT</version>
-    <name>Java Chronicle</name>
+    <version>1.8-SNAPSHOT</version>
+    <name>Java-Chronicle</name>
     <description>High Performance Logging and Persisted Messaging</description>
+    <packaging>bundle</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -96,6 +97,7 @@
                     <nohelp>true</nohelp>
                 </configuration>
             </plugin>
+
             <!-- plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>

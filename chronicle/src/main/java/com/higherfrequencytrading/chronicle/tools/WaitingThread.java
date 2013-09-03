@@ -32,8 +32,8 @@ public class WaitingThread implements Closeable {
     private static final Logger LOGGER = Logger.getLogger(WaitingThread.class.getName());
     private final int delayMS;
     private final Set<WaitingRunnable> runnables = new LinkedHashSet<WaitingRunnable>();
-    private volatile WaitingRunnable[] runnableArray = {};
     private final ExecutorService service;
+    private volatile WaitingRunnable[] runnableArray = {};
     private volatile boolean closed = false;
 
     public WaitingThread(int delayMS, final String name, final boolean daemon) {
@@ -73,6 +73,13 @@ public class WaitingThread implements Closeable {
         });
     }
 
+    public void remove(WaitingRunnable waitingRunnable) {
+        synchronized (runnables) {
+            if (runnables.remove(waitingRunnable))
+                runnableArray = runnables.toArray(new WaitingRunnable[runnables.size()]);
+        }
+    }
+
     protected void pause() throws InterruptedException {
         if (delayMS < 0) return;
         if (delayMS == 0)
@@ -84,13 +91,6 @@ public class WaitingThread implements Closeable {
     public void add(WaitingRunnable waitingRunnable) {
         synchronized (runnables) {
             if (runnables.add(waitingRunnable))
-                runnableArray = runnables.toArray(new WaitingRunnable[runnables.size()]);
-        }
-    }
-
-    public void remove(WaitingRunnable waitingRunnable) {
-        synchronized (runnables) {
-            if (runnables.remove(waitingRunnable))
                 runnableArray = runnables.toArray(new WaitingRunnable[runnables.size()]);
         }
     }

@@ -34,8 +34,9 @@ public class SetWrapper<E> implements ObservableSet<E> {
     private final Set<E> underlying;
     private final int maxMessageSize;
     private final List<CollectionListener<E>> listeners = new ArrayList<CollectionListener<E>>();
-    private boolean notifyOff = false;
     private final boolean enumClass;
+    private boolean notifyOff = false;
+    private Annotation[] annotations = {};
 
     public SetWrapper(DataStore dataStore, String name, Class<E> eClass, Set<E> underlying, int maxMessageSize) {
         this.dataStore = dataStore;
@@ -64,8 +65,6 @@ public class SetWrapper<E> implements ObservableSet<E> {
         }
     }
 
-    private Annotation[] annotations = {};
-
     public Annotation[] getAnnotations() {
         return annotations;
     }
@@ -92,6 +91,38 @@ public class SetWrapper<E> implements ObservableSet<E> {
         return true;
     }
 
+    private void writeAdd(E element) {
+        Excerpt excerpt = getExcerpt(maxMessageSize, add);
+        long eventId = excerpt.index();
+        writeElement(excerpt, element);
+        excerpt.finish();
+        if (!notifyOff && !listeners.isEmpty()) {
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.add(element);
+                listener.eventEnd(true);
+            }
+        }
+    }
+
+    private void writeElement(Excerpt excerpt, E element) {
+        if (enumClass)
+            excerpt.writeEnum(element);
+        else
+            excerpt.writeObject(element);
+    }
+
+    private Excerpt getExcerpt(int maxSize, WrapperEvent event) {
+        Excerpt excerpt = dataStore.startExcerpt(maxSize + 2 + event.name().length(), name);
+        excerpt.writeEnum(event);
+        return excerpt;
+    }
+
+    void checkWritable() {
+        dataStore.checkWritable();
+    }
+
     @Override
     public boolean addAll(Collection<? extends E> c) {
         checkWritable();
@@ -108,8 +139,27 @@ public class SetWrapper<E> implements ObservableSet<E> {
         return true;
     }
 
-    void checkWritable() {
-        dataStore.checkWritable();
+    private void writeAddAll(Collection<E> added) {
+        Excerpt excerpt = getExcerpt(maxMessageSize * added.size(), addAll);
+        long eventId = excerpt.index();
+        writeList(excerpt, added);
+        excerpt.finish();
+        if (!notifyOff && !listeners.isEmpty()) {
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                for (E e : added)
+                    listener.add(e);
+                listener.eventEnd(true);
+            }
+        }
+    }
+
+    private void writeList(Excerpt excerpt, Collection<E> list) {
+        if (enumClass)
+            excerpt.writeEnums(list);
+        else
+            excerpt.writeList(list);
     }
 
     @Override
@@ -126,6 +176,23 @@ public class SetWrapper<E> implements ObservableSet<E> {
     public void clear() {
         writeClear();
         underlying.clear();
+    }
+
+    private void writeClear() {
+        Excerpt excerpt = getExcerpt(10, clear);
+        long eventId = excerpt.index();
+        excerpt.finish();
+        if (!notifyOff && !listeners.isEmpty()) {
+            E[] elements = (E[]) underlying.toArray(new Object[underlying.size()]);
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                for (int j = 0; j < elements.length; j++) {
+                    listener.remove(elements[j]);
+                }
+                listener.eventEnd(true);
+            }
+        }
     }
 
     @Override
@@ -262,12 +329,60 @@ public class SetWrapper<E> implements ObservableSet<E> {
         }
     }
 
+    private List<E> readList(Excerpt excerpt) {
+        List<E> eList = new ArrayList<E>();
+        if (enumClass)
+            excerpt.readEnums(eClass, eList);
+        else
+            excerpt.readList(eList);
+        return eList;
+    }
+
+    @SuppressWarnings("unchecked")
+    private E readElement(Excerpt excerpt) {
+        if (enumClass)
+            return excerpt.readEnum(eClass);
+        return (E) excerpt.readObject();
+    }
+
     @Override
     public boolean remove(Object o) {
         checkWritable();
         if (!underlying.remove(o)) return false;
         writeRemove(o);
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void writeRemove(Object o) {
+        Excerpt excerpt = getExcerpt(maxMessageSize, remove);
+        long eventId = excerpt.index();
+        writeElement(excerpt, (E) o);
+        excerpt.finish();
+        if (!notifyOff && !listeners.isEmpty()) {
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.remove((E) o);
+                listener.eventEnd(true);
+            }
+        }
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        checkWritable();
+        List<Object> toremove = new ArrayList<Object>(size());
+        for (E e : this) {
+            if (!c.contains(e))
+                toremove.add(e);
+        }
+        return !toremove.isEmpty() && removeAll(toremove);
+    }
+
+    @Override
+    public int size() {
+        return underlying.size();
     }
 
     @Override
@@ -286,20 +401,21 @@ public class SetWrapper<E> implements ObservableSet<E> {
         return true;
     }
 
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        checkWritable();
-        List<Object> toremove = new ArrayList<Object>(size());
-        for (E e : this) {
-            if (!c.contains(e))
-                toremove.add(e);
+    private void writeRemoveAll(List<E> removed) {
+        Excerpt excerpt = getExcerpt(maxMessageSize * removed.size(), removeAll);
+        long eventId = excerpt.index();
+        writeList(excerpt, removed);
+        excerpt.finish();
+        if (!notifyOff && !listeners.isEmpty()) {
+            for (int i = 0; i < listeners.size(); i++) {
+                CollectionListener<E> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                for (int j = 0; j < removed.size(); j++) {
+                    listener.remove(removed.get(j));
+                }
+                listener.eventEnd(true);
+            }
         }
-        return !toremove.isEmpty() && removeAll(toremove);
-    }
-
-    @Override
-    public int size() {
-        return underlying.size();
     }
 
     @SuppressWarnings("unchecked")
@@ -333,122 +449,5 @@ public class SetWrapper<E> implements ObservableSet<E> {
                 listener.eventEnd(true);
             }
         }
-    }
-
-    private Excerpt getExcerpt(int maxSize, WrapperEvent event) {
-        Excerpt excerpt = dataStore.startExcerpt(maxSize + 2 + event.name().length(), name);
-        excerpt.writeEnum(event);
-        return excerpt;
-    }
-
-    private void writeAdd(E element) {
-        Excerpt excerpt = getExcerpt(maxMessageSize, add);
-        long eventId = excerpt.index();
-        writeElement(excerpt, element);
-        excerpt.finish();
-        if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++) {
-                CollectionListener<E> listener = listeners.get(i);
-                listener.eventStart(eventId, name);
-                listener.add(element);
-                listener.eventEnd(true);
-            }
-        }
-    }
-
-    private void writeAddAll(Collection<E> added) {
-        Excerpt excerpt = getExcerpt(maxMessageSize * added.size(), addAll);
-        long eventId = excerpt.index();
-        writeList(excerpt, added);
-        excerpt.finish();
-        if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++) {
-                CollectionListener<E> listener = listeners.get(i);
-                listener.eventStart(eventId, name);
-                for (E e : added)
-                    listener.add(e);
-                listener.eventEnd(true);
-            }
-        }
-    }
-
-    private void writeClear() {
-        Excerpt excerpt = getExcerpt(10, clear);
-        long eventId = excerpt.index();
-        excerpt.finish();
-        if (!notifyOff && !listeners.isEmpty()) {
-            E[] elements = (E[]) underlying.toArray(new Object[underlying.size()]);
-            for (int i = 0; i < listeners.size(); i++) {
-                CollectionListener<E> listener = listeners.get(i);
-                listener.eventStart(eventId, name);
-                for (int j = 0; j < elements.length; j++) {
-                    listener.remove(elements[j]);
-                }
-                listener.eventEnd(true);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void writeRemove(Object o) {
-        Excerpt excerpt = getExcerpt(maxMessageSize, remove);
-        long eventId = excerpt.index();
-        writeElement(excerpt, (E) o);
-        excerpt.finish();
-        if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++) {
-                CollectionListener<E> listener = listeners.get(i);
-                listener.eventStart(eventId, name);
-                listener.remove((E) o);
-                listener.eventEnd(true);
-            }
-        }
-    }
-
-    private void writeRemoveAll(List<E> removed) {
-        Excerpt excerpt = getExcerpt(maxMessageSize * removed.size(), removeAll);
-        long eventId = excerpt.index();
-        writeList(excerpt, removed);
-        excerpt.finish();
-        if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++) {
-                CollectionListener<E> listener = listeners.get(i);
-                listener.eventStart(eventId, name);
-                for (int j = 0; j < removed.size(); j++) {
-                    listener.remove(removed.get(j));
-                }
-                listener.eventEnd(true);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private E readElement(Excerpt excerpt) {
-        if (enumClass)
-            return excerpt.readEnum(eClass);
-        return (E) excerpt.readObject();
-    }
-
-    private void writeElement(Excerpt excerpt, E element) {
-        if (enumClass)
-            excerpt.writeEnum(element);
-        else
-            excerpt.writeObject(element);
-    }
-
-    private List<E> readList(Excerpt excerpt) {
-        List<E> eList = new ArrayList<E>();
-        if (enumClass)
-            excerpt.readEnums(eClass, eList);
-        else
-            excerpt.readList(eList);
-        return eList;
-    }
-
-    private void writeList(Excerpt excerpt, Collection<E> list) {
-        if (enumClass)
-            excerpt.writeEnums(list);
-        else
-            excerpt.writeList(list);
     }
 }

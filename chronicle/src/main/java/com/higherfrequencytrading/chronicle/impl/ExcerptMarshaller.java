@@ -51,6 +51,11 @@ public class ExcerptMarshaller<E extends ExcerptMarshallable> implements Enumera
     }
 
     @Override
+    public E parse(Excerpt excerpt, StopCharTester tester) {
+        return read(excerpt);
+    }
+
+    @Override
     public E read(Excerpt excerpt) {
         E e;
         try {
@@ -60,10 +65,5 @@ public class ExcerptMarshaller<E extends ExcerptMarshallable> implements Enumera
         }
         e.readMarshallable(excerpt);
         return e;
-    }
-
-    @Override
-    public E parse(Excerpt excerpt, StopCharTester tester) {
-        return read(excerpt);
     }
 }

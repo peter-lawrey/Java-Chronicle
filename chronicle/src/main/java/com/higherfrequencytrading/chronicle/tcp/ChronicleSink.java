@@ -47,7 +47,6 @@ public class ChronicleSink implements Closeable {
     private final Chronicle chronicle;
     private final SocketAddress address;
     private final ExcerptListener listener;
-
     private final ExecutorService service;
     private final Logger logger;
     private volatile boolean closed = false;
@@ -82,6 +81,22 @@ public class ChronicleSink implements Closeable {
         new ChronicleSink(ic, hostname, port);
     }
 
+    void closeSocket(SocketChannel sc) {
+        if (sc != null)
+            try {
+                sc.close();
+            } catch (IOException e) {
+                logger.warning("Error closing socket " + e);
+            }
+    }
+
+    @Override
+    public void close() throws IOException {
+        closed = true;
+        service.shutdownNow();
+        chronicle.close();
+    }
+
     class Sink implements Runnable {
         @SuppressWarnings("unchecked")
         final Excerpt excerpt = chronicle.createExcerpt();
@@ -101,30 +116,8 @@ public class ChronicleSink implements Closeable {
             }
         }
 
-        private SocketChannel createConnection() {
-            if (closed) {
-                return null;
-            }
-            do {
-                try {
-                    SocketChannel sc = SocketChannel.open(address);
-                    ByteBuffer bb = ByteBuffer.allocate(8);
-                    bb.putLong(0, chronicle.size());
-                    IOTools.writeAllOrEOF(sc, bb);
-                    return sc;
-
-                } catch (IOException e) {
-                    if (logger.isLoggable(Level.FINE))
-                        logger.log(Level.FINE, "Failed to connect to " + address + " retrying", e);
-                    else if (logger.isLoggable(Level.INFO))
-                        logger.log(Level.INFO, "Failed to connect to " + address + " retrying " + e);
-                }
-            } while (!closed);
-            return null;
-        }
-
         private void readNextExcerpt(SocketChannel sc) {
-            ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
+            ByteBuffer bb = TcpUtil.createBuffer(1, chronicle.byteOrder()); // minimum size
             try {
                 if (!closed) {
                     do {
@@ -171,21 +164,27 @@ public class ChronicleSink implements Closeable {
             bb.limit(TcpUtil.HEADER_SIZE);
             IOTools.readFullyOrEOF(sc, bb);
         }
-    }
 
-    void closeSocket(SocketChannel sc) {
-        if (sc != null)
-            try {
-                sc.close();
-            } catch (IOException e) {
-                logger.warning("Error closing socket " + e);
+        private SocketChannel createConnection() {
+            if (closed) {
+                return null;
             }
-    }
+            do {
+                try {
+                    SocketChannel sc = SocketChannel.open(address);
+                    ByteBuffer bb = ByteBuffer.allocate(8);
+                    bb.putLong(0, chronicle.size());
+                    IOTools.writeAllOrEOF(sc, bb);
+                    return sc;
 
-    @Override
-    public void close() throws IOException {
-        closed = true;
-        service.shutdownNow();
-        chronicle.close();
+                } catch (IOException e) {
+                    if (logger.isLoggable(Level.FINE))
+                        logger.log(Level.FINE, "Failed to connect to " + address + " retrying", e);
+                    else if (logger.isLoggable(Level.INFO))
+                        logger.log(Level.INFO, "Failed to connect to " + address + " retrying " + e);
+                }
+            } while (!closed);
+            return null;
+        }
     }
 }

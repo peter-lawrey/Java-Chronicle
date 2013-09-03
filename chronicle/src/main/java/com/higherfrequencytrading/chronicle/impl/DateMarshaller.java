@@ -27,6 +27,7 @@ import java.util.Date;
  */
 public class DateMarshaller implements EnumeratedMarshaller<Date> {
     final int size1;
+    private final StringBuilder sb = new StringBuilder();
     private Date[] interner = null;
 
     public DateMarshaller(int size) {
@@ -48,13 +49,28 @@ public class DateMarshaller implements EnumeratedMarshaller<Date> {
         excerpt.writeUnsignedByte(pos, excerpt.position() - 1 - pos);
     }
 
-    private final StringBuilder sb = new StringBuilder();
-
     @Override
     public Date read(Excerpt excerpt) {
         excerpt.readUTF(sb);
         long time = parseLong(sb);
         return lookupDate(time);
+    }
+
+    private Date lookupDate(long time) {
+        int idx = hashFor(time);
+        if (interner == null)
+            interner = new Date[size1 + 1];
+        Date date = interner[idx];
+        if (date != null && date.getTime() == time)
+            return date;
+        return interner[idx] = new Date(time);
+    }
+
+    private int hashFor(long time) {
+        long h = time;
+        h ^= (h >>> 41) ^ (h >>> 20);
+        h ^= (h >>> 14) ^ (h >>> 7);
+        return (int) (h & size1);
     }
 
     private static long parseLong(CharSequence sb) {
@@ -76,22 +92,5 @@ public class DateMarshaller implements EnumeratedMarshaller<Date> {
     @Override
     public Date parse(Excerpt excerpt, StopCharTester tester) {
         return lookupDate(excerpt.readLong());
-    }
-
-    private Date lookupDate(long time) {
-        int idx = hashFor(time);
-        if (interner == null)
-            interner = new Date[size1 + 1];
-        Date date = interner[idx];
-        if (date != null && date.getTime() == time)
-            return date;
-        return interner[idx] = new Date(time);
-    }
-
-    private int hashFor(long time) {
-        long h = time;
-        h ^= (h >>> 41) ^ (h >>> 20);
-        h ^= (h >>> 14) ^ (h >>> 7);
-        return (int) (h & size1);
     }
 }

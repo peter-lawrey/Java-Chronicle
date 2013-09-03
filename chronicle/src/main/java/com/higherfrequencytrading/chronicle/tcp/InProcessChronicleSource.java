@@ -46,17 +46,16 @@ import java.util.logging.Logger;
 public class InProcessChronicleSource implements Chronicle {
     static final int IN_SYNC_LEN = -128;
     static final long HEARTBEAT_INTERVAL_MS = 2500;
-
     private static final int MAX_MESSAGE = 128;
-
     private final Chronicle chronicle;
     private final ServerSocketChannel server;
     private final String name;
     private final ExecutorService service;
     private final Logger logger;
-
+    private final Object notifier = new Object();
     private long busyWaitTimeNS = 100 * 1000;
     private volatile boolean closed = false;
+    private long lastUnpausedNS = 0;
 
     public InProcessChronicleSource(Chronicle chronicle, int port) throws IOException {
         this.chronicle = chronicle;
@@ -76,6 +75,74 @@ public class InProcessChronicleSource implements Chronicle {
     @Override
     public void multiThreaded(boolean multiThreaded) {
         chronicle.multiThreaded(multiThreaded);
+    }
+
+    private void pauseReset() {
+        lastUnpausedNS = System.nanoTime();
+    }
+
+    protected void pause() {
+        if (lastUnpausedNS + busyWaitTimeNS > System.nanoTime())
+            return;
+        try {
+            synchronized (notifier) {
+                notifier.wait(HEARTBEAT_INTERVAL_MS / 2);
+            }
+        } catch (InterruptedException ie) {
+            logger.warning("Interrupt ignored");
+        }
+    }
+
+    void wakeSessionHandlers() {
+        synchronized (notifier) {
+            notifier.notifyAll();
+        }
+    }
+
+    @Override
+    public String name() {
+        return chronicle.name();
+    }
+
+    @Override
+    public Excerpt createExcerpt() {
+        return new SourceExcerpt();
+    }
+
+    @Override
+    public long size() {
+        return chronicle.size();
+    }
+
+    @Override
+    public long sizeInBytes() {
+        return chronicle.sizeInBytes();
+    }
+
+    @Override
+    public ByteOrder byteOrder() {
+        return chronicle.byteOrder();
+    }
+
+    @Override
+    public void close() {
+        closed = true;
+        chronicle.close();
+        try {
+            server.close();
+        } catch (IOException e) {
+            logger.warning("Error closing server port " + e);
+        }
+    }
+
+    @Override
+    public <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller) {
+        chronicle.setEnumeratedMarshaller(marshaller);
+    }
+
+    @Override
+    public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> eClass) {
+        return chronicle.getMarshaller(eClass);
     }
 
     private class Acceptor implements Runnable {
@@ -110,7 +177,7 @@ public class InProcessChronicleSource implements Chronicle {
             try {
                 long index = readIndex(socket);
                 Excerpt excerpt = chronicle.createExcerpt();
-                ByteBuffer bb = TcpUtil.createBuffer(1, chronicle); // minimum size
+                ByteBuffer bb = TcpUtil.createBuffer(1, chronicle.byteOrder()); // minimum size
                 long sendInSync = 0;
                 boolean first = true;
                 OUTER:
@@ -202,73 +269,6 @@ public class InProcessChronicleSource implements Chronicle {
 
     }
 
-    private long lastUnpausedNS = 0;
-
-    private void pauseReset() {
-        lastUnpausedNS = System.nanoTime();
-    }
-
-    private final Object notifier = new Object();
-
-    protected void pause() {
-        if (lastUnpausedNS + busyWaitTimeNS > System.nanoTime())
-            return;
-        try {
-            synchronized (notifier) {
-                notifier.wait(HEARTBEAT_INTERVAL_MS / 2);
-            }
-        } catch (InterruptedException ie) {
-            logger.warning("Interrupt ignored");
-        }
-    }
-
-    void wakeSessionHandlers() {
-        synchronized (notifier) {
-            notifier.notifyAll();
-        }
-    }
-
-    @Override
-    public String name() {
-        return chronicle.name();
-    }
-
-    @Override
-    public Excerpt createExcerpt() {
-        return new SourceExcerpt();
-    }
-
-    @Override
-    public long size() {
-        return chronicle.size();
-    }
-
-    @Override
-    public long sizeInBytes() {
-        return chronicle.sizeInBytes();
-    }
-
-    @Override
-    public ByteOrder byteOrder() {
-        return chronicle.byteOrder();
-    }
-
-    @Override
-    public void close() {
-        closed = true;
-        chronicle.close();
-        try {
-            server.close();
-        } catch (IOException e) {
-            logger.warning("Error closing server port " + e);
-        }
-    }
-
-    @Override
-    public <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller) {
-        chronicle.setEnumeratedMarshaller(marshaller);
-    }
-
     private class SourceExcerpt extends WrappedExcerpt {
         @SuppressWarnings("unchecked")
         public SourceExcerpt() {
@@ -281,10 +281,5 @@ public class InProcessChronicleSource implements Chronicle {
             wakeSessionHandlers();
 //            System.out.println("Wrote " + index());
         }
-    }
-
-    @Override
-    public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> eClass) {
-        return chronicle.getMarshaller(eClass);
     }
 }

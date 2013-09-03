@@ -134,14 +134,13 @@ public class WrappedExcerpt implements Excerpt {
         return appendUTF(appendable);
     }
 
-
-    public boolean readUTF(StringBuilder stringBuilder) {
-        return excerpt.readUTF(stringBuilder);
-    }
-
     @Override
     public boolean appendUTF(Appendable appendable) {
         return excerpt.appendUTF(appendable);
+    }
+
+    public boolean readUTF(StringBuilder stringBuilder) {
+        return excerpt.readUTF(stringBuilder);
     }
 
     public String parseUTF(StopCharTester tester) {

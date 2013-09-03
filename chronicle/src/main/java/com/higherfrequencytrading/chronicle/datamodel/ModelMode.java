@@ -21,7 +21,6 @@ package com.higherfrequencytrading.chronicle.datamodel;
  */
 public enum ModelMode {
     MASTER(true), READ_ONLY(false);
-
     public final boolean writable;
 
     private ModelMode(boolean writable) {

@@ -23,6 +23,14 @@ import java.math.RoundingMode;
  * @author peter.lawrey
  */
 public class MutableDecimal extends Number implements Comparable<MutableDecimal> {
+    static final double[] TENS = new double[16];
+
+    static {
+        TENS[0] = 1;
+        for (int i = 1; i < TENS.length; i++)
+            TENS[i] = 10 * TENS[i - 1];
+    }
+
     private long value;
     private int scale;
 
@@ -54,6 +62,10 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
         }
     }
 
+    private double tens(int scale) {
+        return scale < TENS.length ? TENS[scale] : Math.pow(10, scale);
+    }
+
     public void set(long value, int scale) {
         this.value = value;
         this.scale = scale;
@@ -61,10 +73,6 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
 
     public long value() {
         return value;
-    }
-
-    public int scale() {
-        return scale;
     }
 
     public void clear() {
@@ -147,6 +155,12 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
         return (int) doubleValue();
     }
 
+    public double doubleValue() {
+        if (scale == 0)
+            return value;
+        return scale <= 0 ? value * tens(-scale) : value / tens(scale);
+    }
+
     @Override
     public long longValue() {
         if (scale == 0)
@@ -161,24 +175,6 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
     @Override
     public float floatValue() {
         return (float) doubleValue();
-    }
-
-    public double doubleValue() {
-        if (scale == 0)
-            return value;
-        return scale <= 0 ? value * tens(-scale) : value / tens(scale);
-    }
-
-    static final double[] TENS = new double[16];
-
-    static {
-        TENS[0] = 1;
-        for (int i = 1; i < TENS.length; i++)
-            TENS[i] = 10 * TENS[i - 1];
-    }
-
-    private double tens(int scale) {
-        return scale < TENS.length ? TENS[scale] : Math.pow(10, scale);
     }
 
     @Override
@@ -198,5 +194,9 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
 
     private int longCompareTo(long value, long ovalue) {
         return value < ovalue ? -1 : value > ovalue ? +1 : 0;
+    }
+
+    public int scale() {
+        return scale;
     }
 }

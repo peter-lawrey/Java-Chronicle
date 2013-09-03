@@ -20,7 +20,6 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
-import java.util.Arrays;
 
 import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
 
@@ -40,8 +39,8 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
     private final Set<Entry<K, V>> entrySet;
     private final boolean kEnumClass;
     private final boolean vEnumClass;
-
     private boolean notifyOff = false;
+    private Annotation[] annotations = {};
 
     public MapWrapper(DataStore dataStore, String name, Class<K> kClass, Class<V> vClass, Map<K, V> underlying, int maxMessageSize) {
         this.dataStore = dataStore;
@@ -59,8 +58,6 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
 
         dataStore.add(name, this);
     }
-
-    private Annotation[] annotations = {};
 
     public Annotation[] getAnnotations() {
         return annotations;
@@ -184,13 +181,23 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
             }
     }
 
+    @SuppressWarnings("unchecked")
+    private V readValue(Excerpt excerpt) {
+        if (vEnumClass)
+            return excerpt.readEnum(vClass);
+        return (V) excerpt.readObject();
+    }
+
+    @SuppressWarnings("unchecked")
+    private K readKey(Excerpt excerpt) {
+        if (kEnumClass)
+            return excerpt.readEnum(kClass);
+        return (K) excerpt.readObject();
+    }
+
     @Override
     public void notifyOff(boolean notifyOff) {
         this.notifyOff = notifyOff;
-    }
-
-    void checkWritable() {
-        dataStore.checkWritable();
     }
 
     //// Map
@@ -198,6 +205,35 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
     public void clear() {
         checkWritable();
         writeClear();
+    }
+
+    private void writeClear() {
+        Excerpt excerpt = getExcerpt(16, clear);
+        long eventId = excerpt.index();
+        excerpt.writeEnum(clear);
+        excerpt.finish();
+        if (!notifyOff && !listeners.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            Entry<K, V>[] entrySet = underlying.entrySet().toArray(new Entry[underlying.size()]);
+            for (int i = 0; i < listeners.size(); i++) {
+                MapListener<K, V> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                for (int j = 0; j < entrySet.length; j++) {
+                    listener.remove(entrySet[j].getKey(), entrySet[j].getValue());
+                }
+                listener.eventEnd(true);
+            }
+        }
+    }
+
+    private Excerpt getExcerpt(int maxSize, WrapperEvent event) {
+        Excerpt excerpt = dataStore.startExcerpt(maxSize + 2 + event.name().length(), name);
+        excerpt.writeEnum(event);
+        return excerpt;
+    }
+
+    void checkWritable() {
+        dataStore.checkWritable();
     }
 
     @Override
@@ -249,6 +285,39 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         return previous;
     }
 
+    private void writePut(K key, V previous, V value) {
+        Excerpt excerpt = getExcerpt(maxMessageSize, put);
+        long eventId = excerpt.index();
+        writeKey(excerpt, key);
+        writeValue(excerpt, value);
+        excerpt.finish();
+        if (!notifyOff && !listeners.isEmpty()) {
+            for (int i = 0; i < listeners.size(); i++) {
+                MapListener<K, V> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                if (previous == null)
+                    listener.add(key, value);
+                else
+                    listener.update(key, previous, value);
+                listener.eventEnd(true);
+            }
+        }
+    }
+
+    private void writeValue(Excerpt excerpt, V value) {
+        if (vEnumClass)
+            excerpt.writeEnum(value);
+        else
+            excerpt.writeObject(value);
+    }
+
+    private void writeKey(Excerpt excerpt, K key) {
+        if (kEnumClass)
+            excerpt.writeEnum(key);
+        else
+            excerpt.writeObject(key);
+    }
+
     protected boolean sameOrNotEqual(V previous, V value) {
         return previous == value || previous == null || !previous.equals(value);
     }
@@ -257,53 +326,6 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
     public void putAll(Map<? extends K, ? extends V> m) {
         checkWritable();
         performAndWritePutAll(m);
-    }
-
-    @Override
-    public V remove(Object key) {
-        checkWritable();
-        V value = underlying.remove(key);
-        if (value != null)
-            writeRemove(key, value);
-        return value;
-    }
-
-    @Override
-    public int size() {
-        return underlying.size();
-    }
-
-    @Override
-    public String toString() {
-        return underlying.toString();
-    }
-
-    @Override
-    public Collection<V> values() {
-        return values;
-    }
-
-    @Override
-    public void publishEvent(Object object) {
-        Excerpt excerpt = getExcerpt(maxMessageSize + 128, event);
-        long eventId = excerpt.index();
-        excerpt.writeObject(event);
-        excerpt.finish();
-
-        if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++) {
-                MapListener<K, V> listener = listeners.get(i);
-                listener.eventStart(eventId, name);
-                listener.onEvent(object);
-                listener.eventEnd(true);
-            }
-        }
-    }
-
-    private Excerpt getExcerpt(int maxSize, WrapperEvent event) {
-        Excerpt excerpt = dataStore.startExcerpt(maxSize + 2 + event.name().length(), name);
-        excerpt.writeEnum(event);
-        return excerpt;
     }
 
     private void performAndWritePutAll(Map<? extends K, ? extends V> m) {
@@ -341,42 +363,13 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         excerpt.finish();
     }
 
-    private void writeClear() {
-        Excerpt excerpt = getExcerpt(16, clear);
-        long eventId = excerpt.index();
-        excerpt.writeEnum(clear);
-        excerpt.finish();
-        if (!notifyOff && !listeners.isEmpty()) {
-            @SuppressWarnings("unchecked")
-            Entry<K, V>[] entrySet = underlying.entrySet().toArray(new Entry[underlying.size()]);
-            for (int i = 0; i < listeners.size(); i++) {
-                MapListener<K, V> listener = listeners.get(i);
-                listener.eventStart(eventId, name);
-                for (int j = 0; j < entrySet.length; j++) {
-                    listener.remove(entrySet[j].getKey(), entrySet[j].getValue());
-                }
-                listener.eventEnd(true);
-            }
-        }
-    }
-
-    private void writePut(K key, V previous, V value) {
-        Excerpt excerpt = getExcerpt(maxMessageSize, put);
-        long eventId = excerpt.index();
-        writeKey(excerpt, key);
-        writeValue(excerpt, value);
-        excerpt.finish();
-        if (!notifyOff && !listeners.isEmpty()) {
-            for (int i = 0; i < listeners.size(); i++) {
-                MapListener<K, V> listener = listeners.get(i);
-                listener.eventStart(eventId, name);
-                if (previous == null)
-                    listener.add(key, value);
-                else
-                    listener.update(key, previous, value);
-                listener.eventEnd(true);
-            }
-        }
+    @Override
+    public V remove(Object key) {
+        checkWritable();
+        V value = underlying.remove(key);
+        if (value != null)
+            writeRemove(key, value);
+        return value;
     }
 
     @SuppressWarnings("unchecked")
@@ -396,31 +389,35 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private K readKey(Excerpt excerpt) {
-        if (kEnumClass)
-            return excerpt.readEnum(kClass);
-        return (K) excerpt.readObject();
+    @Override
+    public int size() {
+        return underlying.size();
     }
 
-    @SuppressWarnings("unchecked")
-    private V readValue(Excerpt excerpt) {
-        if (vEnumClass)
-            return excerpt.readEnum(vClass);
-        return (V) excerpt.readObject();
+    @Override
+    public String toString() {
+        return underlying.toString();
     }
 
-    private void writeKey(Excerpt excerpt, K key) {
-        if (kEnumClass)
-            excerpt.writeEnum(key);
-        else
-            excerpt.writeObject(key);
+    @Override
+    public Collection<V> values() {
+        return values;
     }
 
-    private void writeValue(Excerpt excerpt, V value) {
-        if (vEnumClass)
-            excerpt.writeEnum(value);
-        else
-            excerpt.writeObject(value);
+    @Override
+    public void publishEvent(Object object) {
+        Excerpt excerpt = getExcerpt(maxMessageSize + 128, event);
+        long eventId = excerpt.index();
+        excerpt.writeObject(event);
+        excerpt.finish();
+
+        if (!notifyOff && !listeners.isEmpty()) {
+            for (int i = 0; i < listeners.size(); i++) {
+                MapListener<K, V> listener = listeners.get(i);
+                listener.eventStart(eventId, name);
+                listener.onEvent(object);
+                listener.eventEnd(true);
+            }
+        }
     }
 }

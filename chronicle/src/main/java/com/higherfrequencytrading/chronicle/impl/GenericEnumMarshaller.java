@@ -32,6 +32,7 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
     private final Class<E> classMarshaled;
     private final Constructor<E> constructor;
     private final Method valueOf;
+    private final Map<String, E> map;
 
     public GenericEnumMarshaller(Class<E> classMarshaled, final int capacity) {
         this.classMarshaled = classMarshaled;
@@ -66,18 +67,10 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
         excerpt.writeUTF(e == null ? null : e.toString());
     }
 
-    private final Map<String, E> map;
-
     @Override
     public E read(Excerpt excerpt) {
         String s = excerpt.readUTF();
         return s == null ? null : valueOf(s);
-    }
-
-    @Override
-    public E parse(Excerpt excerpt, StopCharTester tester) {
-        String s = excerpt.parseUTF(tester);
-        return valueOf(s);
     }
 
     private E valueOf(String s) {
@@ -95,5 +88,11 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
                 throw new AssertionError(t.getCause());
             }
         return e;
+    }
+
+    @Override
+    public E parse(Excerpt excerpt, StopCharTester tester) {
+        String s = excerpt.parseUTF(tester);
+        return valueOf(s);
     }
 }

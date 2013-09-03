@@ -34,6 +34,7 @@ public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarsh
     private final BitSet internerDup = new BitSet(1024);
     private final Map<String, E> map = new LinkedHashMap<String, E>();
     private final E defaultValue;
+    private final StringBuilder reader = new StringBuilder();
 
     public VanillaEnumMarshaller(Class<E> classMarshaled, E defaultValue) {
         this.classMarshaled = classMarshaled;
@@ -53,16 +54,6 @@ public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarsh
         }
     }
 
-    @Override
-    public Class<E> classMarshaled() {
-        return classMarshaled;
-    }
-
-    @Override
-    public void write(Excerpt excerpt, E e) {
-        excerpt.writeUTF(e == null ? "" : e.name());
-    }
-
     private int hashFor(CharSequence cs) {
         int h = 0;
 
@@ -74,18 +65,19 @@ public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarsh
         return h & (interner.length - 1);
     }
 
-    private final StringBuilder reader = new StringBuilder();
+    @Override
+    public Class<E> classMarshaled() {
+        return classMarshaled;
+    }
+
+    @Override
+    public void write(Excerpt excerpt, E e) {
+        excerpt.writeUTF(e == null ? "" : e.name());
+    }
 
     @Override
     public E read(Excerpt excerpt) {
         excerpt.readUTF(reader);
-        return builderToEnum();
-    }
-
-    @Override
-    public E parse(Excerpt excerpt, StopCharTester tester) {
-        reader.setLength(0);
-        excerpt.parseUTF(reader, tester);
         return builderToEnum();
     }
 
@@ -97,5 +89,12 @@ public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarsh
         if (!internerDup.get(idx)) return defaultValue;
         e = map.get(reader.toString());
         return e == null ? defaultValue : e;
+    }
+
+    @Override
+    public E parse(Excerpt excerpt, StopCharTester tester) {
+        reader.setLength(0);
+        excerpt.parseUTF(reader, tester);
+        return builderToEnum();
     }
 }
