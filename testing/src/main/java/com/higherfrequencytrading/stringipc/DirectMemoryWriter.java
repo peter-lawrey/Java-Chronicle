@@ -21,12 +21,14 @@ package com.higherfrequencytrading.stringipc;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 public class DirectMemoryWriter {
     public static final String BASE_DIR = System.getProperty("java.io.tmpdir") + "/deleteme.iictm.";
     final String basePath = BASE_DIR + "request";
+    @NotNull
     final IndexedChronicle tsc;
     final Excerpt excerpt;
 
@@ -37,7 +39,7 @@ public class DirectMemoryWriter {
         excerpt = tsc.createExcerpt();
     }
 
-    public void write(CharSequence s) {
+    public void write(@NotNull CharSequence s) {
         excerpt.startExcerpt(s.length() * 3);
         excerpt.writeUTF(s);
         excerpt.finish();

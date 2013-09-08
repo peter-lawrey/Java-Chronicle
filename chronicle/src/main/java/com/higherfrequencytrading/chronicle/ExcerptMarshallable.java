@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.chronicle;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author peter.lawrey
  */
@@ -26,12 +28,12 @@ public interface ExcerptMarshallable {
      * @param in to read from
      * @throws IllegalStateException if the object could not be read.
      */
-    public void readMarshallable(Excerpt in) throws IllegalStateException;
+    public void readMarshallable(@NotNull Excerpt in) throws IllegalStateException;
 
     /**
      * write an object to an excerpt
      *
      * @param out to write to
      */
-    public void writeMarshallable(Excerpt out);
+    public void writeMarshallable(@NotNull Excerpt out);
 }

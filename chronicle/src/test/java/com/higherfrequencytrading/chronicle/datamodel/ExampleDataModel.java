@@ -18,6 +18,8 @@ package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -32,15 +34,18 @@ public class ExampleDataModel {
 //    public final NavigableMap<String, MyType> nMap = new TreeMap<String, MyType>();
 
     public final Map<Date, MyType> map = new LinkedHashMap<Date, MyType>();
+    @Nullable
     @MyAnnotation("My text")
     public final ObservableMap<Date, MyType> map2 = null;
 
     public final List<MyType> list = new ArrayList<MyType>();
+    @Nullable
     public final ObservableList<MyType> list2 = null;
 
 //    public final NavigableSet<MyType> nSet = new TreeSet<MyType>();
 
     public final Set<MyType> set = new LinkedHashSet<MyType>();
+    @Nullable
     public final ObservableSet<MyType> set2 = null;
 
 //    public final Queue<String> queue = new PriorityQueue<String>();
@@ -58,22 +63,22 @@ public class ExampleDataModel {
         }
 
         @Override
-        public void writeExternal(ObjectOutput out) throws IOException {
+        public void writeExternal(@NotNull ObjectOutput out) throws IOException {
             out.writeLong(timestamp);
         }
 
         @Override
-        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        public void readExternal(@NotNull ObjectInput in) throws IOException, ClassNotFoundException {
             timestamp = in.readLong();
         }
 
         @Override
-        public void readMarshallable(Excerpt in) throws IllegalStateException {
+        public void readMarshallable(@NotNull Excerpt in) throws IllegalStateException {
             timestamp = in.readLong();
         }
 
         @Override
-        public void writeMarshallable(Excerpt out) {
+        public void writeMarshallable(@NotNull Excerpt out) {
             out.writeLong(timestamp);
         }
     }

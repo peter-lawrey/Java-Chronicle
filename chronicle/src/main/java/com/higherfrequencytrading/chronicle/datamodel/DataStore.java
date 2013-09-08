@@ -21,6 +21,8 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.Externalizable;
@@ -40,14 +42,19 @@ import java.util.logging.Logger;
 public class DataStore implements Closeable {
     private static final Logger LOGGER = Logger.getLogger(DataStore.class.getName());
     protected final Map<String, Wrapper> wrappers = new ConcurrentHashMap<String, Wrapper>();
+    @NotNull
     private final Chronicle chronicle;
+    @NotNull
     private final ModelMode mode;
+    @NotNull
     protected Wrapper[] wrappersArray = {};
+    @Nullable
     private Excerpt excerpt = null;
+    @Nullable
     private ExecutorService updater;
     private volatile boolean closed = false;
 
-    public DataStore(final Chronicle chronicle, ModelMode mode) {
+    public DataStore(@NotNull final Chronicle chronicle, @NotNull ModelMode mode) {
         this.chronicle = chronicle;
         this.mode = mode;
 
@@ -59,8 +66,9 @@ public class DataStore implements Closeable {
                 final String name = chronicle.name();
                 if (chronicle instanceof InProcessChronicleSink)
                     updater = Executors.newSingleThreadExecutor(new ThreadFactory() {
+                        @NotNull
                         @Override
-                        public Thread newThread(Runnable r) {
+                        public Thread newThread(@NotNull Runnable r) {
                             Thread t = new Thread(r, name + "data store updater");
                             t.setDaemon(true);
                             return t;
@@ -76,7 +84,7 @@ public class DataStore implements Closeable {
     }
 
     @SuppressWarnings("unchecked")
-    public <Model> void inject(Model model) {
+    public <Model> void inject(@NotNull Model model) {
         try {
             for (Class type = model.getClass(); type != null && type != Object.class && type != Enum.class; type = type.getSuperclass()) {
                 for (Field field : type.getDeclaredFields()) {
@@ -88,7 +96,7 @@ public class DataStore implements Closeable {
         }
     }
 
-    public <Model> void injectField(Model model, Field field) throws IllegalAccessException {
+    public <Model> void injectField(Model model, @NotNull Field field) throws IllegalAccessException {
         if ((field.getModifiers() & Modifier.STATIC) != 0 || (field.getModifiers() & Modifier.TRANSIENT) != 0)
             return;
 
@@ -184,6 +192,7 @@ public class DataStore implements Closeable {
 
     boolean processNextEvent(boolean notifyOff) {
 //        System.out.println(excerpt.index()+": "+ ChronicleTools.asString(excerpt));
+        assert excerpt != null;
         String name = excerpt.readEnum(String.class);
         Wrapper wrapper = wrappers.get(name);
         if (wrapper == null)
@@ -203,8 +212,10 @@ public class DataStore implements Closeable {
         wrappersArray = wrappers.values().toArray(new Wrapper[wrappers.size()]);
     }
 
-    public Excerpt startExcerpt(int capacity, String name) {
+    @NotNull
+    public Excerpt startExcerpt(int capacity, @NotNull String name) {
         checkStarted();
+        assert excerpt != null;
         excerpt.startExcerpt(capacity + 2 + name.length());
         excerpt.writeEnum(name);
         return excerpt;
@@ -214,7 +225,7 @@ public class DataStore implements Closeable {
         if (excerpt == null) throw new AssertionError("Not start()ed");
     }
 
-    public boolean enumeratedClass(Class eClass) {
+    public boolean enumeratedClass(@NotNull Class eClass) {
         if (Comparable.class.isAssignableFrom(eClass) && (eClass.getModifiers() & Modifier.FINAL) != 0)
             return true;
         if (ExcerptMarshallable.class.isAssignableFrom(eClass) || Externalizable.class.isAssignableFrom(eClass))
@@ -228,6 +239,7 @@ public class DataStore implements Closeable {
 
     public long events() {
         checkStarted();
+        assert excerpt != null;
         return excerpt.index() + 1;
     }
 
@@ -245,6 +257,7 @@ public class DataStore implements Closeable {
      */
     public boolean nextEvent() {
         assert updater == null;
+        assert excerpt != null;
         if (excerpt.nextIndex()) {
             processNextEvent(false);
             return true;

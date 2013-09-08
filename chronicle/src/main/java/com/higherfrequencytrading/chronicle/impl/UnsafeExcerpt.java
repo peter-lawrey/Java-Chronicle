@@ -16,6 +16,7 @@
 
 package com.higherfrequencytrading.chronicle.impl;
 
+import org.jetbrains.annotations.NotNull;
 import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 
@@ -29,6 +30,7 @@ public class UnsafeExcerpt extends AbstractExcerpt {
     /**
      * *** Access the Unsafe class *****
      */
+    @NotNull
     @SuppressWarnings("ALL")
     private static final Unsafe UNSAFE;
     private static final int BYTES_OFFSET;
@@ -74,7 +76,7 @@ public class UnsafeExcerpt extends AbstractExcerpt {
     }
 
     @Override
-    public void readFully(byte[] b, int off, int len) {
+    public void readFully(@NotNull byte[] b, int off, int len) {
         UNSAFE.copyMemory(null, position, b, BYTES_OFFSET + off, len);
         position += len;
     }
@@ -162,7 +164,7 @@ public class UnsafeExcerpt extends AbstractExcerpt {
     }
 
     @Override
-    public void write(int offset, byte[] b) {
+    public void write(int offset, @NotNull byte[] b) {
         UNSAFE.copyMemory(b, BYTES_OFFSET, null, position, b.length);
         position += b.length;
     }
@@ -240,7 +242,7 @@ public class UnsafeExcerpt extends AbstractExcerpt {
     }
 
     @Override
-    public int read(byte[] b, int off, int len) {
+    public int read(@NotNull byte[] b, int off, int len) {
         if (len < 0 || off < 0 || off + len > b.length)
             throw new IllegalArgumentException();
         if (len > remaining())

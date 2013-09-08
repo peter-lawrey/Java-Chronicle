@@ -16,9 +16,11 @@
 
 package com.higherfrequencytrading.chronicle;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author peter.lawrey
  */
 public interface ExcerptListener {
-    public void onExcerpt(Excerpt excerpt);
+    public void onExcerpt(@NotNull Excerpt excerpt);
 }

@@ -21,7 +21,7 @@
     <parent>
         <artifactId>chronicle-parent</artifactId>
         <groupId>com.higherfrequencytrading</groupId>
-        <version>1.7.3-SNAPSHOT</version>
+        <version>1.8-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -32,6 +32,12 @@
             <groupId>com.higherfrequencytrading</groupId>
             <artifactId>chronicle</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kohsuke.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>9.0</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

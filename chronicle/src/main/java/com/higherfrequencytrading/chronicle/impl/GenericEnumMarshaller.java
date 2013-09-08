@@ -19,6 +19,8 @@ package com.higherfrequencytrading.chronicle.impl;
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -29,12 +31,16 @@ import java.util.Map;
  * @author peter.lawrey
  */
 public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
+    @NotNull
     private final Class<E> classMarshaled;
+    @Nullable
     private final Constructor<E> constructor;
+    @Nullable
     private final Method valueOf;
+    @NotNull
     private final Map<String, E> map;
 
-    public GenericEnumMarshaller(Class<E> classMarshaled, final int capacity) {
+    public GenericEnumMarshaller(@NotNull Class<E> classMarshaled, final int capacity) {
         this.classMarshaled = classMarshaled;
         Constructor<E> constructor = null;
         Method valueOf = null;
@@ -57,18 +63,20 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
         };
     }
 
+    @NotNull
     @Override
     public Class<E> classMarshaled() {
         return classMarshaled;
     }
 
     @Override
-    public void write(Excerpt excerpt, E e) {
+    public void write(@NotNull Excerpt excerpt, @Nullable E e) {
         excerpt.writeUTF(e == null ? null : e.toString());
     }
 
+    @Nullable
     @Override
-    public E read(Excerpt excerpt) {
+    public E read(@NotNull Excerpt excerpt) {
         String s = excerpt.readUTF();
         return s == null ? null : valueOf(s);
     }
@@ -80,6 +88,7 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
                 if (constructor != null) {
                     map.put(s, e = constructor.newInstance(s));
                 } else {
+                    assert valueOf != null;
                     @SuppressWarnings("unchecked")
                     E invoke = (E) valueOf.invoke(null, s);
                     map.put(s, e = invoke);
@@ -91,7 +100,7 @@ public class GenericEnumMarshaller<E> implements EnumeratedMarshaller<E> {
     }
 
     @Override
-    public E parse(Excerpt excerpt, StopCharTester tester) {
+    public E parse(@NotNull Excerpt excerpt, @NotNull StopCharTester tester) {
         String s = excerpt.parseUTF(tester);
         return valueOf(s);
     }

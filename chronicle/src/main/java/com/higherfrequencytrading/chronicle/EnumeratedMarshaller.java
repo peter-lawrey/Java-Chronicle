@@ -16,15 +16,21 @@
 
 package com.higherfrequencytrading.chronicle;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author peter.lawrey
  */
 public interface EnumeratedMarshaller<E> {
+    @NotNull
     public Class<E> classMarshaled();
 
-    public void write(Excerpt excerpt, E e);
+    public void write(@NotNull Excerpt excerpt, E e);
 
-    public E read(Excerpt excerpt);
+    @Nullable
+    public E read(@NotNull Excerpt excerpt);
 
-    public E parse(Excerpt excerpt, StopCharTester tester);
+    @Nullable
+    public E parse(@NotNull Excerpt excerpt, @NotNull StopCharTester tester);
 }

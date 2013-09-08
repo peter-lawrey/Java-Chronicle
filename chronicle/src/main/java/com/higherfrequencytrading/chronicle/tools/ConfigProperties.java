@@ -16,35 +16,42 @@
 
 package com.higherfrequencytrading.chronicle.tools;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.util.*;
 
 import static com.higherfrequencytrading.chronicle.tools.IOTools.loadProperties;
 
 /**
- * Add support for scoped properties.  A single properties file can use scoping rules to minimise duplication in your config.
+ * Add support for scoped properties.  A single properties file can use scoping rules to minimise duplication in your
+ * config.
  * <p/>
- * For example, say you have a scope of "host.application", when you lookup a properties like "port" it will look for "host.application.port", "host.port", "application.port" and finally "port"
+ * For example, say you have a scope of "host.application", when you lookup a properties like "port" it will look for
+ * "host.application.port", "host.port", "application.port" and finally "port"
  *
  * @author peter.lawrey
  */
 public class ConfigProperties extends AbstractMap<String, String> {
     private static final String[] NO_STRINGS = {};
     private final Properties properties;
+    @NotNull
     private final String scope;
+    @NotNull
     private final String[] scopeArray;
 
-    public ConfigProperties(String path, String scopeArray) throws IOException {
+    public ConfigProperties(@NotNull String path, @NotNull String scopeArray) throws IOException {
         this(loadProperties(path), scopeArray);
     }
 
-    public ConfigProperties(Properties properties, String scope) {
+    public ConfigProperties(Properties properties, @NotNull String scope) {
         this.properties = properties;
         this.scope = scope;
         this.scopeArray = decompose(scope);
     }
 
-    private String[] decompose(String scope) {
+    @NotNull
+    private String[] decompose(@NotNull String scope) {
         if (scope.length() == 0) return NO_STRINGS;
         String[] parts = scope.split("\\.");
         List<String> ret = new ArrayList<String>();
@@ -117,12 +124,14 @@ public class ConfigProperties extends AbstractMap<String, String> {
         return Boolean.parseBoolean(name);
     }
 
+    @NotNull
     @SuppressWarnings("unchecked")
     @Override
     public Set<Entry<String, String>> entrySet() {
         return (Set) properties.entrySet();
     }
 
+    @NotNull
     public ConfigProperties addToScope(String name) {
         if (!scope.isEmpty()) {
             if (Arrays.asList(scope.split("\\.")).contains(name))

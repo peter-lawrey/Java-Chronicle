@@ -18,6 +18,7 @@ package com.higherfrequencytrading.chronicle.tcp.gw;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.WrappedExcerpt;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -27,6 +28,7 @@ import java.io.StringWriter;
  */
 public class GatewayEntryWriter {
     static final int HEADER_LENGTH = 8 + 8 + 8 + 3 + 1;
+    @NotNull
     private final Excerpt excerpt;
 
     public GatewayEntryWriter(Excerpt excerpt) {
@@ -39,7 +41,7 @@ public class GatewayEntryWriter {
         };
     }
 
-    public void onException(String message, Throwable t) {
+    public void onException(@NotNull String message, @NotNull Throwable t) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         t.printStackTrace(pw);
@@ -50,6 +52,7 @@ public class GatewayEntryWriter {
         excerpt.finish();
     }
 
+    @NotNull
     public Excerpt startExceprt(int capacity, char type) {
         excerpt.startExcerpt(HEADER_LENGTH + capacity);
         excerpt.writeLong(System.currentTimeMillis());

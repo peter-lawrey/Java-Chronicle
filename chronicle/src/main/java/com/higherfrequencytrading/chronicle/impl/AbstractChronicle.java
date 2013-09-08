@@ -18,6 +18,8 @@ package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Externalizable;
 import java.util.Date;
@@ -53,6 +55,7 @@ public abstract class AbstractChronicle implements DirectChronicle {
         this.multiThreaded = multiThreaded;
     }
 
+    @NotNull
     public String name() {
         return name;
     }
@@ -64,13 +67,14 @@ public abstract class AbstractChronicle implements DirectChronicle {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller) {
+    public <E> void setEnumeratedMarshaller(@NotNull EnumeratedMarshaller<E> marshaller) {
         marshallerMap.put(marshaller.classMarshaled(), marshaller);
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     @Override
-    public <E> EnumeratedMarshaller<E> acquireMarshaller(Class<E> aClass) {
+    public <E> EnumeratedMarshaller<E> acquireMarshaller(@NotNull Class<E> aClass) {
         EnumeratedMarshaller<E> em = marshallerMap.get(aClass);
         if (em == null)
             if (aClass.isEnum())
@@ -84,9 +88,10 @@ public abstract class AbstractChronicle implements DirectChronicle {
         return em;
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     @Override
-    public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> aClass) {
+    public <E> EnumeratedMarshaller<E> getMarshaller(@NotNull Class<E> aClass) {
         return marshallerMap.get(aClass);
     }
 }

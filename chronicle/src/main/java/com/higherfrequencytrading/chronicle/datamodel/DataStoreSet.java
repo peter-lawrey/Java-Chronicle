@@ -21,6 +21,7 @@ import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSource;
 import com.higherfrequencytrading.chronicle.tools.ConfigProperties;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -32,16 +33,17 @@ import java.util.Map;
  * @author peter.lawrey
  */
 public class DataStoreSet {
+    @NotNull
     private final ConfigProperties configProperties;
     private final String nodeName;
     private final Map<String, DataStore> dataStoreMap = new LinkedHashMap<String, DataStore>();
 
-    public DataStoreSet(String nodeName, ConfigProperties configProperties) {
+    public DataStoreSet(String nodeName, @NotNull ConfigProperties configProperties) {
         this.nodeName = nodeName;
         this.configProperties = configProperties.addToScope(nodeName);
     }
 
-    public <Model> void inject(Model model) {
+    public <Model> void inject(@NotNull Model model) {
         try {
             for (Class<?> type = model.getClass(); type != null && type != Object.class && type != Enum.class; type = type.getSuperclass()) {
                 MasterContext defaultContext = type.getAnnotation(MasterContext.class);
@@ -62,7 +64,7 @@ public class DataStoreSet {
         }
     }
 
-    private DataStore acquireDataStore(String contextName, String uriText, ModelMode mode) throws IOException {
+    private DataStore acquireDataStore(String contextName, String uriText, @NotNull ModelMode mode) throws IOException {
         DataStore ds = dataStoreMap.get(contextName);
         if (ds == null) {
             URI uri = URI.create(uriText);

@@ -17,6 +17,9 @@
 // based from eishay/jvm-serializers
 package data.media;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -34,6 +37,7 @@ public class Image implements Externalizable {
 
     public String uri;
 
+    @Nullable
     public String title;  // Can be null
     public int width;
     public int height;
@@ -42,7 +46,7 @@ public class Image implements Externalizable {
     public Image() {
     }
 
-    public Image(String uri, String title, int width, int height, Size size) {
+    public Image(String uri, @Nullable String title, int width, int height, Size size) {
         this.height = height;
         this.title = title;
         this.uri = uri;
@@ -51,7 +55,7 @@ public class Image implements Externalizable {
     }
 
     @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
+    public void writeExternal(@NotNull ObjectOutput out) throws IOException {
         out.writeUTF(uri);
         out.writeUTF(title == null ? NULL_STR : title);
         out.writeInt(width);
@@ -60,7 +64,7 @@ public class Image implements Externalizable {
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    public void readExternal(@NotNull ObjectInput in) throws IOException, ClassNotFoundException {
         uri = in.readUTF();
         title = in.readUTF();
         if (title.equals(NULL_STR)) title = null;
@@ -71,7 +75,7 @@ public class Image implements Externalizable {
 
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
@@ -95,6 +99,7 @@ public class Image implements Externalizable {
         return result;
     }
 
+    @NotNull
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("[Image ");
@@ -111,7 +116,7 @@ public class Image implements Externalizable {
         this.uri = uri;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(@Nullable String title) {
         this.title = title;
     }
 
@@ -131,6 +136,7 @@ public class Image implements Externalizable {
         return uri;
     }
 
+    @Nullable
     public String getTitle() {
         return title;
     }

@@ -17,6 +17,7 @@
 package com.higherfrequencytrading.chronicle;
 
 import com.higherfrequencytrading.chronicle.math.MutableDecimal;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author peter.lawrey
@@ -26,28 +27,40 @@ public interface ByteStringAppender extends Appendable {
 
     int capacity();
 
-    ByteStringAppender append(CharSequence s);
+    @NotNull
+    ByteStringAppender append(@NotNull CharSequence s);
 
-    ByteStringAppender append(CharSequence s, int start, int end);
+    @NotNull
+    ByteStringAppender append(@NotNull CharSequence s, int start, int end);
 
-    ByteStringAppender append(byte[] str);
+    @NotNull
+    ByteStringAppender append(@NotNull byte[] str);
 
-    ByteStringAppender append(byte[] str, int offset, int len);
+    @NotNull
+    ByteStringAppender append(@NotNull byte[] str, int offset, int len);
 
+    @NotNull
     ByteStringAppender append(boolean b);
 
+    @NotNull
     ByteStringAppender append(char c);
 
+    @NotNull
     ByteStringAppender append(Enum value);
 
+    @NotNull
     ByteStringAppender append(int i);
 
+    @NotNull
     ByteStringAppender append(long l);
 
+    @NotNull
     ByteStringAppender appendTime(long timeInMS);
 
+    @NotNull
     ByteStringAppender appendDate(long timeInMS);
 
+    @NotNull
     ByteStringAppender appendDateTime(long timeInMS);
 
 // TODO
@@ -56,9 +69,12 @@ public interface ByteStringAppender extends Appendable {
 // TODO
 //    ByteStringAppender append(float f, int precision);
 
+    @NotNull
     ByteStringAppender append(double d);
 
+    @NotNull
     ByteStringAppender append(double d, int precision);
 
-    ByteStringAppender append(MutableDecimal md);
+    @NotNull
+    ByteStringAppender append(@NotNull MutableDecimal md);
 }

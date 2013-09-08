@@ -18,14 +18,13 @@ package vanilla.java.stages.api;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * User: peter
- * Date: 05/08/13
- * Time: 17:39
+ * User: peter Date: 05/08/13 Time: 17:39
  */
 public class Update implements ExcerptMarshallable {
     private String instrument;
@@ -33,7 +32,7 @@ public class Update implements ExcerptMarshallable {
     private final List<UpdateLevel> levelPool = new ArrayList<UpdateLevel>();
 
     @Override
-    public void readMarshallable(Excerpt in) throws IllegalStateException {
+    public void readMarshallable(@NotNull Excerpt in) throws IllegalStateException {
         resetLevels(in.readEnum(String.class));
         int len = (int) in.readStopBit();
         for (int i = 0; i < len; i++)
@@ -54,7 +53,7 @@ public class Update implements ExcerptMarshallable {
     }
 
     @Override
-    public void writeMarshallable(Excerpt out) {
+    public void writeMarshallable(@NotNull Excerpt out) {
         out.writeEnum(instrument);
         out.writeStopBit(levels.size());
         for (int i = 0, len = levels.size(); i < len; i++)

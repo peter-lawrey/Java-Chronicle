@@ -18,6 +18,7 @@ package com.higherfrequencytrading.chronicle.tcp;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptListener;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author peterlawrey
@@ -26,6 +27,6 @@ public enum NullExcerptListener implements ExcerptListener {
     INSTANCE;
 
     @Override
-    public void onExcerpt(Excerpt excerpt) {
+    public void onExcerpt(@NotNull Excerpt excerpt) {
     }
 }

@@ -19,6 +19,7 @@ package com.higherfrequencytrading.chronicle.impl;
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
@@ -68,6 +69,7 @@ public class ExcerptHasNextTest {
         }
     }
 
+    @NotNull
     private Chronicle createChronicle(String name) throws IOException {
         final String basePath = TMP + File.separator + name;
         ChronicleTools.deleteOnExit(basePath);

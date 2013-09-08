@@ -21,6 +21,8 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptListener;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.higherfrequencytrading.chronicle.tools.IOTools;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.EOFException;
@@ -37,26 +39,30 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * This listens to a ChronicleSource and copies new entries. This SInk can be any number of excerpt behind the source and can be restart many times without losing data.
+ * This listens to a ChronicleSource and copies new entries. This SInk can be any number of excerpt behind the source
+ * and can be restart many times without losing data.
  * <p/>
  * Can be used as a component or run as a stand alone service.
  *
  * @author peter.lawrey
  */
 public class ChronicleSink implements Closeable {
+    @NotNull
     private final Chronicle chronicle;
+    @NotNull
     private final SocketAddress address;
     private final ExcerptListener listener;
+    @NotNull
     private final ExecutorService service;
     private final Logger logger;
     private volatile boolean closed = false;
 
     @SuppressWarnings("unchecked")
-    public ChronicleSink(Chronicle chronicle, String hostname, int port) {
+    public ChronicleSink(@NotNull Chronicle chronicle, String hostname, int port) {
         this(chronicle, hostname, port, NullExcerptListener.INSTANCE);
     }
 
-    public ChronicleSink(Chronicle chronicle, String hostname, int port, ExcerptListener listener) {
+    public ChronicleSink(@NotNull Chronicle chronicle, String hostname, int port, ExcerptListener listener) {
         this.chronicle = chronicle;
         this.listener = listener;
         this.address = new InetSocketAddress(hostname, port);
@@ -66,7 +72,7 @@ public class ChronicleSink implements Closeable {
         service.execute(new Sink());
     }
 
-    public static void main(String... args) throws IOException {
+    public static void main(@NotNull String... args) throws IOException {
         if (args.length < 3) {
             System.err.println("Usage: java " + ChronicleSink.class.getName() + " {chronicle-base-path} {hostname} {port}");
             System.exit(-1);
@@ -81,7 +87,7 @@ public class ChronicleSink implements Closeable {
         new ChronicleSink(ic, hostname, port);
     }
 
-    void closeSocket(SocketChannel sc) {
+    void closeSocket(@Nullable SocketChannel sc) {
         if (sc != null)
             try {
                 sc.close();
@@ -116,7 +122,7 @@ public class ChronicleSink implements Closeable {
             }
         }
 
-        private void readNextExcerpt(SocketChannel sc) {
+        private void readNextExcerpt(@NotNull SocketChannel sc) {
             ByteBuffer bb = TcpUtil.createBuffer(1, chronicle.byteOrder()); // minimum size
             try {
                 if (!closed) {
@@ -159,12 +165,13 @@ public class ChronicleSink implements Closeable {
                 logger.log(Level.FINE, "Disconnected from " + address);
         }
 
-        private void readHeader(SocketChannel sc, ByteBuffer bb) throws IOException {
+        private void readHeader(SocketChannel sc, @NotNull ByteBuffer bb) throws IOException {
             bb.position(0);
             bb.limit(TcpUtil.HEADER_SIZE);
             IOTools.readFullyOrEOF(sc, bb);
         }
 
+        @Nullable
         private SocketChannel createConnection() {
             if (closed) {
                 return null;

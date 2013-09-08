@@ -20,6 +20,7 @@ import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
 import com.higherfrequencytrading.chronicle.StopCharTester;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
 
@@ -27,10 +28,11 @@ import java.lang.reflect.Constructor;
  * @author peter.lawrey
  */
 public class ExcerptMarshaller<E extends ExcerptMarshallable> implements EnumeratedMarshaller<E> {
+    @NotNull
     private final Class<E> classMarshaled;
     private final Constructor<E> constructor;
 
-    public ExcerptMarshaller(Class<E> classMarshaled) {
+    public ExcerptMarshaller(@NotNull Class<E> classMarshaled) {
         this.classMarshaled = classMarshaled;
         try {
             constructor = classMarshaled.getConstructor();
@@ -40,23 +42,24 @@ public class ExcerptMarshaller<E extends ExcerptMarshallable> implements Enumera
         }
     }
 
+    @NotNull
     @Override
     public Class<E> classMarshaled() {
         return classMarshaled;
     }
 
     @Override
-    public void write(Excerpt excerpt, E e) {
+    public void write(@NotNull Excerpt excerpt, @NotNull E e) {
         e.writeMarshallable(excerpt);
     }
 
     @Override
-    public E parse(Excerpt excerpt, StopCharTester tester) {
+    public E parse(@NotNull Excerpt excerpt, @NotNull StopCharTester tester) {
         return read(excerpt);
     }
 
     @Override
-    public E read(Excerpt excerpt) {
+    public E read(@NotNull Excerpt excerpt) {
         E e;
         try {
             e = constructor.newInstance();

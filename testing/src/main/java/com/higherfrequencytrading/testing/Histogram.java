@@ -16,10 +16,13 @@
 
 package com.higherfrequencytrading.testing;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author peter.lawrey
  */
 public class Histogram {
+    @NotNull
     private final int[] count;
     private final int factor;
     private int underflow;

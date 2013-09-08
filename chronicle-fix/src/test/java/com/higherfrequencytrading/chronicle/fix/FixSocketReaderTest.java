@@ -4,6 +4,7 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTesters;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -117,7 +118,7 @@ public class FixSocketReaderTest {
             int start = 0;
 
             @Override
-            protected void readMoreData(ByteBuffer buffer) throws IOException {
+            protected void readMoreData(@NotNull ByteBuffer buffer) throws IOException {
                 int end = Math.min(bytes.length, start + 256);
                 buffer.put(bytes, start, end - start);
                 start = end;
@@ -129,7 +130,7 @@ public class FixSocketReaderTest {
         FixDecoder fd = new FixDecoder(fsr);
         FixDecodeListener listener = new FixDecodeListener() {
             @Override
-            public void onField(int fid, Excerpt value) {
+            public void onField(int fid, @NotNull Excerpt value) {
                 String text = value.parseUTF(StopCharTesters.FIX_TEXT);
                 System.out.println("\t" + fid + "=" + text);
             }
@@ -175,7 +176,7 @@ public class FixSocketReaderTest {
             int start = 0;
 
             @Override
-            protected void readMoreData(ByteBuffer buffer) throws IOException {
+            protected void readMoreData(@NotNull ByteBuffer buffer) throws IOException {
                 int end = Math.min(bytes.length, start + 256);
                 buffer.put(bytes, start, end - start);
                 start = end;

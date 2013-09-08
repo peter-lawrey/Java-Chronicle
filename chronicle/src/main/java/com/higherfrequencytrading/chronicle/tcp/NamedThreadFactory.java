@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.chronicle.tcp;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -29,8 +31,9 @@ class NamedThreadFactory implements ThreadFactory {
         this.name = name;
     }
 
+    @NotNull
     @Override
-    public Thread newThread(Runnable r) {
+    public Thread newThread(@NotNull Runnable r) {
         return new Thread(r, name + '-' + id++);
     }
 }

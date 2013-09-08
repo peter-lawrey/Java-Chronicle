@@ -17,6 +17,7 @@
 package com.higherfrequencytrading.chronicle.tools;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.lang.reflect.ParameterizedType;
@@ -54,7 +55,8 @@ public enum ChronicleTools {
      * @param excerpt to get text from
      * @return 256 bytes as text with `.` replacing special bytes.
      */
-    public static String asString(Excerpt excerpt) {
+    @NotNull
+    public static String asString(@NotNull Excerpt excerpt) {
         return asString(excerpt, excerpt.position());
     }
 
@@ -65,7 +67,8 @@ public enum ChronicleTools {
      * @param position the position to get text from
      * @return up to 1024 bytes as text with `.` replacing special bytes.
      */
-    public static String asString(Excerpt excerpt, int position) {
+    @NotNull
+    public static String asString(@NotNull Excerpt excerpt, int position) {
         return asString(excerpt, position, 1024);
     }
 
@@ -77,7 +80,8 @@ public enum ChronicleTools {
      * @param length   the maximum length
      * @return length bytes as text with `.` replacing special bytes.
      */
-    public static String asString(Excerpt excerpt, int position, int length) {
+    @NotNull
+    public static String asString(@NotNull Excerpt excerpt, int position, int length) {
         int limit = Math.min(position + length, excerpt.capacity());
         StringBuilder sb = new StringBuilder(limit - position);
         for (int i = position; i < limit; i++) {
@@ -88,7 +92,8 @@ public enum ChronicleTools {
         return sb.toString();
     }
 
-    public static String asString(ByteBuffer bb) {
+    @NotNull
+    public static String asString(@NotNull ByteBuffer bb) {
         StringBuilder sb = new StringBuilder();
         for (int i = bb.position(); i < bb.limit(); i++) {
             byte b = bb.get(i);
@@ -122,6 +127,7 @@ public enum ChronicleTools {
         return systemProp != null && systemProp.contains("_64");
     }
 
+    @NotNull
     public static Class[] getGenericTypes(Type type, int count) {
         Class[] types = new Class[count];
         Arrays.fill(types, Object.class);

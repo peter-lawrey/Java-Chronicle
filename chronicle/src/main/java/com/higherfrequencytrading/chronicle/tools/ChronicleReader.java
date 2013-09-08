@@ -18,6 +18,7 @@ package com.higherfrequencytrading.chronicle.tools;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
@@ -30,7 +31,7 @@ import java.nio.ByteOrder;
 public enum ChronicleReader {
     ;
 
-    public static void main(String... args) throws IOException, InterruptedException {
+    public static void main(@NotNull String... args) throws IOException, InterruptedException {
         if (args.length < 1) {
             System.err.println("Usage: java " + ChronicleReader.class.getName() + " {chronicle-base-path} [from-index]");
             System.exit(-1);

@@ -21,6 +21,8 @@ import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.WrappedExcerpt;
 import com.higherfrequencytrading.chronicle.tools.IOTools;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -36,10 +38,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A Chronicle as a service to be replicated to any number of clients.  Clients can restart from where ever they are up to.
+ * A Chronicle as a service to be replicated to any number of clients.  Clients can restart from where ever they are up
+ * to.
  * <p/>
- * Can be used an in process component which wraps the underlying Chronicle
- * and offers lower overhead than using ChronicleSource
+ * Can be used an in process component which wraps the underlying Chronicle and offers lower overhead than using
+ * ChronicleSource
  *
  * @author peter.lawrey
  */
@@ -47,9 +50,12 @@ public class InProcessChronicleSource implements Chronicle {
     static final int IN_SYNC_LEN = -128;
     static final long HEARTBEAT_INTERVAL_MS = 2500;
     private static final int MAX_MESSAGE = 128;
+    @NotNull
     private final Chronicle chronicle;
     private final ServerSocketChannel server;
+    @NotNull
     private final String name;
+    @NotNull
     private final ExecutorService service;
     private final Logger logger;
     private final Object notifier = new Object();
@@ -57,7 +63,7 @@ public class InProcessChronicleSource implements Chronicle {
     private volatile boolean closed = false;
     private long lastUnpausedNS = 0;
 
-    public InProcessChronicleSource(Chronicle chronicle, int port) throws IOException {
+    public InProcessChronicleSource(@NotNull Chronicle chronicle, int port) throws IOException {
         this.chronicle = chronicle;
         server = ServerSocketChannel.open();
         server.socket().setReuseAddress(true);
@@ -99,11 +105,13 @@ public class InProcessChronicleSource implements Chronicle {
         }
     }
 
+    @NotNull
     @Override
     public String name() {
         return chronicle.name();
     }
 
+    @NotNull
     @Override
     public Excerpt createExcerpt() {
         return new SourceExcerpt();
@@ -136,12 +144,13 @@ public class InProcessChronicleSource implements Chronicle {
     }
 
     @Override
-    public <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller) {
+    public <E> void setEnumeratedMarshaller(@NotNull EnumeratedMarshaller<E> marshaller) {
         chronicle.setEnumeratedMarshaller(marshaller);
     }
 
+    @Nullable
     @Override
-    public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> eClass) {
+    public <E> EnumeratedMarshaller<E> getMarshaller(@NotNull Class<E> eClass) {
         return chronicle.getMarshaller(eClass);
     }
 
@@ -164,9 +173,10 @@ public class InProcessChronicleSource implements Chronicle {
     }
 
     class Handler implements Runnable {
+        @NotNull
         private final SocketChannel socket;
 
-        public Handler(SocketChannel socket) throws SocketException {
+        public Handler(@NotNull SocketChannel socket) throws SocketException {
             this.socket = socket;
             socket.socket().setSendBufferSize(256 * 1024);
             socket.socket().setTcpNoDelay(true);

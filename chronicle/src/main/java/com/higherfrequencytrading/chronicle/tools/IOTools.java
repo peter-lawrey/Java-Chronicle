@@ -16,6 +16,9 @@
 
 package com.higherfrequencytrading.chronicle.tools;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -33,8 +36,8 @@ public enum IOTools {
     public static final Charset UTF_8 = Charset.forName("UTF-8");
 
     /**
-     * Convert a path to a Stream. It looks first in local file system and then the class path.
-     * This allows you to override local any file int he class path.
+     * Convert a path to a Stream. It looks first in local file system and then the class path. This allows you to
+     * override local any file int he class path.
      * <p/>
      * If the name starts with an =, treat the string as the contents.  Useful for unit tests
      * <p/>
@@ -46,11 +49,11 @@ public enum IOTools {
      * @return as an InputStream
      * @throws IOException If the file was not found, or the GZIP Stream was corrupt.
      */
-    public static InputStream asStream(String name) throws IOException {
+    public static InputStream asStream(@NotNull String name) throws IOException {
         return asStream(name, null);
     }
 
-    public static InputStream asStream(String name, ClassLoader classLoader) throws IOException {
+    public static InputStream asStream(@NotNull String name, @Nullable ClassLoader classLoader) throws IOException {
         String name2 = normalisePath(name);
         if (name2.startsWith("="))
             return new ByteArrayInputStream(name2.getBytes(UTF_8));
@@ -75,10 +78,11 @@ public enum IOTools {
      * <p/>
      * e.g.  'directory/'yyyyMMdd would produce something like "directory/20130225"
      *
-     * @param pathName to use. If it starts or ends with a single quote ' treat as a date format and use the current time
+     * @param pathName to use. If it starts or ends with a single quote ' treat as a date format and use the current
+     *                 time
      * @return returns the normalise path.
      */
-    public static String normalisePath(String pathName) {
+    public static String normalisePath(@NotNull String pathName) {
         if (pathName.startsWith("'") || pathName.endsWith("'"))
             return new SimpleDateFormat(pathName).format(new Date());
         return pathName;
@@ -91,7 +95,8 @@ public enum IOTools {
      * @return Properties loaded
      * @throws IOException if the file was not found or the stream was corrupt.
      */
-    public static Properties loadProperties(String path) throws IOException {
+    @NotNull
+    public static Properties loadProperties(@NotNull String path) throws IOException {
         BufferedReader br = IOTools.asReader(path);
         Properties prop = new Properties();
         prop.load(br);
@@ -106,28 +111,29 @@ public enum IOTools {
      * @return the BufferedReader
      * @throws IOException if the file was not found or the stream was corrupt.
      */
-    public static BufferedReader asReader(String name) throws IOException {
+    @NotNull
+    public static BufferedReader asReader(@NotNull String name) throws IOException {
         return new BufferedReader(new InputStreamReader(asStream(name, null), UTF_8));
     }
 
-    public static void writeAllOrEOF(SocketChannel sc, ByteBuffer bb) throws IOException {
+    public static void writeAllOrEOF(@NotNull SocketChannel sc, @NotNull ByteBuffer bb) throws IOException {
         writeAll(sc, bb);
 
         if (bb.remaining() > 0) throw new EOFException();
     }
 
-    public static void writeAll(SocketChannel sc, ByteBuffer bb) throws IOException {
+    public static void writeAll(@NotNull SocketChannel sc, @NotNull ByteBuffer bb) throws IOException {
         while (bb.remaining() > 0)
             if (sc.write(bb) < 0)
                 break;
     }
 
-    public static void readFullyOrEOF(SocketChannel socket, ByteBuffer bb) throws IOException {
+    public static void readFullyOrEOF(@NotNull SocketChannel socket, @NotNull ByteBuffer bb) throws IOException {
         readAvailable(socket, bb);
         if (bb.remaining() > 0) throw new EOFException();
     }
 
-    public static void readAvailable(SocketChannel socket, ByteBuffer bb) throws IOException {
+    public static void readAvailable(@NotNull SocketChannel socket, @NotNull ByteBuffer bb) throws IOException {
         while (bb.remaining() > 0)
             if (socket.read(bb) < 0)
                 break;

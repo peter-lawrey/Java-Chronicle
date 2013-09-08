@@ -17,18 +17,23 @@
 package com.higherfrequencytrading.chronicle;
 
 import com.higherfrequencytrading.chronicle.math.MutableDecimal;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author peter.lawrey
  */
 public interface ByteStringParser {
-    public void parseUTF(Appendable builder, StopCharTester tester);
+    public void parseUTF(@NotNull Appendable builder, @NotNull StopCharTester tester);
 
-    public String parseUTF(StopCharTester tester);
+    @NotNull
+    public String parseUTF(@NotNull StopCharTester tester);
 
-    public <E> E parseEnum(Class<E> eClass, StopCharTester tester);
+    @Nullable
+    public <E> E parseEnum(@NotNull Class<E> eClass, @NotNull StopCharTester tester);
 
-    public MutableDecimal parseDecimal(MutableDecimal decimal);
+    @NotNull
+    public MutableDecimal parseDecimal(@NotNull MutableDecimal decimal);
 
     public long parseLong();
 
@@ -40,7 +45,7 @@ public interface ByteStringParser {
      * @param tester to stop at
      * @return true if we stopped at a stop character, false if we ran out of data.
      */
-    public boolean stepBackAndSkipTo(StopCharTester tester);
+    public boolean stepBackAndSkipTo(@NotNull StopCharTester tester);
 
     /**
      * Wind from this position to the end of the field
@@ -48,5 +53,5 @@ public interface ByteStringParser {
      * @param tester to stop at
      * @return true if we stopped at a stop character, false if we ran out of data.
      */
-    public boolean skipTo(StopCharTester tester);
+    public boolean skipTo(@NotNull StopCharTester tester);
 }

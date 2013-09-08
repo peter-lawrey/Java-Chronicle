@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.chronicle.datamodel;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 
 /**
@@ -26,5 +28,6 @@ public interface ObservableCollection<E> extends Collection<E>, Wrapper {
 
     public void removeListener(CollectionListener<E> listener);
 
+    @NotNull
     public E[] toArray();
 }

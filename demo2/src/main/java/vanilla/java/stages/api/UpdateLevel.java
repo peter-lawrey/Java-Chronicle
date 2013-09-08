@@ -18,11 +18,10 @@ package vanilla.java.stages.api;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * User: peter
- * Date: 05/08/13
- * Time: 17:40
+ * User: peter Date: 05/08/13 Time: 17:40
  */
 public class UpdateLevel implements ExcerptMarshallable {
     private double bp;
@@ -38,7 +37,7 @@ public class UpdateLevel implements ExcerptMarshallable {
     }
 
     @Override
-    public void readMarshallable(Excerpt in) throws IllegalStateException {
+    public void readMarshallable(@NotNull Excerpt in) throws IllegalStateException {
         bp = in.readCompactDouble();
         bq = in.readCompactDouble();
         ap = in.readCompactDouble();
@@ -46,13 +45,14 @@ public class UpdateLevel implements ExcerptMarshallable {
     }
 
     @Override
-    public void writeMarshallable(Excerpt out) {
+    public void writeMarshallable(@NotNull Excerpt out) {
         out.writeCompactDouble(bp);
         out.writeCompactDouble(bq);
         out.writeCompactDouble(ap);
         out.writeCompactDouble(aq);
     }
 
+    @NotNull
     @Override
     public String toString() {
         return "UpdateLevel{" +

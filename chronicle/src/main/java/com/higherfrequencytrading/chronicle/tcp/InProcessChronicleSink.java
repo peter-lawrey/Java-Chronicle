@@ -21,6 +21,8 @@ import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.WrappedExcerpt;
 import com.higherfrequencytrading.chronicle.tools.IOTools;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -34,23 +36,27 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * This listens to a ChronicleSource and copies new entries. This SInk can be any number of excerpt behind the source and can be restart many times without losing data.
+ * This listens to a ChronicleSource and copies new entries. This SInk can be any number of excerpt behind the source
+ * and can be restart many times without losing data.
  * <p/>
  * Can be used as a component with lower over head than ChronicleSink
  *
  * @author peter.lawrey
  */
 public class InProcessChronicleSink implements Chronicle {
+    @NotNull
     private final Chronicle chronicle;
+    @NotNull
     private final SocketAddress address;
     private final Excerpt excerpt;
     private final Logger logger;
     private final ByteBuffer readBuffer; // minimum size
     private volatile boolean closed = false;
+    @Nullable
     private SocketChannel sc = null;
     private boolean scFirst = true;
 
-    public InProcessChronicleSink(Chronicle chronicle, String hostname, int port) {
+    public InProcessChronicleSink(@NotNull Chronicle chronicle, String hostname, int port) {
         this.chronicle = chronicle;
         this.address = new InetSocketAddress(hostname, port);
         logger = Logger.getLogger(getClass().getName() + '.' + chronicle);
@@ -63,11 +69,13 @@ public class InProcessChronicleSink implements Chronicle {
         chronicle.multiThreaded(multiThreaded);
     }
 
+    @NotNull
     @Override
     public String name() {
         return chronicle.name();
     }
 
+    @NotNull
     @Override
     public Excerpt createExcerpt() {
         return new SinkExcerpt();
@@ -89,7 +97,7 @@ public class InProcessChronicleSink implements Chronicle {
     }
 
     @Override
-    public <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller) {
+    public <E> void setEnumeratedMarshaller(@NotNull EnumeratedMarshaller<E> marshaller) {
         chronicle.setEnumeratedMarshaller(marshaller);
     }
 
@@ -101,7 +109,7 @@ public class InProcessChronicleSink implements Chronicle {
         return sc != null && readNextExcerpt(sc);
     }
 
-    private boolean readNextExcerpt(SocketChannel sc) {
+    private boolean readNextExcerpt(@NotNull SocketChannel sc) {
         try {
             if (closed) return false;
 
@@ -179,6 +187,7 @@ public class InProcessChronicleSink implements Chronicle {
         return true;
     }
 
+    @Nullable
     private SocketChannel createConnection() {
         while (!closed) {
             try {
@@ -216,7 +225,7 @@ public class InProcessChronicleSink implements Chronicle {
 //        chronicle.close();
     }
 
-    void closeSocket(SocketChannel sc) {
+    void closeSocket(@Nullable SocketChannel sc) {
         if (sc != null)
             try {
                 sc.close();
@@ -225,8 +234,9 @@ public class InProcessChronicleSink implements Chronicle {
             }
     }
 
+    @Nullable
     @Override
-    public <E> EnumeratedMarshaller<E> getMarshaller(Class<E> eClass) {
+    public <E> EnumeratedMarshaller<E> getMarshaller(@NotNull Class<E> eClass) {
         return chronicle.getMarshaller(eClass);
     }
 

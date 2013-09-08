@@ -16,6 +16,7 @@
 
 package com.higherfrequencytrading.chronicle.tools;
 
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -28,8 +29,11 @@ import static org.junit.Assert.assertEquals;
  * @author peter.lawrey
  */
 public class ChronicleToolsTest {
+    @Nullable
     Map map1 = null;
+    @Nullable
     Map<String, Integer> map2 = null;
+    @Nullable
     Map<String, List<Integer>> map3 = null;
 
     @Test

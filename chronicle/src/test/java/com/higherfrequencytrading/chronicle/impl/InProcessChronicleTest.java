@@ -21,6 +21,7 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSource;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.*;
@@ -101,7 +102,7 @@ public class InProcessChronicleTest {
         }
 
         @Override
-        public void onPrice(long timeInMicros, String symbol, double bp, int bq, double ap, int aq) {
+        public void onPrice(long timeInMicros, @NotNull String symbol, double bp, int bq, double ap, int aq) {
             excerpt.startExcerpt(1 + 8 + (2 + symbol.length()) + 8 + 4 + 8 + 4);
             excerpt.writeByte('P'); // code for a price
             excerpt.writeLong(timeInMicros);
@@ -209,7 +210,7 @@ public class InProcessChronicleTest {
         }
 
         //        @Override
-        public void writeExternal(ObjectOutput out) throws IOException {
+        public void writeExternal(@NotNull ObjectOutput out) throws IOException {
             out.writeLong(timeInMicros);
             out.writeUTF(symbol);
             out.writeDouble(bp);
@@ -219,7 +220,7 @@ public class InProcessChronicleTest {
         }
 
         //        @Override
-        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        public void readExternal(@NotNull ObjectInput in) throws IOException, ClassNotFoundException {
             timeInMicros = in.readLong();
             symbol = in.readUTF();
             bp = in.readDouble();

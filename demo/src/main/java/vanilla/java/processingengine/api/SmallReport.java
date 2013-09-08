@@ -18,6 +18,7 @@ package vanilla.java.processingengine.api;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author peter.lawrey
@@ -40,7 +41,7 @@ public class SmallReport implements ExcerptMarshallable {
     }
 
     @Override
-    public void readMarshallable(Excerpt in) throws IllegalStateException {
+    public void readMarshallable(@NotNull Excerpt in) throws IllegalStateException {
         StringBuilder clientOrderId = (StringBuilder) this.clientOrderId;
         in.readUTF(clientOrderId);
         status = in.readEnum(ReportStatus.class);
@@ -49,7 +50,7 @@ public class SmallReport implements ExcerptMarshallable {
     }
 
     @Override
-    public void writeMarshallable(Excerpt out) {
+    public void writeMarshallable(@NotNull Excerpt out) {
         out.writeUTF(clientOrderId);
         out.writeEnum(status);
         out.writeUTF(rejectedReason);

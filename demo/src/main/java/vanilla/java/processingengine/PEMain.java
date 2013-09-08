@@ -19,6 +19,7 @@ package vanilla.java.processingengine;
 import com.higherfrequencytrading.affinity.AffinitySupport;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import org.jetbrains.annotations.NotNull;
 import vanilla.java.processingengine.api.*;
 
 import java.io.IOException;
@@ -79,7 +80,7 @@ public class PEMain {
         }
 
         @Override
-        public void small(MetaData metaData, SmallCommand command) {
+        public void small(@NotNull MetaData metaData, @NotNull SmallCommand command) {
             smallReport.orderOkay(command.clientOrderId);
 
             pe2GwWriter.report(metaData, smallReport);

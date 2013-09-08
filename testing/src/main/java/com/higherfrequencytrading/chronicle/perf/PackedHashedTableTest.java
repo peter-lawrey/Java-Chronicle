@@ -19,6 +19,7 @@ package com.higherfrequencytrading.chronicle.perf;
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IntIndexedChronicle;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
@@ -31,7 +32,8 @@ import static org.junit.Assert.assertTrue;
 /**
  * This test is based on http://mysqlha.blogspot.co.uk/2010/09/mysql-versus-mongodb-yet-another-silly.html
  * <p/>
- * In the original test the peak QPS was around 105 K/s at 128 threads. This test achieves around 600 K/s with one thread.
+ * In the original test the peak QPS was around 105 K/s at 128 threads. This test achieves around 600 K/s with one
+ * thread.
  * <p/>
  *
  * @author peter.lawrey
@@ -51,7 +53,7 @@ public class PackedHashedTableTest {
         final boolean[] found = {false};
         pht.lookup(1111, new PackedHashedTable.HashRecordIterator() {
             @Override
-            public boolean onExcerpt(Excerpt recordExcerpt) {
+            public boolean onExcerpt(@NotNull Excerpt recordExcerpt) {
                 found[0] |= recordExcerpt.readLong() == 1234567890L;
                 return false;
             }
@@ -244,7 +246,7 @@ public class PackedHashedTableTest {
         public int ptr;
 
         @Override
-        public boolean onExcerpt(Excerpt recordExcerpt) {
+        public boolean onExcerpt(@NotNull Excerpt recordExcerpt) {
             int ptr0 = recordExcerpt.readInt();
             if (ptr0 == ptr) {
                 recordExcerpt.readFully(string1);

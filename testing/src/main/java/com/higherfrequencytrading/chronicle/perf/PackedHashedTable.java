@@ -19,6 +19,7 @@ import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.GlobalSettings;
 import com.higherfrequencytrading.chronicle.impl.IntIndexedChronicle;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -26,8 +27,11 @@ import java.io.IOException;
  * @author peter.lawrey
  */
 public class PackedHashedTable {
+    @NotNull
     private final Chronicle hash;
+    @NotNull
     private final Chronicle records;
+    @NotNull
     private final HashRecord hashRecord;
     private final Excerpt recordsExcerpt;
     private final int maxRecordSize;
@@ -71,7 +75,7 @@ public class PackedHashedTable {
         public boolean onExcerpt(Excerpt recordExcerpt);
     }
 
-    public void lookup(int hashCode, HashRecordIterator iterator) {
+    public void lookup(int hashCode, @NotNull HashRecordIterator iterator) {
         hashRecord.lookup(hashCode, recordsExcerpt, iterator);
     }
 
@@ -121,7 +125,7 @@ public class PackedHashedTable {
             return excerpt.readInt(0);
         }
 
-        public void lookup(int hashCode, Excerpt recordsExcerpt, HashRecordIterator iterator) {
+        public void lookup(int hashCode, @NotNull Excerpt recordsExcerpt, @NotNull HashRecordIterator iterator) {
             int bucket = bucket(hashCode);
             excerpt.index(bucket);
             for (int i = 0, size = size(); i < size; i++) {

@@ -17,6 +17,8 @@
 package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -28,17 +30,20 @@ import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
  * @author peter.lawrey
  */
 public class SetWrapper<E> implements ObservableSet<E> {
+    @NotNull
     private final DataStore dataStore;
     private final String name;
+    @NotNull
     private final Class<E> eClass;
     private final Set<E> underlying;
     private final int maxMessageSize;
     private final List<CollectionListener<E>> listeners = new ArrayList<CollectionListener<E>>();
     private final boolean enumClass;
     private boolean notifyOff = false;
+    @NotNull
     private Annotation[] annotations = {};
 
-    public SetWrapper(DataStore dataStore, String name, Class<E> eClass, Set<E> underlying, int maxMessageSize) {
+    public SetWrapper(@NotNull DataStore dataStore, String name, @NotNull Class<E> eClass, Set<E> underlying, int maxMessageSize) {
         this.dataStore = dataStore;
         this.name = name;
         this.eClass = eClass;
@@ -65,17 +70,19 @@ public class SetWrapper<E> implements ObservableSet<E> {
         }
     }
 
+    @NotNull
     public Annotation[] getAnnotations() {
         return annotations;
     }
 
-    public void setAnnotations(Annotation[] annotations) {
+    public void setAnnotations(@NotNull Annotation[] annotations) {
         this.annotations = Arrays.copyOf(annotations, annotations.length);
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     @Override
-    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
+    public <A extends Annotation> A getAnnotation(@NotNull Class<A> annotationClass) {
         for (Annotation annotation : annotations) {
             if (annotationClass.isInstance(annotation))
                 return (A) annotation;
@@ -106,14 +113,15 @@ public class SetWrapper<E> implements ObservableSet<E> {
         }
     }
 
-    private void writeElement(Excerpt excerpt, E element) {
+    private void writeElement(@NotNull Excerpt excerpt, E element) {
         if (enumClass)
             excerpt.writeEnum(element);
         else
             excerpt.writeObject(element);
     }
 
-    private Excerpt getExcerpt(int maxSize, WrapperEvent event) {
+    @NotNull
+    private Excerpt getExcerpt(int maxSize, @NotNull WrapperEvent event) {
         Excerpt excerpt = dataStore.startExcerpt(maxSize + 2 + event.name().length(), name);
         excerpt.writeEnum(event);
         return excerpt;
@@ -124,7 +132,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     }
 
     @Override
-    public boolean addAll(Collection<? extends E> c) {
+    public boolean addAll(@NotNull Collection<? extends E> c) {
         checkWritable();
         List<E> added = new ArrayList<E>();
         for (E e : c)
@@ -139,7 +147,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
         return true;
     }
 
-    private void writeAddAll(Collection<E> added) {
+    private void writeAddAll(@NotNull Collection<E> added) {
         Excerpt excerpt = getExcerpt(maxMessageSize * added.size(), addAll);
         long eventId = excerpt.index();
         writeList(excerpt, added);
@@ -155,7 +163,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
         }
     }
 
-    private void writeList(Excerpt excerpt, Collection<E> list) {
+    private void writeList(@NotNull Excerpt excerpt, Collection<E> list) {
         if (enumClass)
             excerpt.writeEnums(list);
         else
@@ -168,7 +176,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     }
 
     @Override
-    public boolean containsAll(Collection<?> c) {
+    public boolean containsAll(@NotNull Collection<?> c) {
         return underlying.containsAll(c);
     }
 
@@ -210,10 +218,12 @@ public class SetWrapper<E> implements ObservableSet<E> {
         return underlying.isEmpty();
     }
 
+    @NotNull
     @Override
     public Iterator<E> iterator() {
         return new Iterator<E>() {
             final Iterator<E> iter = underlying.iterator();
+            @Nullable
             E last = null;
 
             @Override
@@ -244,7 +254,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     }
 
     @Override
-    public void onExcerpt(Excerpt excerpt) {
+    public void onExcerpt(@NotNull Excerpt excerpt) {
         WrapperEvent event = excerpt.readEnum(WrapperEvent.class);
         if (!notifyOff) {
             for (int i = 0; i < listeners.size(); i++)
@@ -329,7 +339,8 @@ public class SetWrapper<E> implements ObservableSet<E> {
         }
     }
 
-    private List<E> readList(Excerpt excerpt) {
+    @NotNull
+    private List<E> readList(@NotNull Excerpt excerpt) {
         List<E> eList = new ArrayList<E>();
         if (enumClass)
             excerpt.readEnums(eClass, eList);
@@ -339,7 +350,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     }
 
     @SuppressWarnings("unchecked")
-    private E readElement(Excerpt excerpt) {
+    private E readElement(@NotNull Excerpt excerpt) {
         if (enumClass)
             return excerpt.readEnum(eClass);
         return (E) excerpt.readObject();
@@ -370,7 +381,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     }
 
     @Override
-    public boolean retainAll(Collection<?> c) {
+    public boolean retainAll(@NotNull Collection<?> c) {
         checkWritable();
         List<Object> toremove = new ArrayList<Object>(size());
         for (E e : this) {
@@ -386,7 +397,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
     }
 
     @Override
-    public boolean removeAll(Collection<?> c) {
+    public boolean removeAll(@NotNull Collection<?> c) {
         checkWritable();
         List<E> removed = new ArrayList<E>();
         for (Object o : c)
@@ -401,7 +412,7 @@ public class SetWrapper<E> implements ObservableSet<E> {
         return true;
     }
 
-    private void writeRemoveAll(List<E> removed) {
+    private void writeRemoveAll(@NotNull List<E> removed) {
         Excerpt excerpt = getExcerpt(maxMessageSize * removed.size(), removeAll);
         long eventId = excerpt.index();
         writeList(excerpt, removed);
@@ -418,14 +429,16 @@ public class SetWrapper<E> implements ObservableSet<E> {
         }
     }
 
+    @NotNull
     @SuppressWarnings("unchecked")
     @Override
     public E[] toArray() {
         return underlying.toArray((E[]) Array.newInstance(eClass, underlying.size()));
     }
 
+    @NotNull
     @Override
-    public <T> T[] toArray(T[] a) {
+    public <T> T[] toArray(@NotNull T[] a) {
         return underlying.toArray(a);
     }
 

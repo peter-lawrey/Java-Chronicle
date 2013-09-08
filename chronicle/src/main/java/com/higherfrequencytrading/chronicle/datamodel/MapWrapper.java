@@ -17,6 +17,8 @@
 package com.higherfrequencytrading.chronicle.datamodel;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -27,10 +29,14 @@ import static com.higherfrequencytrading.chronicle.datamodel.WrapperEvent.*;
  * @author peter.lawrey
  */
 public class MapWrapper<K, V> implements ObservableMap<K, V> {
+    @NotNull
     private final DataStore dataStore;
     private final String name;
+    @NotNull
     private final Class<K> kClass;
+    @NotNull
     private final Class<V> vClass;
+    @NotNull
     private final Map<K, V> underlying;
     private final int maxMessageSize;
     private final List<MapListener<K, V>> listeners = new ArrayList<MapListener<K, V>>();
@@ -40,9 +46,10 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
     private final boolean kEnumClass;
     private final boolean vEnumClass;
     private boolean notifyOff = false;
+    @NotNull
     private Annotation[] annotations = {};
 
-    public MapWrapper(DataStore dataStore, String name, Class<K> kClass, Class<V> vClass, Map<K, V> underlying, int maxMessageSize) {
+    public MapWrapper(@NotNull DataStore dataStore, String name, @NotNull Class<K> kClass, @NotNull Class<V> vClass, @NotNull Map<K, V> underlying, int maxMessageSize) {
         this.dataStore = dataStore;
         this.name = name;
         this.kClass = kClass;
@@ -59,17 +66,19 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         dataStore.add(name, this);
     }
 
+    @NotNull
     public Annotation[] getAnnotations() {
         return annotations;
     }
 
-    public void setAnnotations(Annotation[] annotations) {
+    public void setAnnotations(@NotNull Annotation[] annotations) {
         this.annotations = Arrays.copyOf(annotations, annotations.length);
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     @Override
-    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
+    public <A extends Annotation> A getAnnotation(@NotNull Class<A> annotationClass) {
         for (Annotation annotation : annotations) {
             if (annotationClass.isInstance(annotation))
                 return (A) annotation;
@@ -96,7 +105,7 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
 
     // reload, and synchronise the map.
     @Override
-    public void onExcerpt(Excerpt excerpt) {
+    public void onExcerpt(@NotNull Excerpt excerpt) {
         int position = excerpt.position();
         WrapperEvent event = excerpt.readEnum(WrapperEvent.class);
         if (event == null) {
@@ -167,7 +176,7 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
 
     }
 
-    private void onExcerptPut(Excerpt excerpt) {
+    private void onExcerptPut(@NotNull Excerpt excerpt) {
         K key = readKey(excerpt);
         V value = readValue(excerpt);
         V previous = underlying.put(key, value);
@@ -182,14 +191,14 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
     }
 
     @SuppressWarnings("unchecked")
-    private V readValue(Excerpt excerpt) {
+    private V readValue(@NotNull Excerpt excerpt) {
         if (vEnumClass)
             return excerpt.readEnum(vClass);
         return (V) excerpt.readObject();
     }
 
     @SuppressWarnings("unchecked")
-    private K readKey(Excerpt excerpt) {
+    private K readKey(@NotNull Excerpt excerpt) {
         if (kEnumClass)
             return excerpt.readEnum(kClass);
         return (K) excerpt.readObject();
@@ -226,7 +235,8 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         }
     }
 
-    private Excerpt getExcerpt(int maxSize, WrapperEvent event) {
+    @NotNull
+    private Excerpt getExcerpt(int maxSize, @NotNull WrapperEvent event) {
         Excerpt excerpt = dataStore.startExcerpt(maxSize + 2 + event.name().length(), name);
         excerpt.writeEnum(event);
         return excerpt;
@@ -246,6 +256,7 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         return underlying.containsValue(value);
     }
 
+    @NotNull
     @Override
     public Set<Entry<K, V>> entrySet() {
         return entrySet;
@@ -271,6 +282,7 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         return underlying.isEmpty();
     }
 
+    @NotNull
     @Override
     public Set<K> keySet() {
         return keySet;
@@ -285,7 +297,7 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         return previous;
     }
 
-    private void writePut(K key, V previous, V value) {
+    private void writePut(K key, @Nullable V previous, V value) {
         Excerpt excerpt = getExcerpt(maxMessageSize, put);
         long eventId = excerpt.index();
         writeKey(excerpt, key);
@@ -304,31 +316,31 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         }
     }
 
-    private void writeValue(Excerpt excerpt, V value) {
+    private void writeValue(@NotNull Excerpt excerpt, V value) {
         if (vEnumClass)
             excerpt.writeEnum(value);
         else
             excerpt.writeObject(value);
     }
 
-    private void writeKey(Excerpt excerpt, K key) {
+    private void writeKey(@NotNull Excerpt excerpt, K key) {
         if (kEnumClass)
             excerpt.writeEnum(key);
         else
             excerpt.writeObject(key);
     }
 
-    protected boolean sameOrNotEqual(V previous, V value) {
+    protected boolean sameOrNotEqual(@Nullable V previous, V value) {
         return previous == value || previous == null || !previous.equals(value);
     }
 
     @Override
-    public void putAll(Map<? extends K, ? extends V> m) {
+    public void putAll(@NotNull Map<? extends K, ? extends V> m) {
         checkWritable();
         performAndWritePutAll(m);
     }
 
-    private void performAndWritePutAll(Map<? extends K, ? extends V> m) {
+    private void performAndWritePutAll(@NotNull Map<? extends K, ? extends V> m) {
         Excerpt excerpt = getExcerpt(m.size() * maxMessageSize, putAll);
         long eventId = excerpt.index();
         int pos = excerpt.position();
@@ -399,6 +411,7 @@ public class MapWrapper<K, V> implements ObservableMap<K, V> {
         return underlying.toString();
     }
 
+    @NotNull
     @Override
     public Collection<V> values() {
         return values;
