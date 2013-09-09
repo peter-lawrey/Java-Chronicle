@@ -271,6 +271,7 @@ public class IndexedChronicle extends AbstractChronicle {
 
     @Override
     public long startExcerpt(int capacity) {
+        final long size = this.size;
         long startPosition = getIndexData(size);
         assert size == 0 || startPosition != 0;
         // does it overlap a ByteBuffer barrier.
@@ -283,8 +284,9 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     @Override
-    public void incrementSize() {
+    public void incrementSize(long expected) {
         size++;
+        assert size == expected : "size: " + size + ", expected: " + expected;
     }
 
     /**

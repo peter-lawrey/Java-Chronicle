@@ -416,7 +416,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                     break;
                 case 12:
                 case 13: {
-				/* 110x xxxx 10xx xxxx */
+                /* 110x xxxx 10xx xxxx */
                     int char2 = readUnsignedByte();
                     if ((char2 & 0xC0) != 0x80)
                         throw new UTFDataFormatException(
@@ -1891,7 +1891,7 @@ public abstract class AbstractExcerpt implements Excerpt {
             }
             final long endPosition = startPosition + length;
             chronicle.setIndexData(index + 1, endPosition);
-            chronicle.incrementSize();
+            chronicle.incrementSize(index + 1);
             capacity = (int) length;
             assert capacity >= MIN_SIZE : "len=" + length;
             writeMemoryBarrier();
