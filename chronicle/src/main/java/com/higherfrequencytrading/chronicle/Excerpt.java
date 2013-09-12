@@ -16,6 +16,9 @@
 
 package com.higherfrequencytrading.chronicle;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
@@ -26,7 +29,8 @@ import java.util.Map;
 /**
  * An extracted record within a Chronicle.  This record refers to one entry.
  * <p/>
- * Note: buried in the logic there is an assumption the excerpt will be at least 8 bytes long and the first 8 will not all be zero. This assumption may be lifted in future.
+ * Note: buried in the logic there is an assumption the excerpt will be at least 8 bytes long and the first 8 will not
+ * all be zero. This assumption may be lifted in future.
  *
  * @author peter.lawrey
  */
@@ -34,24 +38,28 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
     /**
      * @return the chronicle this is an excerpt for.
      */
+    @NotNull
     Chronicle chronicle();
 
     /**
-     * Checks if the index could be to the next index.  The method is re-tryable as another thread or process could be writing to this Chronicle.
+     * Checks if the index could be to the next index.  The method is re-tryable as another thread or process could be
+     * writing to this Chronicle.
      *
      * @return true if the index could be set to a valid entry.
      */
     boolean hasNextIndex();
 
     /**
-     * Attempt to set the index to the next index.  The method is re-tryable as another thread or process could be writing to this Chronicle.
+     * Attempt to set the index to the next index.  The method is re-tryable as another thread or process could be
+     * writing to this Chronicle.
      *
      * @return true if the index was set to a valid entry.
      */
     boolean nextIndex();
 
     /**
-     * Attempt to set the index to this number.  The method is re-tryable as another thread or process could be writing to this Chronicle.
+     * Attempt to set the index to this number.  The method is re-tryable as another thread or process could be writing
+     * to this Chronicle.
      *
      * @param index within the Chronicle
      * @return true if the index could be set to a valid entry.
@@ -70,6 +78,7 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
      * @param position to move to.
      * @return this
      */
+    @NotNull
     Excerpt position(int position);
 
     /**
@@ -90,6 +99,7 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
     /**
      * @return The byte order of this Excerpt
      */
+    @NotNull
     ByteOrder order();
 
     /**
@@ -102,7 +112,8 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
     /**
      * Finish a record.  The record is not available until this is called.
      * <p/>
-     * When the method is called the first time, the excerpt is shrink wrapped to the size actually used. i.e. where the position is.
+     * When the method is called the first time, the excerpt is shrink wrapped to the size actually used. i.e. where the
+     * position is.
      */
     void finish();
 
@@ -110,64 +121,66 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
      * @return a wrapper for this excerpt as an InputStream
      * @deprecated This will be dropped in Chronicle 2.0
      */
+    @NotNull
     InputStream inputStream();
 
     /**
      * @return a wrapper for this excerpt as an OutputStream
      * @deprecated This will be dropped in Chronicle 2.0
      */
+    @NotNull
     OutputStream outputStream();
 
     /**
-     * Write an enumerated type.  Here enumerated has a general sense.
-     * Its requirements are; <ol>
-     * <li>values must have one to one mapping with String as the reverse</li>
-     * <li>the values must be immutable</li>
-     * <li>the class must have a valueOf(String) or Constructor(String) which can take the output of toString(). </li>
-     * </ol>
+     * Write an enumerated type.  Here enumerated has a general sense. Its requirements are; <ol> <li>values must have
+     * one to one mapping with String as the reverse</li> <li>the values must be immutable</li> <li>the class must have
+     * a valueOf(String) or Constructor(String) which can take the output of toString(). </li> </ol>
      * <p/>
-     * This method has special handling for Enum, Classes and Strings. It can handle other types which comply e.g. BigInteger
+     * This method has special handling for Enum, Classes and Strings. It can handle other types which comply e.g.
+     * BigInteger
      * <p/>
      * If the reader cannot be expect to know the type, the class can be written (and read) first.
      */
-    <E> void writeEnum(E e);
+    <E> void writeEnum(@Nullable E e);
 
     /**
      * Read what was written with writeEnum
      */
-    <E> E readEnum(Class<E> eClass);
+    @Nullable
+    <E> E readEnum(@NotNull Class<E> eClass);
 
     /**
      * Write a collection of enumerated values.
      */
-    <E> void writeEnums(Collection<E> eList);
+    <E> void writeEnums(@NotNull Collection<E> eList);
 
     /**
      * Write a collection of any supported serializable type.
      */
-    <E> void writeList(Collection<E> list);
+    <E> void writeList(@NotNull Collection<E> list);
 
     /**
      * Write a map or enumerated keys and values.
      *
      * @deprecated This will be altered to include the class types in Chronicle 2.0
      */
-    <K, V> void writeMap(Map<K, V> map);
+    <K, V> void writeMap(@NotNull Map<K, V> map);
 
     /**
      * Reads a collection of enumerated types.
      */
-    <E> void readEnums(Class<E> eClass, List<E> eList);
+    <E> void readEnums(@NotNull Class<E> eClass, @NotNull List<E> eList);
 
     /**
      * Read a collection of any serializable type.
      */
-    <E> void readList(Collection<E> list);
+    <E> void readList(@NotNull Collection<E> list);
 
     /**
      * Reads a map of key/values with known enumerated types.
      */
-    <K, V> Map<K, V> readMap(Class<K> kClass, Class<V> vClass);
+    @NotNull
+    <K, V> Map<K, V> readMap(@NotNull Class<K> kClass, @NotNull Class<V> vClass);
 
     /**
      * The last index which can be safely read without blocking.
@@ -179,11 +192,13 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
     /**
      * Wind to the start
      */
+    @NotNull
     Excerpt toStart();
 
     /**
      * Wind tot he end
      */
+    @NotNull
     Excerpt toEnd();
 
     /**

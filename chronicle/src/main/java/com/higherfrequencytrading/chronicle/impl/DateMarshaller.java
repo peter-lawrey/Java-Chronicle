@@ -19,6 +19,8 @@ package com.higherfrequencytrading.chronicle.impl;
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
@@ -28,6 +30,7 @@ import java.util.Date;
 public class DateMarshaller implements EnumeratedMarshaller<Date> {
     final int size1;
     private final StringBuilder sb = new StringBuilder();
+    @Nullable
     private Date[] interner = null;
 
     public DateMarshaller(int size) {
@@ -36,26 +39,29 @@ public class DateMarshaller implements EnumeratedMarshaller<Date> {
         this.size1 = size2 - 1;
     }
 
+    @NotNull
     @Override
     public Class<Date> classMarshaled() {
         return Date.class;
     }
 
     @Override
-    public void write(Excerpt excerpt, Date date) {
+    public void write(@NotNull Excerpt excerpt, @NotNull Date date) {
         int pos = excerpt.position();
         excerpt.writeUnsignedByte(0);
         excerpt.append(date.getTime());
         excerpt.writeUnsignedByte(pos, excerpt.position() - 1 - pos);
     }
 
+    @Nullable
     @Override
-    public Date read(Excerpt excerpt) {
+    public Date read(@NotNull Excerpt excerpt) {
         excerpt.readUTF(sb);
         long time = parseLong(sb);
         return lookupDate(time);
     }
 
+    @Nullable
     private Date lookupDate(long time) {
         int idx = hashFor(time);
         if (interner == null)
@@ -73,7 +79,7 @@ public class DateMarshaller implements EnumeratedMarshaller<Date> {
         return (int) (h & size1);
     }
 
-    private static long parseLong(CharSequence sb) {
+    private static long parseLong(@NotNull CharSequence sb) {
         long num = 0;
         boolean negative = false;
         for (int i = 0; i < sb.length(); i++) {
@@ -89,8 +95,9 @@ public class DateMarshaller implements EnumeratedMarshaller<Date> {
         return negative ? -num : num;
     }
 
+    @Nullable
     @Override
-    public Date parse(Excerpt excerpt, StopCharTester tester) {
+    public Date parse(@NotNull Excerpt excerpt, @NotNull StopCharTester tester) {
         return lookupDate(excerpt.readLong());
     }
 }

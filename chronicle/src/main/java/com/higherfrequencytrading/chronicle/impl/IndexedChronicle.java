@@ -18,6 +18,8 @@ package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sun.nio.ch.DirectBuffer;
 
 import java.io.File;
@@ -56,8 +58,10 @@ public class IndexedChronicle extends AbstractChronicle {
     private final boolean synchronousMode;
     // used if minimiseByteBuffers is true;
     private int lastIndexId = -1;
+    @Nullable
     private MappedByteBuffer lastIndexBuffer = null;
     private int lastDataId = -1;
+    @Nullable
     private MappedByteBuffer lastDataBuffer = null;
     private boolean useUnsafe = false;
 
@@ -115,13 +119,16 @@ public class IndexedChronicle extends AbstractChronicle {
         return indexBuffer.getLong((int) (indexOffset & indexLowMask));
     }
 
+    @NotNull
     protected MappedByteBuffer acquireIndexBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
             throwByteOrderIsIncorrect();
         int indexBufferId = (int) (startPosition >> indexBitSize);
         if (minimiseByteBuffers) {
-            if (lastIndexId == indexBufferId)
+            if (lastIndexId == indexBufferId) {
+                assert lastIndexBuffer != null;
                 return lastIndexBuffer;
+            }
 
         } else {
             if (indexBuffers.size() <= indexBufferId)
@@ -133,6 +140,7 @@ public class IndexedChronicle extends AbstractChronicle {
         return createIndexBuffer(startPosition, indexBufferId);
     }
 
+    @NotNull
     private MappedByteBuffer throwByteOrderIsIncorrect() {
         throw new IllegalStateException("ByteOrder is incorrect.");
     }
@@ -204,11 +212,13 @@ public class IndexedChronicle extends AbstractChronicle {
         return byteOrder;
     }
 
+    @NotNull
     @Override
     public Excerpt createExcerpt() {
         return useUnsafe ? new UnsafeExcerpt(this) : new ByteBufferExcerpt(this);
     }
 
+    @Nullable
     @Override
     public MappedByteBuffer acquireDataBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
@@ -261,6 +271,7 @@ public class IndexedChronicle extends AbstractChronicle {
 
     @Override
     public long startExcerpt(int capacity) {
+        final long size = this.size;
         long startPosition = getIndexData(size);
         assert size == 0 || startPosition != 0;
         // does it overlap a ByteBuffer barrier.
@@ -273,8 +284,9 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     @Override
-    public void incrementSize() {
+    public void incrementSize(long expected) {
         size++;
+        assert size == expected : "size: " + size + ", expected: " + expected;
     }
 
     /**
@@ -309,7 +321,7 @@ public class IndexedChronicle extends AbstractChronicle {
         }
     }
 
-    private void clearAll(FileChannel channel, List<MappedByteBuffer> buffers) {
+    private void clearAll(@NotNull FileChannel channel, @NotNull List<MappedByteBuffer> buffers) {
         try {
             for (MappedByteBuffer buffer : buffers) {
                 if (buffer != null) {

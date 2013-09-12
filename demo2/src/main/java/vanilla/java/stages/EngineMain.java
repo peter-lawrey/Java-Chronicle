@@ -21,14 +21,13 @@ import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSource;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
+import org.jetbrains.annotations.NotNull;
 import vanilla.java.stages.api.*;
 
 import java.io.IOException;
 
 /**
- * User: peter
- * Date: 05/08/13
- * Time: 17:32
+ * User: peter Date: 05/08/13 Time: 17:32
  */
 public class EngineMain {
     static final String HOST = System.getProperty("host", "localhost");
@@ -102,7 +101,7 @@ public class EngineMain {
         }
 
         @Override
-        public void onMarketData(MetaData metaData, Update update) {
+        public void onMarketData(MetaData metaData, @NotNull Update update) {
             // don't do anything with the updates, just pass them on.
             writer.onMarketData(metaData, update);
         }

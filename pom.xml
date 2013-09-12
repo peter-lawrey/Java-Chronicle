@@ -23,7 +23,7 @@
 
     <groupId>com.higherfrequencytrading</groupId>
     <artifactId>chronicle-parent</artifactId>
-    <version>1.7.3-SNAPSHOT</version>
+    <version>1.8-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>chronicle-parent</name>
@@ -32,6 +32,15 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.kohsuke.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>9.0</version>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
 
     <dependencyManagement>
         <dependencies>

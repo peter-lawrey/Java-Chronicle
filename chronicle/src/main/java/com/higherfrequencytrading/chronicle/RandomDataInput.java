@@ -16,6 +16,9 @@
 
 package com.higherfrequencytrading.chronicle;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.ObjectInput;
 import java.nio.ByteBuffer;
 import java.util.RandomAccess;
@@ -25,10 +28,10 @@ import java.util.RandomAccess;
  */
 public interface RandomDataInput extends ObjectInput, RandomAccess {
     @Override
-    void readFully(byte[] b);
+    void readFully(@NotNull byte[] b);
 
     @Override
-    void readFully(byte[] b, int off, int len);
+    void readFully(@NotNull byte[] b, int off, int len);
 
     @Override
     int skipBytes(int n);
@@ -126,18 +129,22 @@ public interface RandomDataInput extends ObjectInput, RandomAccess {
     double readCompactDouble();
 
     @Override
+    @Nullable
     String readLine();
 
-    void readByteString(StringBuilder sb);
+    void readByteString(@NotNull StringBuilder sb);
 
-    int readByteString(int offset, StringBuilder sb);
+    int readByteString(int offset, @NotNull StringBuilder sb);
 
+    @NotNull
     String readByteString();
 
-    void readChars(StringBuilder sb);
+    void readChars(@NotNull StringBuilder sb);
 
+    @NotNull
     String readChars();
 
+    @Nullable
     @Override
     String readUTF();
 
@@ -147,18 +154,20 @@ public interface RandomDataInput extends ObjectInput, RandomAccess {
      * @deprecated to be removed in version 1.8
      */
     @Deprecated
-    boolean readUTF(Appendable appendable);
+    boolean readUTF(@NotNull Appendable appendable);
 
-    boolean readUTF(StringBuilder stringBuilder);
+    boolean readUTF(@NotNull StringBuilder stringBuilder);
 
-    boolean appendUTF(Appendable appendable);
+    boolean appendUTF(@NotNull Appendable appendable);
 
+    @Nullable
     String readUTF(int offset);
 
-    void read(ByteBuffer bb);
+    void read(@NotNull ByteBuffer bb);
 
     // ObjectInput
 
+    @Nullable
     @Override
     Object readObject() throws IllegalStateException;
 
@@ -166,10 +175,10 @@ public interface RandomDataInput extends ObjectInput, RandomAccess {
     int read();
 
     @Override
-    int read(byte[] b);
+    int read(@NotNull byte[] b);
 
     @Override
-    int read(byte[] b, int off, int len);
+    int read(@NotNull byte[] b, int off, int len);
 
     @Override
     long skip(long n);

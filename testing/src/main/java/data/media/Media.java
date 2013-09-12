@@ -17,6 +17,9 @@
 // based from eishay/jvm-serializers
 package data.media;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -32,7 +35,8 @@ public class Media implements Externalizable {
     public enum Player {
         JAVA, FLASH;
 
-        public static Player find(String str) {
+        @NotNull
+        public static Player find(@Nullable String str) {
             if ("JAVA".equals(str)) return JAVA;
             if ("FLASH".equals(str)) return FLASH;
             String desc = (str == null) ? "NULL" : String.format("'%s'", str);
@@ -41,6 +45,7 @@ public class Media implements Externalizable {
     }
 
     public String uri;
+    @Nullable
     public String title;        // Can be unset.
     public int width;
     public int height;
@@ -60,7 +65,7 @@ public class Media implements Externalizable {
     public Media() {
     }
 
-    public Media(String uri, String title, int width, int height, String format, long duration, long size, int bitrate, boolean hasBitrate, List<String> persons, Player player, String copyright) {
+    public Media(String uri, @Nullable String title, int width, int height, String format, long duration, long size, int bitrate, boolean hasBitrate, List<String> persons, Player player, String copyright) {
         this.uri = uri;
         this.title = title;
         this.width = width;
@@ -76,7 +81,7 @@ public class Media implements Externalizable {
     }
 
     @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
+    public void writeExternal(@NotNull ObjectOutput out) throws IOException {
         out.writeUTF(uri);
         out.writeUTF(title == null ? NULL_STR : title);
         out.writeInt(width);
@@ -93,7 +98,7 @@ public class Media implements Externalizable {
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException {
+    public void readExternal(@NotNull ObjectInput in) throws IOException {
         uri = in.readUTF();
         title = in.readUTF();
         if (title.equals(NULL_STR))
@@ -116,7 +121,7 @@ public class Media implements Externalizable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
@@ -154,6 +159,7 @@ public class Media implements Externalizable {
         return result;
     }
 
+    @NotNull
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("[Media ");
@@ -177,7 +183,7 @@ public class Media implements Externalizable {
         this.uri = uri;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(@Nullable String title) {
         this.title = title;
     }
 
@@ -222,6 +228,7 @@ public class Media implements Externalizable {
         return uri;
     }
 
+    @Nullable
     public String getTitle() {
         return title;
     }

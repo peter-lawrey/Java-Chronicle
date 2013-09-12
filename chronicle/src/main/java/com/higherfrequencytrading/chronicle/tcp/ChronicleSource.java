@@ -20,6 +20,7 @@ import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.higherfrequencytrading.chronicle.tools.IOTools;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
 import java.io.EOFException;
@@ -37,23 +38,26 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A Chronicle as a service to be replicated to any number of clients.
- * Clients can restart from where ever they are up to.
+ * A Chronicle as a service to be replicated to any number of clients. Clients can restart from where ever they are up
+ * to.
  * <p/>
  * Can be used ad a component or run as a stand alone service.
  *
  * @author peter.lawrey
  */
 public class ChronicleSource<C extends Chronicle> implements Closeable {
+    @NotNull
     private final C chronicle;
     private final ServerSocketChannel server;
     private final int delayNS;
+    @NotNull
     private final String name;
+    @NotNull
     private final ExecutorService service;
     private final Logger logger;
     private volatile boolean closed = false;
 
-    public ChronicleSource(C chronicle, int port, int delayNS) throws IOException {
+    public ChronicleSource(@NotNull C chronicle, int port, int delayNS) throws IOException {
         this.chronicle = chronicle;
         this.delayNS = delayNS;
         server = ServerSocketChannel.open();
@@ -64,7 +68,7 @@ public class ChronicleSource<C extends Chronicle> implements Closeable {
         service.execute(new Acceptor());
     }
 
-    public static void main(String... args) throws IOException {
+    public static void main(@NotNull String... args) throws IOException {
         if (args.length < 2) {
             System.err.println("Usage: java " + ChronicleSource.class.getName() + " {chronicle-base-path} {port} [delayNS]");
             System.exit(-1);

@@ -19,6 +19,8 @@ package com.higherfrequencytrading.chronicle.impl;
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.BitSet;
 import java.util.LinkedHashMap;
@@ -28,6 +30,7 @@ import java.util.Map;
  * @author peter.lawrey
  */
 public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarshaller<E> {
+    @NotNull
     private final Class<E> classMarshaled;
     @SuppressWarnings("unchecked")
     private final E[] interner = (E[]) new Enum[1024];
@@ -36,7 +39,7 @@ public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarsh
     private final E defaultValue;
     private final StringBuilder reader = new StringBuilder();
 
-    public VanillaEnumMarshaller(Class<E> classMarshaled, E defaultValue) {
+    public VanillaEnumMarshaller(@NotNull Class<E> classMarshaled, E defaultValue) {
         this.classMarshaled = classMarshaled;
         this.defaultValue = defaultValue;
 
@@ -54,7 +57,7 @@ public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarsh
         }
     }
 
-    private int hashFor(CharSequence cs) {
+    private int hashFor(@NotNull CharSequence cs) {
         int h = 0;
 
         for (int i = 0, length = cs.length(); i < length; i++)
@@ -65,18 +68,19 @@ public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarsh
         return h & (interner.length - 1);
     }
 
+    @NotNull
     @Override
     public Class<E> classMarshaled() {
         return classMarshaled;
     }
 
     @Override
-    public void write(Excerpt excerpt, E e) {
+    public void write(@NotNull Excerpt excerpt, @Nullable E e) {
         excerpt.writeUTF(e == null ? "" : e.name());
     }
 
     @Override
-    public E read(Excerpt excerpt) {
+    public E read(@NotNull Excerpt excerpt) {
         excerpt.readUTF(reader);
         return builderToEnum();
     }
@@ -92,7 +96,7 @@ public class VanillaEnumMarshaller<E extends Enum<E>> implements EnumeratedMarsh
     }
 
     @Override
-    public E parse(Excerpt excerpt, StopCharTester tester) {
+    public E parse(@NotNull Excerpt excerpt, @NotNull StopCharTester tester) {
         reader.setLength(0);
         excerpt.parseUTF(reader, tester);
         return builderToEnum();

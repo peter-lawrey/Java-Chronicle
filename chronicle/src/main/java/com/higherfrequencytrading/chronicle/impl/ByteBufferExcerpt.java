@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.chronicle.impl;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author peter.lawrey
  */
@@ -40,16 +42,19 @@ public class ByteBufferExcerpt extends AbstractExcerpt {
 
     @Override
     public byte readByte() {
+        assert buffer != null;
         return buffer.get((int) position++);
     }
 
     @Override
     public byte readByte(int offset) {
+        assert buffer != null;
         return buffer.get((int) (start + offset));
     }
 
     @Override
     public short readShort() {
+        assert buffer != null;
         short s = buffer.getShort((int) position);
         position += 2;
         return s;
@@ -57,11 +62,13 @@ public class ByteBufferExcerpt extends AbstractExcerpt {
 
     @Override
     public short readShort(int offset) {
+        assert buffer != null;
         return buffer.getShort((int) (start + offset));
     }
 
     @Override
     public char readChar() {
+        assert buffer != null;
         char ch = buffer.getChar((int) position);
         position += 2;
         return ch;
@@ -69,11 +76,13 @@ public class ByteBufferExcerpt extends AbstractExcerpt {
 
     @Override
     public char readChar(int offset) {
+        assert buffer != null;
         return buffer.getChar((int) (start + offset));
     }
 
     @Override
     public int readInt() {
+        assert buffer != null;
         int i = buffer.getInt((int) position);
         position += 4;
         return i;
@@ -81,11 +90,13 @@ public class ByteBufferExcerpt extends AbstractExcerpt {
 
     @Override
     public int readInt(int offset) {
+        assert buffer != null;
         return buffer.getInt((int) (start + offset));
     }
 
     @Override
     public long readLong() {
+        assert buffer != null;
         long l = buffer.getLong((int) position);
         position += 8;
         return l;
@@ -93,11 +104,13 @@ public class ByteBufferExcerpt extends AbstractExcerpt {
 
     @Override
     public long readLong(int offset) {
+        assert buffer != null;
         return buffer.getLong((int) (start + offset));
     }
 
     @Override
     public float readFloat() {
+        assert buffer != null;
         float f = buffer.getFloat((int) position);
         position += 4;
         return f;
@@ -105,11 +118,13 @@ public class ByteBufferExcerpt extends AbstractExcerpt {
 
     @Override
     public float readFloat(int offset) {
+        assert buffer != null;
         return buffer.getFloat((int) (start + offset));
     }
 
     @Override
     public double readDouble() {
+        assert buffer != null;
         double d = buffer.getDouble((int) position);
         position += 8;
         return d;
@@ -117,91 +132,108 @@ public class ByteBufferExcerpt extends AbstractExcerpt {
 
     @Override
     public double readDouble(int offset) {
+        assert buffer != null;
         return buffer.getDouble((int) (start + offset));
     }
 
     @Override
     public void write(int b) {
+        assert buffer != null;
         buffer.put((int) position++, (byte) b);
     }
 
     @Override
     public void write(int offset, int b) {
+        assert buffer != null;
         buffer.put((int) (start + offset), (byte) b);
     }
 
     @Override
     public void writeShort(int v) {
+        assert buffer != null;
         buffer.putShort((int) position, (short) v);
         position += 2;
     }
 
     @Override
     public void writeShort(int offset, int v) {
+        assert buffer != null;
         buffer.putShort((int) (start + offset), (short) v);
     }
 
     @Override
     public void writeChar(int v) {
+        assert buffer != null;
         buffer.putChar((int) position, (char) v);
         position += 2;
     }
 
     @Override
     public void writeChar(int offset, int v) {
+        assert buffer != null;
         buffer.putChar((int) (start + offset), (char) v);
     }
 
     @Override
     public void writeInt(int v) {
+        assert buffer != null;
         buffer.putInt((int) position, v);
         position += 4;
     }
 
     @Override
     public void writeInt(int offset, int v) {
+        assert buffer != null;
         buffer.putInt((int) (start + offset), v);
     }
 
     @Override
     public void writeLong(long v) {
+        assert buffer != null;
         buffer.putLong((int) position, v);
         position += 8;
     }
 
     @Override
     public void writeLong(int offset, long v) {
+        assert buffer != null;
         buffer.putLong((int) (start + offset), v);
     }
 
     @Override
     public void writeFloat(float v) {
+        assert buffer != null;
         buffer.putFloat((int) position, v);
         position += 4;
     }
 
     @Override
     public void writeFloat(int offset, float v) {
+        assert buffer != null;
         buffer.putFloat((int) (start + offset), v);
     }
 
     @Override
     public void writeDouble(double v) {
+        assert buffer != null;
         buffer.putDouble((int) position, v);
         position += 8;
     }
 
     @Override
     public void writeDouble(int offset, double v) {
+        assert buffer != null;
         buffer.putDouble((int) (start + offset), v);
     }
 
     @Override
-    public int read(byte[] b, int off, int len) {
+    public int read(@NotNull byte[] b, int off, int len) {
         if (len > remaining())
             len = remaining();
-        for (int i = 0; i < len; i++)
+        for (int i = 0; i < len; i++) {
+            assert buffer != null;
             b[i + off] = buffer.get((int) (i + position));
+        }
         return len;
     }
 }

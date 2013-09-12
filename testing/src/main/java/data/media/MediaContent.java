@@ -17,6 +17,9 @@
 // based from eishay/jvm-serializers
 package data.media;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -37,7 +40,7 @@ public class MediaContent implements Externalizable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
@@ -55,6 +58,7 @@ public class MediaContent implements Externalizable {
         return result;
     }
 
+    @NotNull
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("[MediaContent: ");
@@ -81,7 +85,7 @@ public class MediaContent implements Externalizable {
     }
 
     @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
+    public void writeExternal(@NotNull ObjectOutput out) throws IOException {
         media.writeExternal(out);
         out.writeInt(images.size());
         for (int i = 0; i < images.size(); i++)
@@ -89,7 +93,7 @@ public class MediaContent implements Externalizable {
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    public void readExternal(@NotNull ObjectInput in) throws IOException, ClassNotFoundException {
         if (media == null)
             media = new Media();
         media.readExternal(in);

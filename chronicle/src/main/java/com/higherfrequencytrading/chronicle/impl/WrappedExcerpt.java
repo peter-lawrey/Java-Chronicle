@@ -21,6 +21,8 @@ import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
 import com.higherfrequencytrading.chronicle.math.MutableDecimal;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,6 +42,7 @@ public class WrappedExcerpt implements Excerpt {
         this.excerpt = excerpt;
     }
 
+    @NotNull
     public Chronicle chronicle() {
         return excerpt.chronicle();
     }
@@ -69,6 +72,7 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.index();
     }
 
+    @NotNull
     public Excerpt position(int position) {
         return excerpt.position(position);
     }
@@ -85,7 +89,7 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.remaining();
     }
 
-    public void readFully(byte[] b) {
+    public void readFully(@NotNull byte[] b) {
         excerpt.readFully(b);
     }
 
@@ -93,7 +97,7 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.skipBytes(n);
     }
 
-    public void readFully(byte[] b, int off, int len) {
+    public void readFully(@NotNull byte[] b, int off, int len) {
         excerpt.readFully(b, off, len);
     }
 
@@ -130,24 +134,25 @@ public class WrappedExcerpt implements Excerpt {
     }
 
     @Override
-    public boolean readUTF(Appendable appendable) {
+    public boolean readUTF(@NotNull Appendable appendable) {
         return appendUTF(appendable);
     }
 
     @Override
-    public boolean appendUTF(Appendable appendable) {
+    public boolean appendUTF(@NotNull Appendable appendable) {
         return excerpt.appendUTF(appendable);
     }
 
-    public boolean readUTF(StringBuilder stringBuilder) {
+    public boolean readUTF(@NotNull StringBuilder stringBuilder) {
         return excerpt.readUTF(stringBuilder);
     }
 
-    public String parseUTF(StopCharTester tester) {
+    @NotNull
+    public String parseUTF(@NotNull StopCharTester tester) {
         return excerpt.parseUTF(tester);
     }
 
-    public void parseUTF(Appendable builder, StopCharTester tester) {
+    public void parseUTF(@NotNull Appendable builder, @NotNull StopCharTester tester) {
         excerpt.parseUTF(builder, tester);
     }
 
@@ -208,31 +213,34 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.readCompactDouble();
     }
 
-    public void readByteString(StringBuilder sb) {
+    public void readByteString(@NotNull StringBuilder sb) {
         excerpt.readByteString(sb);
     }
 
-    public int readByteString(int offset, StringBuilder sb) {
+    public int readByteString(int offset, @NotNull StringBuilder sb) {
         return excerpt.readByteString(offset, sb);
     }
 
+    @NotNull
     public String readByteString() {
         return excerpt.readByteString();
     }
 
-    public void readChars(StringBuilder sb) {
+    public void readChars(@NotNull StringBuilder sb) {
         excerpt.readChars(sb);
     }
 
+    @NotNull
     public String readChars() {
         return excerpt.readChars();
     }
 
+    @NotNull
     public ByteOrder order() {
         return excerpt.order();
     }
 
-    public void read(ByteBuffer bb) {
+    public void read(@NotNull ByteBuffer bb) {
         excerpt.read(bb);
     }
 
@@ -248,35 +256,35 @@ public class WrappedExcerpt implements Excerpt {
         excerpt.writeBoolean(offset, v);
     }
 
-    public void writeBytes(String s) {
+    public void writeBytes(@NotNull String s) {
         excerpt.writeBytes(s);
     }
 
-    public void writeBytes(CharSequence s) {
+    public void writeBytes(@NotNull CharSequence s) {
         excerpt.writeBytes(s);
     }
 
-    public void writeBytes(int offset, CharSequence s) {
+    public void writeBytes(int offset, @NotNull CharSequence s) {
         excerpt.writeBytes(offset, s);
     }
 
-    public void writeChars(String s) {
+    public void writeChars(@NotNull String s) {
         excerpt.writeChars(s);
     }
 
-    public void writeChars(CharSequence s) {
+    public void writeChars(@NotNull CharSequence s) {
         excerpt.writeChars(s);
     }
 
-    public void writeChars(int offset, CharSequence s) {
+    public void writeChars(int offset, @NotNull CharSequence s) {
         excerpt.writeChars(offset, s);
     }
 
-    public void writeUTF(String s) {
+    public void writeUTF(@Nullable String s) {
         excerpt.writeUTF(s);
     }
 
-    public void writeUTF(CharSequence str) {
+    public void writeUTF(@Nullable CharSequence str) {
         excerpt.writeUTF(str);
     }
 
@@ -356,7 +364,7 @@ public class WrappedExcerpt implements Excerpt {
         excerpt.writeCompactDouble(v);
     }
 
-    public void write(ByteBuffer bb) {
+    public void write(@NotNull ByteBuffer bb) {
         excerpt.write(bb);
     }
 
@@ -364,81 +372,96 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.length();
     }
 
-    public ByteStringAppender append(CharSequence s) {
+    @NotNull
+    public ByteStringAppender append(@NotNull CharSequence s) {
         excerpt.append(s);
         return this;
     }
 
-    public ByteStringAppender append(CharSequence s, int start, int end) {
+    @NotNull
+    public ByteStringAppender append(@NotNull CharSequence s, int start, int end) {
         excerpt.append(s, start, end);
         return this;
     }
 
+    @NotNull
     public ByteStringAppender append(Enum value) {
         excerpt.append(value);
         return this;
     }
 
-    public ByteStringAppender append(byte[] str) {
+    @NotNull
+    public ByteStringAppender append(@NotNull byte[] str) {
         excerpt.append(str);
         return this;
     }
 
-    public ByteStringAppender append(byte[] str, int offset, int len) {
+    @NotNull
+    public ByteStringAppender append(@NotNull byte[] str, int offset, int len) {
         excerpt.append(str, offset, len);
         return this;
     }
 
+    @NotNull
     public ByteStringAppender append(boolean b) {
         excerpt.append(b);
         return this;
     }
 
+    @NotNull
     public ByteStringAppender append(char c) {
         excerpt.append(c);
         return this;
     }
 
+    @NotNull
     public ByteStringAppender append(int num) {
         excerpt.append(num);
         return this;
     }
 
+    @NotNull
     public ByteStringAppender append(long num) {
         excerpt.append(num);
         return this;
     }
 
+    @NotNull
     @Override
     public ByteStringAppender appendDate(long timeInMS) {
         excerpt.appendDate(timeInMS);
         return this;
     }
 
+    @NotNull
     @Override
     public ByteStringAppender appendDateTime(long timeInMS) {
         excerpt.appendDateTime(timeInMS);
         return this;
     }
 
+    @NotNull
     public ByteStringAppender appendTime(long timeInMS) {
         excerpt.appendTime(timeInMS);
         return this;
     }
 
+    @NotNull
     public ByteStringAppender append(double d) {
         excerpt.append(d);
         return this;
     }
 
+    @NotNull
     public ByteStringAppender append(double d, int precision) {
         excerpt.append(d, precision);
         return this;
     }
 
+    @NotNull
     @Override
-    public ByteStringAppender append(MutableDecimal md) {
-        append(md);
+    public ByteStringAppender append(@NotNull MutableDecimal md) {
+        excerpt.append(md);
         return this;
     }
 
@@ -450,10 +473,12 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.parseLong();
     }
 
+    @NotNull
     public InputStream inputStream() {
         return excerpt.inputStream();
     }
 
+    @NotNull
     public OutputStream outputStream() {
         return excerpt.outputStream();
     }
@@ -462,28 +487,29 @@ public class WrappedExcerpt implements Excerpt {
         excerpt.writeEnum(o);
     }
 
-    public <E> E readEnum(Class<E> aClass) {
+    public <E> E readEnum(@NotNull Class<E> aClass) {
         return excerpt.readEnum(aClass);
     }
 
-    public <E> E parseEnum(Class<E> aClass, StopCharTester tester) {
+    public <E> E parseEnum(@NotNull Class<E> aClass, @NotNull StopCharTester tester) {
         return excerpt.parseEnum(aClass, tester);
     }
 
     @Override
-    public <E> void readEnums(Class<E> eClass, List<E> eList) {
+    public <E> void readEnums(@NotNull Class<E> eClass, @NotNull List<E> eList) {
         excerpt.readEnums(eClass, eList);
     }
 
-    public <E> void writeEnums(Collection<E> eList) {
+    public <E> void writeEnums(@NotNull Collection<E> eList) {
         excerpt.writeEnums(eList);
     }
 
-    public <K, V> void writeMap(Map<K, V> map) {
+    public <K, V> void writeMap(@NotNull Map<K, V> map) {
         excerpt.writeMap(map);
     }
 
-    public <K, V> Map<K, V> readMap(Class<K> aClass, Class<V> aClass2) {
+    @NotNull
+    public <K, V> Map<K, V> readMap(@NotNull Class<K> aClass, @NotNull Class<V> aClass2) {
         return excerpt.readMap(aClass, aClass2);
     }
 
@@ -615,12 +641,12 @@ public class WrappedExcerpt implements Excerpt {
     }
 
     @Override
-    public int read(byte[] b) {
+    public int read(@NotNull byte[] b) {
         return excerpt.read(b);
     }
 
     @Override
-    public int read(byte[] b, int off, int len) {
+    public int read(@NotNull byte[] b, int off, int len) {
         return excerpt.read(b, off, len);
     }
 
@@ -653,13 +679,13 @@ public class WrappedExcerpt implements Excerpt {
     }
 
     @Override
-    public <E> void writeList(Collection<E> list) {
-        writeList(list);
+    public <E> void writeList(@NotNull Collection<E> list) {
+        excerpt.writeList(list);
     }
 
     @Override
-    public void readList(Collection list) {
-        readList(list);
+    public void readList(@NotNull Collection list) {
+        excerpt.readList(list);
     }
 
     @Override
@@ -668,26 +694,29 @@ public class WrappedExcerpt implements Excerpt {
     }
 
     @Override
-    public boolean stepBackAndSkipTo(StopCharTester tester) {
+    public boolean stepBackAndSkipTo(@NotNull StopCharTester tester) {
         return excerpt.stepBackAndSkipTo(tester);
     }
 
     @Override
-    public boolean skipTo(StopCharTester tester) {
+    public boolean skipTo(@NotNull StopCharTester tester) {
         return excerpt.skipTo(tester);
     }
 
+    @NotNull
     @Override
-    public MutableDecimal parseDecimal(MutableDecimal decimal) {
+    public MutableDecimal parseDecimal(@NotNull MutableDecimal decimal) {
         return excerpt.parseDecimal(decimal);
     }
 
+    @NotNull
     @Override
     public Excerpt toStart() {
         excerpt.toStart();
         return this;
     }
 
+    @NotNull
     @Override
     public Excerpt toEnd() {
         excerpt.toEnd();

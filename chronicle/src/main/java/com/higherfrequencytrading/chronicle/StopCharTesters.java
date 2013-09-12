@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.chronicle;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author peter.lawrey
  */
@@ -33,20 +35,23 @@ public enum StopCharTesters implements StopCharTester {
         }
     };
 
-    public static StopCharTester forChars(CharSequence sequence) {
+    @NotNull
+    public static StopCharTester forChars(@NotNull CharSequence sequence) {
         if (sequence.length() == 1)
             return forChar(sequence.charAt(0));
         return new CSCSTester(sequence);
     }
 
+    @NotNull
     public static StopCharTester forChar(char ch) {
         return new CharCSTester(ch);
     }
 
     static class CSCSTester implements StopCharTester {
+        @NotNull
         private final String seperators;
 
-        public CSCSTester(CharSequence cs) {
+        public CSCSTester(@NotNull CharSequence cs) {
             seperators = cs.toString();
         }
 

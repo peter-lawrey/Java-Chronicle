@@ -20,6 +20,7 @@ import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
+import org.jetbrains.annotations.NotNull;
 import vanilla.java.stages.api.*;
 import vanilla.java.stages.testing.Differencer;
 import vanilla.java.stages.testing.RunningMinimum;
@@ -29,9 +30,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * User: peter
- * Date: 05/08/13
- * Time: 17:33
+ * User: peter Date: 05/08/13 Time: 17:33
  */
 
 /*
@@ -97,7 +96,7 @@ public class SinkMain {
         int count = -WARMUP;
 
         @Override
-        public void onMarketData(MetaData metaData, Update update) {
+        public void onMarketData(@NotNull MetaData metaData, Update update) {
             int c = count < 0 ? 0 : count;
             for (int i = 0; i < timings.length; i++) {
                 long start = metaData.getTimeStamp(VALUES[i]);

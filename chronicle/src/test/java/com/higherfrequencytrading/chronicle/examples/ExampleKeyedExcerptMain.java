@@ -5,6 +5,7 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 import gnu.trove.map.hash.TObjectLongHashMap;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -19,7 +20,9 @@ import static junit.framework.Assert.assertEquals;
 public class ExampleKeyedExcerptMain {
     private static final String TMP = System.getProperty("java.io.tmpdir");
 
+    @NotNull
     private final Chronicle chronicle;
+    @NotNull
     private final Excerpt excerpt;
     private final TObjectLongHashMap<String> keyToExcerpt = new TObjectLongHashMap<String>() {
         @Override

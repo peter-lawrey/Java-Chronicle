@@ -19,6 +19,7 @@ package com.higherfrequencytrading.chronicle.impl;
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -28,10 +29,11 @@ import java.lang.reflect.Constructor;
  * @author peter.lawrey
  */
 public class ExternalizableMarshaller<E extends Externalizable> implements EnumeratedMarshaller<E> {
+    @NotNull
     private final Class<E> classMarshaled;
     private final Constructor<E> constructor;
 
-    public ExternalizableMarshaller(Class<E> classMarshaled) {
+    public ExternalizableMarshaller(@NotNull Class<E> classMarshaled) {
         this.classMarshaled = classMarshaled;
         try {
             constructor = classMarshaled.getConstructor();
@@ -41,13 +43,14 @@ public class ExternalizableMarshaller<E extends Externalizable> implements Enume
         }
     }
 
+    @NotNull
     @Override
     public Class<E> classMarshaled() {
         return classMarshaled;
     }
 
     @Override
-    public void write(Excerpt excerpt, E e) {
+    public void write(@NotNull Excerpt excerpt, @NotNull E e) {
         try {
             e.writeExternal(excerpt);
         } catch (IOException e2) {
@@ -56,12 +59,12 @@ public class ExternalizableMarshaller<E extends Externalizable> implements Enume
     }
 
     @Override
-    public E parse(Excerpt excerpt, StopCharTester tester) {
+    public E parse(@NotNull Excerpt excerpt, @NotNull StopCharTester tester) {
         return read(excerpt);
     }
 
     @Override
-    public E read(Excerpt excerpt) {
+    public E read(@NotNull Excerpt excerpt) {
         try {
             E e = constructor.newInstance();
             e.readExternal(excerpt);

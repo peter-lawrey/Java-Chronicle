@@ -17,6 +17,7 @@
 package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -48,10 +49,10 @@ public class IndexedChronicleTest {
     private void doRewriteableEntries(boolean useUnsafe, boolean minimiseByteBuffers, boolean synchronousMode) throws IOException {
         String basePath = TMP + File.separator + "deleteme.ict";
         IndexedChronicle tsc = ChronicleBuilder.newIndexedChronicleBuilder(basePath)
-            .dataBitSizeHint(IndexedChronicle.DEFAULT_DATA_BITS_SIZE32)
-            .minimiseByteBuffers(minimiseByteBuffers)
-            .useSynchronousMode(synchronousMode)
-            .useUnsafe(useUnsafe).build();
+                .dataBitSizeHint(IndexedChronicle.DEFAULT_DATA_BITS_SIZE32)
+                .minimiseByteBuffers(minimiseByteBuffers)
+                .useSynchronousMode(synchronousMode)
+                .useUnsafe(useUnsafe).build();
 
         deleteOnExit(basePath);
 
@@ -85,8 +86,8 @@ public class IndexedChronicleTest {
     }
 
     /**
-     * Tests that <code>IndexedChronicle.close()</code> does not blow up (anymore) when you
-     * reopen an existing chronicle due to the null data buffers created internally.
+     * Tests that <code>IndexedChronicle.close()</code> does not blow up (anymore) when you reopen an existing chronicle
+     * due to the null data buffers created internally.
      *
      * @throws java.io.IOException if opening chronicle fails
      */
@@ -313,7 +314,7 @@ public class IndexedChronicleTest {
             Assert.assertEquals(a, b);
     }
 
-    static <T> void assertEquals(T a, T b) {
+    static <T> void assertEquals(@Nullable T a, @Nullable T b) {
         if (a == null) {
             if (b == null) return;
         } else if (a.equals(b)) {

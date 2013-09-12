@@ -18,6 +18,8 @@ package com.higherfrequencytrading.chronicle.fix;
 
 import com.higherfrequencytrading.chronicle.math.MutableDecimal;
 import com.higherfrequencytrading.chronicle.tools.IOTools;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -47,6 +49,7 @@ public class FixParserGeneratorMain {
     static class MyHandler extends DefaultHandler {
         private final Map<String, FixFieldMeta> fieldMapByNumber = new LinkedHashMap<String, FixFieldMeta>();
         private final Map<String, FixFieldMeta> fieldMapByName = new LinkedHashMap<String, FixFieldMeta>();
+        @Nullable
         private MessageMeta messageMeta = null;
         private final Deque<FieldAddable> fieldAddables = new LinkedList<FieldAddable>();
 
@@ -55,10 +58,11 @@ public class FixParserGeneratorMain {
         final List<FixField> headerFields = new ArrayList<FixField>();
         final List<FixField> trailerFields = new ArrayList<FixField>();
         final Map<String, MessageMeta> messageMap = new LinkedHashMap<String, MessageMeta>();
+        @NotNull
         Mode mode = Mode.ROOT;
 
         @Override
-        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+        public void startElement(String uri, String localName, @NotNull String qName, @NotNull Attributes attributes) throws SAXException {
             if (qName.equals("header")) {
                 mode = Mode.HEADER;
                 return;
@@ -137,7 +141,7 @@ public class FixParserGeneratorMain {
         }
 
         @Override
-        public void endElement(String uri, String localName, String qName) throws SAXException {
+        public void endElement(String uri, String localName, @NotNull String qName) throws SAXException {
             if (qName.equals("message")) {
                 mode = Mode.MESSAGES;
             } else if (qName.equals("group")) {
@@ -164,7 +168,8 @@ public class FixParserGeneratorMain {
             }
         }
 
-        private String toCamelCase(String name) {
+        @NotNull
+        private String toCamelCase(@NotNull String name) {
             return Character.toLowerCase(name.charAt(0)) + name.substring(1);
         }
 
@@ -189,11 +194,13 @@ public class FixParserGeneratorMain {
     }
 
     static class FixFieldMeta {
+        @NotNull
         private final String number;
+        @NotNull
         private final String name;
         private final FieldType type;
 
-        public FixFieldMeta(String number, String name, String type) {
+        public FixFieldMeta(@NotNull String number, @NotNull String name, @NotNull String type) {
             assert number != null;
             assert name != null;
             assert type != null;
@@ -202,6 +209,7 @@ public class FixParserGeneratorMain {
             this.type = FieldType.valueOf(type);
         }
 
+        @NotNull
         @Override
         public String toString() {
             return "FixFieldMeta{" +
@@ -230,6 +238,7 @@ public class FixParserGeneratorMain {
             fields.add(ff);
         }
 
+        @NotNull
         @Override
         public String toString() {
             return "FF{" +
@@ -254,6 +263,7 @@ public class FixParserGeneratorMain {
             fields.add(ff);
         }
 
+        @NotNull
         @Override
         public String toString() {
             return "MessageMeta{" +

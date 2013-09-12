@@ -19,6 +19,7 @@ package com.higherfrequencytrading.chronicle.impl;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
 import com.higherfrequencytrading.chronicle.StopCharTesters;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
@@ -88,39 +89,39 @@ public class AppendParseTest {
         tsc.close();
     }
 
-    private void assertText(Excerpt excerpt, int fid, String text) {
+    private void assertText(@NotNull Excerpt excerpt, int fid, String text) {
         assertEquals(fid, excerpt.parseLong());
         assertEquals(text, excerpt.parseEnum(String.class, CTRL_A));
     }
 
-    private void assertText(Excerpt excerpt, int fid, Enum value) {
+    private void assertText(@NotNull Excerpt excerpt, int fid, @NotNull Enum value) {
         assertEquals(fid, excerpt.parseLong());
         assertEquals(value, excerpt.parseEnum(value.getClass(), CTRL_A));
     }
 
-    private void assertNum(Excerpt excerpt, int fid, long value) {
+    private void assertNum(@NotNull Excerpt excerpt, int fid, long value) {
         assertEquals(fid, excerpt.parseLong());
         assertEquals(value, excerpt.parseLong());
     }
 
-    private void assertNum(Excerpt excerpt, int fid, double value) {
+    private void assertNum(@NotNull Excerpt excerpt, int fid, double value) {
         assertEquals(fid, excerpt.parseLong());
         assertEquals(value, excerpt.parseDouble());
     }
 
-    private static void appendNum(Excerpt excerpt, int fid, long value) {
+    private static void appendNum(@NotNull Excerpt excerpt, int fid, long value) {
         excerpt.append(fid).append('=').append(value).append((char) 1);
     }
 
-    private static void appendNum(Excerpt excerpt, int fid, double value, int precision) {
+    private static void appendNum(@NotNull Excerpt excerpt, int fid, double value, int precision) {
         excerpt.append(fid).append('=').append(value, precision).append((char) 1);
     }
 
-    private static void appendText(Excerpt excerpt, int fid, String chars) {
+    private static void appendText(@NotNull Excerpt excerpt, int fid, String chars) {
         excerpt.append(fid).append('=').append(chars).append((char) 1);
     }
 
-    private static void appendText(Excerpt excerpt, int fid, Enum value) {
+    private static void appendText(@NotNull Excerpt excerpt, int fid, Enum value) {
         excerpt.append(fid).append('=').append(value).append((char) 1);
     }
 }

@@ -18,22 +18,23 @@ package vanilla.java.stages.api;
 
 import com.higherfrequencytrading.chronicle.Chronicle;
 import com.higherfrequencytrading.chronicle.Excerpt;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * User: peter
- * Date: 05/08/13
- * Time: 17:34
+ * User: peter Date: 05/08/13 Time: 17:34
  */
 public class EventsWriter implements Events {
     private final Excerpt excerpt;
+    @Nullable
     private final MetaData metaData = new MetaData(null, TimingStage.SourceWrite);
 
-    public EventsWriter(Chronicle chronicle) {
+    public EventsWriter(@NotNull Chronicle chronicle) {
         excerpt = chronicle.createExcerpt();
     }
 
     @Override
-    public void onMarketData(MetaData metaData, Update update) {
+    public void onMarketData(@Nullable MetaData metaData, @NotNull Update update) {
         if (metaData == null) {
             metaData = this.metaData;
             metaData.startTiming();

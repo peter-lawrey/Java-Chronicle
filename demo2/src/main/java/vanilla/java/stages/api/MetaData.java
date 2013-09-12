@@ -18,11 +18,10 @@ package vanilla.java.stages.api;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.ExcerptMarshallable;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * User: peter
- * Date: 05/08/13
- * Time: 17:34
+ * User: peter Date: 05/08/13 Time: 17:34
  */
 public class MetaData implements ExcerptMarshallable {
     private final TimingStage readStage;
@@ -43,7 +42,7 @@ public class MetaData implements ExcerptMarshallable {
         setTimeStamp(TimingStage.Start);
     }
 
-    private long setTimeStamp(TimingStage timingStage) {
+    private long setTimeStamp(@NotNull TimingStage timingStage) {
         int ordinal = timingStage.ordinal();
         long now = timings[ordinal] = System.nanoTime();
         if (count <= ordinal)
@@ -51,14 +50,14 @@ public class MetaData implements ExcerptMarshallable {
         return now;
     }
 
-    private void padTimeStampAfter(TimingStage timingStage) {
+    private void padTimeStampAfter(@NotNull TimingStage timingStage) {
         int ordinal = timingStage.ordinal() + 1;
         timings[ordinal] = 0;
         if (count <= ordinal)
             count = ordinal + 1;
     }
 
-    public long getTimeStamp(TimingStage timingStage) {
+    public long getTimeStamp(@NotNull TimingStage timingStage) {
         int ordinal = timingStage.ordinal();
         if (ordinal >= count) return Long.MIN_VALUE;
         return timings[ordinal];
@@ -66,7 +65,7 @@ public class MetaData implements ExcerptMarshallable {
 
 
     @Override
-    public void readMarshallable(Excerpt in) throws IllegalStateException {
+    public void readMarshallable(@NotNull Excerpt in) throws IllegalStateException {
         startMS = in.readLong();
         count = (int) in.readStopBit();
         for (int i = 0; i < count; i++)
@@ -78,7 +77,7 @@ public class MetaData implements ExcerptMarshallable {
     }
 
     @Override
-    public void writeMarshallable(Excerpt out) {
+    public void writeMarshallable(@NotNull Excerpt out) {
         setTimeStamp(writeStage);
         padTimeStampAfter(writeStage);
 

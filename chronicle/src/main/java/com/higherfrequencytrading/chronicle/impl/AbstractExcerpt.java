@@ -21,6 +21,8 @@ import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
 import com.higherfrequencytrading.chronicle.math.MutableDecimal;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -75,25 +77,27 @@ public abstract class AbstractExcerpt implements Excerpt {
     protected long limit = 0;
     protected long startPosition;
     protected long size = 0;
+    @Nullable
     protected MappedByteBuffer buffer;
     private int capacity = 0;
     private boolean forWrite = false;
+    @Nullable
     private ExcerptInputStream inputStream = null;
+    @Nullable
     private ExcerptOutputStream outputStream = null;
+    @Nullable
     private Thread lastThread = null;
+    @Nullable
     private StringBuilder utfReader = null;
+    @Nullable
     private SimpleDateFormat dateFormat = null;
     // RandomDataInput
     private long lastDay = Long.MIN_VALUE;
+    @Nullable
     private byte[] lastDateStr = null;
 
     protected AbstractExcerpt(DirectChronicle chronicle) {
         this.chronicle = chronicle;
-    }
-
-    private static long power10(long l) {
-        int idx = Arrays.binarySearch(TENS, l);
-        return idx >= 0 ? TENS[idx] : TENS[~idx - 1];
     }
 
     @Override
@@ -158,12 +162,12 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void readFully(byte[] b) {
+    public void readFully(@NotNull byte[] b) {
         readFully(b, 0, b.length);
     }
 
     @Override
-    public void readFully(byte[] b, int off, int len) {
+    public void readFully(@NotNull byte[] b, int off, int len) {
         if (len-- <= 0)
             return;
         do {
@@ -181,6 +185,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return readByte(offset) != 0;
     }
 
+    @NotNull
     @Override
     public String readLine() {
         StringBuilder input = new StringBuilder();
@@ -203,6 +208,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return input.toString();
     }
 
+    @NotNull
     @Override
     public Excerpt position(int position) {
         if (position < 0 || position > capacity())
@@ -227,12 +233,12 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public boolean readUTF(Appendable appendable) {
+    public boolean readUTF(@NotNull Appendable appendable) {
         return appendUTF(appendable);
     }
 
     @Override
-    public boolean appendUTF(Appendable appendable) {
+    public boolean appendUTF(@NotNull Appendable appendable) {
         try {
             return appendUTF0(appendable);
         } catch (IOException unexpected) {
@@ -240,7 +246,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
     }
 
-    private boolean appendUTF0(Appendable appendable) throws IOException {
+    private boolean appendUTF0(@NotNull Appendable appendable) throws IOException {
         long len = readStopBit();
         if (len < -1 || len > Integer.MAX_VALUE)
             throw new StreamCorruptedException("UTF length invalid " + len);
@@ -248,16 +254,14 @@ public abstract class AbstractExcerpt implements Excerpt {
             return false;
         int utflen = (int) len;
         int count = 0;
-        if (count < utflen) {
-            do {
-                int c = readByte();
-                if (c < 0) {
-                    position(position() - 1);
-                    break;
-                }
-                count++;
-                appendable.append((char) c);
-            } while (count < utflen);
+        while (count < utflen) {
+            int c = readByte();
+            if (c < 0) {
+                position(position() - 1);
+                break;
+            }
+            count++;
+            appendable.append((char) c);
         }
 
         if (count < utflen) {
@@ -266,7 +270,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return true;
     }
 
-    private void append1(Appendable appendable, int utflen, int count) throws IOException {
+    private void append1(@NotNull Appendable appendable, int utflen, int count) throws IOException {
         do {
             int c = readUnsignedByte();
             switch (c >> 4) {
@@ -346,12 +350,15 @@ public abstract class AbstractExcerpt implements Excerpt {
         return l | (b << count);
     }
 
+    @NotNull
     @Override
-    public String parseUTF(StopCharTester tester) {
-        parseUTF(acquireUtfReader(), tester);
-        return utfReader.toString();
+    public String parseUTF(@NotNull StopCharTester tester) {
+        StringBuilder sb = acquireUtfReader();
+        parseUTF(sb, tester);
+        return sb.toString();
     }
 
+    @NotNull
     private StringBuilder acquireUtfReader() {
         if (utfReader == null)
             utfReader = new StringBuilder();
@@ -360,7 +367,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void parseUTF(Appendable builder, StopCharTester tester) {
+    public void parseUTF(@NotNull Appendable builder, @NotNull StopCharTester tester) {
         try {
             readUTF0(builder, tester);
         } catch (IOException e) {
@@ -368,7 +375,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
     }
 
-    private void readUTF0(Appendable appendable, StopCharTester tester) throws IOException {
+    private void readUTF0(@NotNull Appendable appendable, @NotNull StopCharTester tester) throws IOException {
         while (remaining() > 0) {
             int c = readByte();
             if (c < 0) {
@@ -390,7 +397,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return (int) (limit - position);
     }
 
-    private void readUTF1(Appendable appendable, StopCharTester tester) throws IOException {
+    private void readUTF1(@NotNull Appendable appendable, @NotNull StopCharTester tester) throws IOException {
         do {
             int c = readUnsignedByte();
             switch (c >> 4) {
@@ -402,14 +409,14 @@ public abstract class AbstractExcerpt implements Excerpt {
                 case 5:
                 case 6:
                 case 7:
-				/* 0xxxxxxx */
+                /* 0xxxxxxx */
                     if (tester.isStopChar(c))
                         return;
                     appendable.append((char) c);
                     break;
                 case 12:
                 case 13: {
-				/* 110x xxxx 10xx xxxx */
+                /* 110x xxxx 10xx xxxx */
                     int char2 = readUnsignedByte();
                     if ((char2 & 0xC0) != 0x80)
                         throw new UTFDataFormatException(
@@ -447,14 +454,14 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public boolean stepBackAndSkipTo(StopCharTester tester) {
+    public boolean stepBackAndSkipTo(@NotNull StopCharTester tester) {
         if (position() > 0)
             position(position() - 1);
         return skipTo(tester);
     }
 
     @Override
-    public boolean skipTo(StopCharTester tester) {
+    public boolean skipTo(@NotNull StopCharTester tester) {
         if (remaining() <= 0) {
             return false;
         }
@@ -466,6 +473,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return false;
     }
 
+    @Nullable
     @Override
     public String readUTF(int offset) {
         long oldPosition = position;
@@ -477,15 +485,18 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
     }
 
+    @Nullable
     @Override
     public String readUTF() {
-        if (readUTF(acquireUtfReader()))
-            return utfReader.toString();
+        StringBuilder sb = acquireUtfReader();
+        if (readUTF(sb)) {
+            return sb.toString();
+        }
         return null;
     }
 
     @Override
-    public boolean readUTF(StringBuilder stringBuilder) {
+    public boolean readUTF(@NotNull StringBuilder stringBuilder) {
         try {
             stringBuilder.setLength(0);
             return appendUTF0(stringBuilder);
@@ -623,7 +634,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void readByteString(StringBuilder sb) {
+    public void readByteString(@NotNull StringBuilder sb) {
         sb.setLength(0);
         int len = readByte() & 0xFF;
         for (int i = 0; i < len; i++)
@@ -631,7 +642,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public int readByteString(int offset, StringBuilder sb) {
+    public int readByteString(int offset, @NotNull StringBuilder sb) {
         sb.setLength(0);
         int len = readByte(offset) & 0xFF;
         for (int i = 1; i <= len; i++)
@@ -639,6 +650,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return offset + len + 1;
     }
 
+    @NotNull
     @SuppressWarnings("deprecation")
     @Override
     public String readByteString() {
@@ -652,13 +664,14 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void readChars(StringBuilder sb) {
+    public void readChars(@NotNull StringBuilder sb) {
         int len = readChar();
         sb.setLength(0);
         for (int i = 0; i < len; i++)
             sb.append(readChar());
     }
 
+    @NotNull
     @Override
     public String readChars() {
         int len = readChar();
@@ -671,7 +684,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void read(ByteBuffer bb) {
+    public void read(@NotNull ByteBuffer bb) {
         int len = Math.min(bb.remaining(), remaining());
         if (bb.order() == order()) {
             while (len >= 8) {
@@ -685,8 +698,10 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
     }
 
+    @NotNull
     @Override
     public ByteOrder order() {
+        assert buffer != null;
         return buffer.order();
     }
 
@@ -701,12 +716,12 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void writeBytes(String s) {
+    public void writeBytes(@NotNull String s) {
         writeBytes((CharSequence) s);
     }
 
     @Override
-    public void writeBytes(CharSequence s) {
+    public void writeBytes(@NotNull CharSequence s) {
         int len = s.length();
         if (len > 255)
             throw new IllegalArgumentException("Len cannot be " + len + " > 255");
@@ -716,7 +731,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void writeBytes(int offset, CharSequence s) {
+    public void writeBytes(int offset, @NotNull CharSequence s) {
         int len = s.length();
         if (len > 255)
             throw new IllegalArgumentException("Len cannot be " + len + " > 255");
@@ -728,12 +743,12 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void writeChars(String s) {
+    public void writeChars(@NotNull String s) {
         writeChars((CharSequence) s);
     }
 
     @Override
-    public void writeChars(CharSequence s) {
+    public void writeChars(@NotNull CharSequence s) {
         int len = s.length();
         if (len > 65535)
             throw new IllegalArgumentException("Len cannot be " + len + " > 65535");
@@ -743,7 +758,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void writeChars(int offset, CharSequence s) {
+    public void writeChars(int offset, @NotNull CharSequence s) {
         int len = s.length();
         if (len > 65535)
             throw new IllegalArgumentException("Len cannot be " + len + " > 65535");
@@ -753,12 +768,12 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void writeUTF(String s) {
+    public void writeUTF(@Nullable String s) {
         writeUTF((CharSequence) s);
     }
 
     @Override
-    public void writeUTF(CharSequence str) {
+    public void writeUTF(@Nullable CharSequence str) {
         if (str == null) {
             writeStopBit(-1);
             return;
@@ -839,7 +854,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void write(int offset, byte[] b) {
+    public void write(int offset, @NotNull byte[] b) {
         for (int i = 0; i < b.length; i++)
             write(offset + i, b[i]);
     }
@@ -1008,7 +1023,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     // // ByteStringAppender
 
     @Override
-    public void write(ByteBuffer bb) {
+    public void write(@NotNull ByteBuffer bb) {
         if (bb.order() == order())
             while (bb.remaining() >= 8)
                 writeLong(bb.getLong());
@@ -1021,27 +1036,31 @@ public abstract class AbstractExcerpt implements Excerpt {
         return position();
     }
 
+    @NotNull
     @Override
-    public ByteStringAppender append(CharSequence s, int start, int end) {
+    public ByteStringAppender append(@NotNull CharSequence s, int start, int end) {
         for (int i = start, len = Math.min(end, s.length()); i < len; i++)
             writeByte(s.charAt(i));
         return this;
     }
 
+    @NotNull
     @Override
-    public ByteStringAppender append(Enum value) {
+    public ByteStringAppender append(@NotNull Enum value) {
         return append(value.toString());
     }
 
+    @NotNull
     @Override
-    public ByteStringAppender append(CharSequence s) {
+    public ByteStringAppender append(@NotNull CharSequence s) {
         for (int i = 0, len = s.length(); i < len; i++)
             writeByte(s.charAt(i));
         return this;
     }
 
+    @NotNull
     @Override
-    public ByteStringAppender append(byte[] str, int offset, int len) {
+    public ByteStringAppender append(@NotNull byte[] str, int offset, int len) {
         write(str, offset, len);
         return this;
     }
@@ -1052,23 +1071,27 @@ public abstract class AbstractExcerpt implements Excerpt {
             write(b[off + i]);
     }
 
+    @NotNull
     @Override
     public ByteStringAppender append(boolean b) {
         append(b ? "true" : "false");
         return this;
     }
 
+    @NotNull
     @Override
     public ByteStringAppender append(char c) {
         writeByte(c);
         return this;
     }
 
+    @NotNull
     @Override
     public ByteStringAppender append(int num) {
         return append((long) num);
     }
 
+    @NotNull
     @Override
     public ByteStringAppender append(long num) {
         if (num < 0) {
@@ -1088,15 +1111,16 @@ public abstract class AbstractExcerpt implements Excerpt {
         return this;
     }
 
+    @NotNull
     @Override
-    public ByteStringAppender append(byte[] str) {
+    public ByteStringAppender append(@NotNull byte[] str) {
         write(str);
         return this;
     }
 
     // // RandomOutputStream
     @Override
-    public void write(byte[] b) {
+    public void write(@NotNull byte[] b) {
         write(b, 0, b.length);
     }
 
@@ -1182,6 +1206,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return 2;
     }
 
+    @NotNull
     @Override
     public ByteStringAppender appendDateTime(long timeInMS) {
         appendDate(timeInMS);
@@ -1190,6 +1215,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return this;
     }
 
+    @NotNull
     @Override
     public ByteStringAppender appendDate(long timeInMS) {
         if (dateFormat == null) {
@@ -1201,10 +1227,12 @@ public abstract class AbstractExcerpt implements Excerpt {
             lastDateStr = dateFormat.format(new Date(timeInMS)).getBytes(ISO_8859_1);
             lastDay = date;
         }
+        assert lastDateStr != null;
         append(lastDateStr);
         return this;
     }
 
+    @NotNull
     @Override
     public ByteStringAppender appendTime(long timeInMS) {
         int hours = (int) (timeInMS / (60 * 60 * 1000));
@@ -1230,6 +1258,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return this;
     }
 
+    @NotNull
     @Override
     public ByteStringAppender append(double d) {
         long val = Double.doubleToRawLongBits(d);
@@ -1244,9 +1273,9 @@ public abstract class AbstractExcerpt implements Excerpt {
             return this;
         } else if (exp == 2047) {
             if (mantissa == 0) {
-                buffer.put(Infinity);
+                append(Infinity);
             } else {
-                buffer.put(NaN);
+                append(NaN);
             }
             return this;
         } else if (exp > 0) {
@@ -1431,8 +1460,9 @@ public abstract class AbstractExcerpt implements Excerpt {
         return negative ? -d : d;
     }
 
+    @NotNull
     @Override
-    public MutableDecimal parseDecimal(MutableDecimal decimal) {
+    public MutableDecimal parseDecimal(@NotNull MutableDecimal decimal) {
         long num = 0, scale = Long.MIN_VALUE;
         boolean negative = false;
         do {
@@ -1472,6 +1502,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return negative ? -num : num;
     }
 
+    @NotNull
     @Override
     public ByteStringAppender append(double d, int precision) {
         if (precision < 0)
@@ -1624,9 +1655,11 @@ public abstract class AbstractExcerpt implements Excerpt {
         return endIndex;
     }
 
+    @NotNull
     @Override
-    public ByteStringAppender append(MutableDecimal md) {
+    public ByteStringAppender append(@NotNull MutableDecimal md) {
         StringBuilder sb = acquireUtfReader();
+        assert sb != null;
         md.toString(sb);
         append(sb);
         return this;
@@ -1634,18 +1667,19 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <E> E parseEnum(Class<E> eClass, StopCharTester tester) {
+    public <E> E parseEnum(@NotNull Class<E> eClass, @NotNull StopCharTester tester) {
         EnumeratedMarshaller<E> em = chronicle().acquireMarshaller(eClass);
         return em.parse(this, tester);
     }
 
+    @NotNull
     @Override
     public DirectChronicle chronicle() {
         return chronicle;
     }
 
     @Override
-    public <E> void writeEnums(Collection<E> eList) {
+    public <E> void writeEnums(@NotNull Collection<E> eList) {
         writeInt(eList.size());
         for (E e : eList)
             writeEnum(e);
@@ -1653,7 +1687,7 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <E> void writeEnum(E e) {
+    public <E> void writeEnum(@Nullable E e) {
         Class aClass;
         if (e == null || e instanceof CharSequence)
             aClass = String.class;
@@ -1664,7 +1698,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public <E> void writeList(Collection<E> list) {
+    public <E> void writeList(@NotNull Collection<E> list) {
         writeInt(list.size());
         for (E e : list)
             writeObject(e);
@@ -1672,7 +1706,7 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void writeObject(Object obj) {
+    public void writeObject(@Nullable Object obj) {
         if (obj == null) {
             writeByte(NULL);
             return;
@@ -1700,6 +1734,10 @@ public abstract class AbstractExcerpt implements Excerpt {
         checkEndOfBuffer();
     }
 
+    private boolean autoGenerateMarshaller(Object obj) {
+        return (obj instanceof Comparable && obj.getClass().getPackage().getName().startsWith("java")) || obj instanceof Externalizable;
+    }
+
     private long checkEndOfBuffer() {
         long length = position - start;
         if (length < MIN_SIZE)
@@ -1711,6 +1749,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         return length;
     }
 
+    @NotNull
     @Override
     public OutputStream outputStream() {
         if (outputStream == null)
@@ -1718,12 +1757,8 @@ public abstract class AbstractExcerpt implements Excerpt {
         return outputStream;
     }
 
-    private boolean autoGenerateMarshaller(Object obj) {
-        return (obj instanceof Comparable && obj.getClass().getPackage().getName().startsWith("java")) || obj instanceof Externalizable;
-    }
-
     @Override
-    public <K, V> void writeMap(Map<K, V> map) {
+    public <K, V> void writeMap(@NotNull Map<K, V> map) {
         writeInt(map.size());
         for (Map.Entry<K, V> entry : map.entrySet()) {
             writeEnum(entry.getKey());
@@ -1732,7 +1767,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public <E> void readEnums(Class<E> eClass, List<E> eList) {
+    public <E> void readEnums(@NotNull Class<E> eClass, @NotNull List<E> eList) {
         eList.clear();
         int len = readInt();
         if (len == 0)
@@ -1743,13 +1778,13 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <E> E readEnum(Class<E> eClass) {
+    public <E> E readEnum(@NotNull Class<E> eClass) {
         EnumeratedMarshaller<E> em = chronicle().acquireMarshaller(eClass);
         return em.read(this);
     }
 
     @Override
-    public <E> void readList(Collection<E> list) {
+    public <E> void readList(@NotNull Collection<E> list) {
         int len = readInt();
         list.clear();
         for (int i = 0; i < len; i++) {
@@ -1759,6 +1794,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
     }
 
+    @Nullable
     @Override
     public Object readObject() {
         int type = readByte();
@@ -1767,6 +1803,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                 return null;
             case ENUMED: {
                 Class clazz = readEnum(Class.class);
+                assert clazz != null;
                 return readEnum(clazz);
             }
             case SERIALIZED: {
@@ -1781,6 +1818,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
     }
 
+    @NotNull
     @Override
     public InputStream inputStream() {
         if (inputStream == null)
@@ -1788,8 +1826,9 @@ public abstract class AbstractExcerpt implements Excerpt {
         return inputStream;
     }
 
+    @NotNull
     @Override
-    public <K, V> Map<K, V> readMap(Class<K> kClass, Class<V> vClass) {
+    public <K, V> Map<K, V> readMap(@NotNull Class<K> kClass, @NotNull Class<V> vClass) {
         int len = readInt();
         if (len == 0)
             return Collections.emptyMap();
@@ -1810,12 +1849,12 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public int read(byte[] b) {
+    public int read(@NotNull byte[] b) {
         return read(b, 0, b.length);
     }
 
     @Override
-    public abstract int read(byte[] b, int off, int len);
+    public abstract int read(@NotNull byte[] b, int off, int len);
 
     @Override
     public long skip(long n) {
@@ -1846,11 +1885,13 @@ public abstract class AbstractExcerpt implements Excerpt {
         assert chronicle.multiThreaded() || checkThread();
         long length = checkEndOfBuffer();
         if (forWrite) {
-            if (chronicle.synchronousMode())
+            if (chronicle.synchronousMode()) {
+                assert buffer != null;
                 buffer.force();
+            }
             final long endPosition = startPosition + length;
             chronicle.setIndexData(index + 1, endPosition);
-            chronicle.incrementSize();
+            chronicle.incrementSize(index + 1);
             capacity = (int) length;
             assert capacity >= MIN_SIZE : "len=" + length;
             writeMemoryBarrier();
@@ -1882,12 +1923,14 @@ public abstract class AbstractExcerpt implements Excerpt {
         checkEndOfBuffer();
     }
 
+    @NotNull
     @Override
     public Excerpt toStart() {
         index(-1);
         return this;
     }
 
+    @NotNull
     @Override
     public Excerpt toEnd() {
         index(size() - 1);
@@ -1960,7 +2003,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
 
         @Override
-        public void write(byte[] b) throws IOException {
+        public void write(@NotNull byte[] b) throws IOException {
             AbstractExcerpt.this.write(b);
         }
 

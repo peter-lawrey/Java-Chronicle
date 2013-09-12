@@ -19,6 +19,8 @@ package com.higherfrequencytrading.chronicle.impl;
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author peter.lawrey
@@ -34,18 +36,20 @@ public class StringMarshaller implements EnumeratedMarshaller<CharSequence> {
         this.size1 = size2 - 1;
     }
 
+    @NotNull
     @Override
     public Class<CharSequence> classMarshaled() {
         return CharSequence.class;
     }
 
     @Override
-    public void write(Excerpt excerpt, CharSequence s) {
+    public void write(@NotNull Excerpt excerpt, CharSequence s) {
         excerpt.writeUTF(s);
     }
 
+    @Nullable
     @Override
-    public String read(Excerpt excerpt) {
+    public String read(@NotNull Excerpt excerpt) {
         if (excerpt.readUTF(reader))
             return builderToString();
         return null;
@@ -68,7 +72,7 @@ public class StringMarshaller implements EnumeratedMarshaller<CharSequence> {
         return interner[idx] = reader.toString();
     }
 
-    private int hashFor(CharSequence cs) {
+    private int hashFor(@NotNull CharSequence cs) {
         long h = 0;
 
         for (int i = 0, length = cs.length(); i < length; i++)
@@ -80,7 +84,7 @@ public class StringMarshaller implements EnumeratedMarshaller<CharSequence> {
     }
 
     @Override
-    public String parse(Excerpt excerpt, StopCharTester tester) {
+    public String parse(@NotNull Excerpt excerpt, @NotNull StopCharTester tester) {
         reader.setLength(0);
         excerpt.parseUTF(reader, tester);
         return builderToString();

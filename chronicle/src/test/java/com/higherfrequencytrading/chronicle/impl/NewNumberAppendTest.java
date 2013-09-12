@@ -17,6 +17,7 @@
 package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import sun.misc.Unsafe;
@@ -71,7 +72,7 @@ public class NewNumberAppendTest {
     }
 
     private void timeAppends(
-            Class excerptType,
+            @NotNull Class excerptType,
             Class numType) throws IOException {
 
         String newPath = TMP + File.separator + excerptType.getSimpleName() + "Ic";

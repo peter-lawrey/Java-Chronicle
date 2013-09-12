@@ -16,6 +16,9 @@
 
 package com.higherfrequencytrading.chronicle;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
 import java.util.RandomAccess;
@@ -102,8 +105,7 @@ public interface RandomDataOutput extends ObjectOutput, RandomAccess {
     void writeCompactLong(long v);
 
     /**
-     * Stop bit encoding numbers.
-     * This will write the same number of bytes whether you used a byte, short or int.
+     * Stop bit encoding numbers. This will write the same number of bytes whether you used a byte, short or int.
      */
     void writeStopBit(long n);
 
@@ -120,30 +122,30 @@ public interface RandomDataOutput extends ObjectOutput, RandomAccess {
     void writeCompactDouble(double v);
 
     @Override
-    void writeBytes(String s);
+    void writeBytes(@NotNull String s);
 
-    void writeBytes(CharSequence s);
+    void writeBytes(@NotNull CharSequence s);
 
-    void writeBytes(int offset, CharSequence s);
-
-    @Override
-    void writeChars(String s);
-
-    void writeChars(CharSequence s);
-
-    void writeChars(int offset, CharSequence s);
+    void writeBytes(int offset, @NotNull CharSequence s);
 
     @Override
-    void writeUTF(String s);
+    void writeChars(@NotNull String s);
 
-    void writeUTF(CharSequence s);
+    void writeChars(@NotNull CharSequence s);
 
-    void write(ByteBuffer bb);
+    void writeChars(int offset, @NotNull CharSequence s);
+
+    @Override
+    void writeUTF(@Nullable String s);
+
+    void writeUTF(@Nullable CharSequence s);
+
+    void write(@NotNull ByteBuffer bb);
 
     // ObjectOutput
 
     @Override
-    void writeObject(Object obj);
+    void writeObject(@Nullable Object obj);
 
     @Override
     void flush();

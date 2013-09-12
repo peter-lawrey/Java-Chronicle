@@ -17,6 +17,7 @@
 package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -66,8 +67,9 @@ public class FileLoggingMain {
         long start = System.nanoTime();
         FileHandler handler = new FileHandler("my.logger.log");
         handler.setFormatter(new Formatter() {
+            @NotNull
             @Override
-            public String format(LogRecord record) {
+            public String format(@NotNull LogRecord record) {
                 return TIME.format(record.getMillis()) + " [ " + Thread.currentThread().getName() + " ] "
                         + record.getLevel() + " " + record.getMessage() + "\n";
             }

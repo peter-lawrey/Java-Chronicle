@@ -16,6 +16,9 @@
 
 package com.higherfrequencytrading.chronicle;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Closeable;
 import java.nio.ByteOrder;
 
@@ -28,11 +31,13 @@ public interface Chronicle extends Closeable {
     /**
      * @return A name for logging purposes for this Chronicle.
      */
+    @NotNull
     String name();
 
     /**
      * @return a new Excerpt of this Chronicle
      */
+    @NotNull
     Excerpt createExcerpt();
 
     /**
@@ -69,12 +74,13 @@ public interface Chronicle extends Closeable {
      * @param marshaller to add for marshaled types.
      * @param <E>        type marshaled.
      */
-    <E> void setEnumeratedMarshaller(EnumeratedMarshaller<E> marshaller);
+    <E> void setEnumeratedMarshaller(@NotNull EnumeratedMarshaller<E> marshaller);
 
     /**
      * Get the marshaller for a class
      *
      * @return the marshaller or null for there is not already.
      */
-    <E> EnumeratedMarshaller<E> getMarshaller(Class<E> eClass);
+    @Nullable
+    <E> EnumeratedMarshaller<E> getMarshaller(@NotNull Class<E> eClass);
 }

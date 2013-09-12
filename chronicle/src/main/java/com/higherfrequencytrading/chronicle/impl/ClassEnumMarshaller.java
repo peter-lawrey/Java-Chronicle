@@ -19,6 +19,8 @@ package com.higherfrequencytrading.chronicle.impl;
 import com.higherfrequencytrading.chronicle.EnumeratedMarshaller;
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTester;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
 import java.math.BigDecimal;
@@ -46,6 +48,7 @@ public class ClassEnumMarshaller implements EnumeratedMarshaller<Class> {
     }
 
     private final ClassLoader classLoader;
+    @Nullable
     @SuppressWarnings("unchecked")
     private WeakReference<Class>[] classWeakReference = null;
 
@@ -53,26 +56,30 @@ public class ClassEnumMarshaller implements EnumeratedMarshaller<Class> {
         this.classLoader = classLoader;
     }
 
+    @NotNull
     @Override
     public Class<Class> classMarshaled() {
         return Class.class;
     }
 
     @Override
-    public void write(Excerpt excerpt, Class aClass) {
+    public void write(@NotNull Excerpt excerpt, @NotNull Class aClass) {
         String s = CS_SHORT_NAME.get(aClass);
         if (s == null)
             s = aClass.getName();
         excerpt.writeEnum(s);
     }
 
+    @Nullable
     @Override
-    public Class read(Excerpt excerpt) {
+    public Class read(@NotNull Excerpt excerpt) {
         String name = excerpt.readEnum(String.class);
+        assert name != null;
         return load(name);
     }
 
-    private Class load(String name) {
+    @Nullable
+    private Class load(@NotNull String name) {
         int hash = (name.hashCode() & 0x7fffffff) % CACHE_SIZE;
         if (classWeakReference == null)
             classWeakReference = new WeakReference[CACHE_SIZE];
@@ -95,8 +102,9 @@ public class ClassEnumMarshaller implements EnumeratedMarshaller<Class> {
         }
     }
 
+    @Nullable
     @Override
-    public Class parse(Excerpt excerpt, StopCharTester tester) {
+    public Class parse(@NotNull Excerpt excerpt, @NotNull StopCharTester tester) {
         String name = excerpt.parseUTF(tester);
         return load(name);
     }

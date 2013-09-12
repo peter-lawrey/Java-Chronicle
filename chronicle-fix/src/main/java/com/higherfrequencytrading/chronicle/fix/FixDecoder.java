@@ -17,6 +17,7 @@ package com.higherfrequencytrading.chronicle.fix;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.StopCharTesters;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -24,15 +25,17 @@ import java.io.IOException;
  * @author peter.lawrey
  */
 public class FixDecoder {
+    @NotNull
     private final FixSocketReader reader;
+    @NotNull
     private final Excerpt excerpt;
 
-    public FixDecoder(FixSocketReader reader) {
+    public FixDecoder(@NotNull FixSocketReader reader) {
         this.reader = reader;
         excerpt = reader.excerpt().chronicle().createExcerpt();
     }
 
-    public boolean readMessages(FixDecodeListener listener) throws IOException {
+    public boolean readMessages(@NotNull FixDecodeListener listener) throws IOException {
         boolean more = false;
         if (!reader.readMessages())
             return false;

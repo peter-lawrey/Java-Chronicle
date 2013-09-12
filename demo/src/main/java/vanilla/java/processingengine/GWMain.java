@@ -18,6 +18,7 @@ package vanilla.java.processingengine;
 
 import com.higherfrequencytrading.affinity.AffinitySupport;
 import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
+import org.jetbrains.annotations.NotNull;
 import vanilla.java.processingengine.api.*;
 import vanilla.java.processingengine.testing.Histogram;
 
@@ -25,15 +26,12 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * For a latency test
- * Start first: PEMain
- * Then run: GEMain 2 false
- * When the count down is reached:  GEMain 1 false
+ * For a latency test Start first: PEMain Then run: GEMain 2 false When the count down is reached:  GEMain 1 false
  *
  * @author peter.lawrey
  */
 public class GWMain {
-    public static void main(String... args) throws IOException, InterruptedException {
+    public static void main(@NotNull String... args) throws IOException, InterruptedException {
         if (args.length < 2) {
             System.err.print("java " + GWMain.class.getName() + " [1 or 2] {throughput}");
             System.exit(-1);
@@ -60,7 +58,7 @@ public class GWMain {
         final AtomicInteger reportCount = new AtomicInteger();
         Pe2GwEvents listener = new Pe2GwEvents() {
             @Override
-            public void report(MetaData metaData, SmallReport smallReport) {
+            public void report(@NotNull MetaData metaData, SmallReport smallReport) {
                 if (metaData.sourceId != gwId) return;
 
                 if (!throughputTest)

@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.chronicle.tools;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Closeable;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -32,15 +34,18 @@ public class WaitingThread implements Closeable {
     private static final Logger LOGGER = Logger.getLogger(WaitingThread.class.getName());
     private final int delayMS;
     private final Set<WaitingRunnable> runnables = new LinkedHashSet<WaitingRunnable>();
+    @NotNull
     private final ExecutorService service;
+    @NotNull
     private volatile WaitingRunnable[] runnableArray = {};
     private volatile boolean closed = false;
 
     public WaitingThread(int delayMS, final String name, final boolean daemon) {
         this.delayMS = delayMS;
         service = Executors.newSingleThreadExecutor(new ThreadFactory() {
+            @NotNull
             @Override
-            public Thread newThread(Runnable r) {
+            public Thread newThread(@NotNull Runnable r) {
                 Thread t = new Thread(r, name);
                 t.setDaemon(daemon);
                 return t;

@@ -17,13 +17,18 @@
 // based from eishay/jvm-serializers
 package data;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class ReprUtil {
-    public static String repr(String s) {
+    @NotNull
+    public static String repr(@Nullable String s) {
         if (s == null) return "null";
         return '"' + s + '"';
     }
 
-    public static String repr(Iterable<String> it) {
+    @NotNull
+    public static String repr(@NotNull Iterable<String> it) {
         StringBuilder buf = new StringBuilder();
         buf.append('[');
         String sep = "";

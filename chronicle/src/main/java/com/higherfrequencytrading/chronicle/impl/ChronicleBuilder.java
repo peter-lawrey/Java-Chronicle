@@ -1,6 +1,7 @@
 package com.higherfrequencytrading.chronicle.impl;
 
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
@@ -11,10 +12,12 @@ import java.nio.ByteOrder;
  */
 public class ChronicleBuilder {
 
+    @NotNull
     public static IndexedChronicleBuilder newIndexedChronicleBuilder(String basePath) {
         return new IndexedChronicleBuilder(basePath);
     }
 
+    @NotNull
     public static IntIndexedChronicleBuilder newIntIndexedChronicleBuilder(String basePath) {
         return new IntIndexedChronicleBuilder(basePath);
     }
@@ -33,31 +36,37 @@ public class ChronicleBuilder {
             this.basePath = basePath;
         }
 
+        @NotNull
         public IndexedChronicleBuilder dataBitSizeHint(int dataBitSizeHint) {
             this.dataBitSizeHint = dataBitSizeHint;
             return this;
         }
 
+        @NotNull
         public IndexedChronicleBuilder byteOrder(ByteOrder byteOrder) {
             this.byteOrder = byteOrder;
             return this;
         }
 
+        @NotNull
         public IndexedChronicleBuilder minimiseByteBuffers(boolean minimiseByteBuffers) {
             this.minimiseByteBuffers = minimiseByteBuffers;
             return this;
         }
 
+        @NotNull
         public IndexedChronicleBuilder useSynchronousMode(boolean synchronousMode) {
             this.synchronousMode = synchronousMode;
             return this;
         }
 
+        @NotNull
         public IndexedChronicleBuilder useUnsafe(boolean useUnsafe) {
             this.useUnsafe = useUnsafe;
             return this;
         }
 
+        @NotNull
         public IndexedChronicle build() throws IOException {
             IndexedChronicle indexedChronicle =
                     new IndexedChronicle(basePath, dataBitSizeHint, byteOrder, minimiseByteBuffers, synchronousMode);
@@ -72,6 +81,7 @@ public class ChronicleBuilder {
             super(basePath);
         }
 
+        @NotNull
         @Override
         public IntIndexedChronicle build() throws IOException {
             IntIndexedChronicle intIndexedChronicle = new IntIndexedChronicle(basePath, dataBitSizeHint, byteOrder);

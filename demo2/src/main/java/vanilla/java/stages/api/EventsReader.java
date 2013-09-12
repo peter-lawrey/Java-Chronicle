@@ -17,15 +17,15 @@
 package vanilla.java.stages.api;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * User: peter
- * Date: 05/08/13
- * Time: 17:34
+ * User: peter Date: 05/08/13 Time: 17:34
  */
 public class EventsReader {
     private final Excerpt excerpt;
     private final Events events;
+    @NotNull
     private final MetaData metaData;
     private final Update update = new Update();
 

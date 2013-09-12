@@ -16,6 +16,8 @@
 
 package com.higherfrequencytrading.chronicle.math;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -99,6 +101,7 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
         return value == md.value && scale == md.scale;
     }
 
+    @NotNull
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(20);
@@ -106,7 +109,7 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
         return sb.toString();
     }
 
-    public void toString(StringBuilder sb) {
+    public void toString(@NotNull StringBuilder sb) {
         if (scale == Integer.MIN_VALUE) {
             sb.append("not set");
             return;
@@ -145,6 +148,7 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
         sb.reverse();
     }
 
+    @NotNull
     @Override
     public MutableDecimal clone() throws CloneNotSupportedException {
         return (MutableDecimal) super.clone();
@@ -178,7 +182,7 @@ public class MutableDecimal extends Number implements Comparable<MutableDecimal>
     }
 
     @Override
-    public int compareTo(MutableDecimal o) {
+    public int compareTo(@NotNull MutableDecimal o) {
         long value = this.value, ovalue = o.value;
         if (scale == o.scale)
             return longCompareTo(value, ovalue);

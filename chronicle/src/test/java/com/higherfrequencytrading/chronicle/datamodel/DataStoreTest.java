@@ -21,6 +21,7 @@ import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSink;
 import com.higherfrequencytrading.chronicle.tcp.InProcessChronicleSource;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -116,7 +117,7 @@ public class DataStoreTest {
         ((ObservableMap<Date, ExampleDataModel.MyType>) copyModel.map).addListener(
                 new AbstractMapListener<Date, ExampleDataModel.MyType>() {
                     @Override
-                    public void update(Date key, ExampleDataModel.MyType oldValue, ExampleDataModel.MyType newValue) {
+                    public void update(@NotNull Date key, ExampleDataModel.MyType oldValue, @NotNull ExampleDataModel.MyType newValue) {
                         if (key.getTime() >= 0)
                             queue.add(System.nanoTime() - newValue.timestamp);
                     }

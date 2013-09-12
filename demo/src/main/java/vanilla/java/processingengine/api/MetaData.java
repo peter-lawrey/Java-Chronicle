@@ -18,6 +18,7 @@ package vanilla.java.processingengine.api;
 
 import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.clock.ClockSupport;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author peter.lawrey
@@ -41,13 +42,13 @@ public class MetaData {
         return ClockSupport.nanoTime() / 100;
     }
 
-    public static void writeForGateway(Excerpt out) {
+    public static void writeForGateway(@NotNull Excerpt out) {
         out.writeLong(System.currentTimeMillis());
         out.writeLong(fastTime());
         out.writeInt(0);
     }
 
-    public void readFromGateway(Excerpt in) {
+    public void readFromGateway(@NotNull Excerpt in) {
         excerptId = in.index();
         writeTimestampMillis = in.readLong();
         inWriteTimestamp7 = in.readLong();
@@ -57,7 +58,7 @@ public class MetaData {
                     inReadTimestamp7Delta = fastTime() - inWriteTimestamp7);
     }
 
-    public void writeForEngine(Excerpt out) {
+    public void writeForEngine(@NotNull Excerpt out) {
         out.writeInt(sourceId);
         out.writeLong(excerptId);
         out.writeLong(writeTimestampMillis);
@@ -67,7 +68,7 @@ public class MetaData {
         out.writeUnsignedInt(0L);
     }
 
-    public void readFromEngine(Excerpt in, int sourceId) {
+    public void readFromEngine(@NotNull Excerpt in, int sourceId) {
         this.sourceId = in.readInt();
         excerptId = in.readLong();
         targetReader = sourceId == this.sourceId;
