@@ -100,9 +100,67 @@ public abstract class AbstractExcerpt implements Excerpt {
         this.chronicle = chronicle;
     }
 
+    private static double asDouble(long value, int exp, boolean negative, int decimalPlaces) {
+        if (decimalPlaces > 0 && value < Long.MAX_VALUE / 2) {
+            if (value < Long.MAX_VALUE / (1L << 32)) {
+                exp -= 32;
+                value <<= 32;
+            }
+            if (value < Long.MAX_VALUE / (1L << 16)) {
+                exp -= 16;
+                value <<= 16;
+            }
+            if (value < Long.MAX_VALUE / (1L << 8)) {
+                exp -= 8;
+                value <<= 8;
+            }
+            if (value < Long.MAX_VALUE / (1L << 4)) {
+                exp -= 4;
+                value <<= 4;
+            }
+            if (value < Long.MAX_VALUE / (1L << 2)) {
+                exp -= 2;
+                value <<= 2;
+            }
+            if (value < Long.MAX_VALUE / (1L << 1)) {
+                exp -= 1;
+                value <<= 1;
+            }
+        }
+        for (; decimalPlaces > 0; decimalPlaces--) {
+            exp--;
+            long mod = value % 5;
+            value /= 5;
+            int modDiv = 1;
+            if (value < Long.MAX_VALUE / (1L << 4)) {
+                exp -= 4;
+                value <<= 4;
+                modDiv <<= 4;
+            }
+            if (value < Long.MAX_VALUE / (1L << 2)) {
+                exp -= 2;
+                value <<= 2;
+                modDiv <<= 2;
+            }
+            if (value < Long.MAX_VALUE / (1L << 1)) {
+                exp -= 1;
+                value <<= 1;
+                modDiv <<= 1;
+            }
+            value += modDiv * mod / 5;
+        }
+        final double d = Math.scalb((double) value, exp);
+        return negative ? -d : d;
+    }
+
     @Override
     public boolean nextIndex() {
         return index(index() + 1);
+    }
+
+    @Override
+    public long index() {
+        return index;
     }
 
     @Override
@@ -133,15 +191,10 @@ public abstract class AbstractExcerpt implements Excerpt {
         return l != 0L;
     }
 
-    private void readMemoryBarrier() {
-        barrier.get();
-    }
-
     protected abstract void index0(long index, long startPosition, long endPosition);
 
-    @Override
-    public long index() {
-        return index;
+    private void readMemoryBarrier() {
+        barrier.get();
     }
 
     @Override
@@ -208,18 +261,9 @@ public abstract class AbstractExcerpt implements Excerpt {
         return input.toString();
     }
 
-    @NotNull
     @Override
-    public Excerpt position(int position) {
-        if (position < 0 || position > capacity())
-            throw new IndexOutOfBoundsException();
-        this.position = start + position; // start has to be added
-        return this;
-    }
-
-    @Override
-    public int position() {
-        return (int) (position - start);
+    public int readUnsignedByte() {
+        return readByte() & 0xFF;
     }
 
     @Override
@@ -228,8 +272,17 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public int readUnsignedByte() {
-        return readByte() & 0xFF;
+    public int position() {
+        return (int) (position - start);
+    }
+
+    @NotNull
+    @Override
+    public Excerpt position(int position) {
+        if (position < 0 || position > capacity())
+            throw new IndexOutOfBoundsException();
+        this.position = start + position; // start has to be added
+        return this;
     }
 
     @Override
@@ -268,6 +321,28 @@ public abstract class AbstractExcerpt implements Excerpt {
             append1(appendable, utflen, count);
         }
         return true;
+    }
+
+    @Override
+    public long readStopBit() {
+        long b;
+        if ((b = readByte()) >= 0)
+            return b;
+
+        return readStopBit0(b);
+    }
+
+    private long readStopBit0(long b) {
+        long l = 0;
+        int count = 0;
+        do {
+            l |= (b & 0x7FL) << count;
+            count += 7;
+        } while ((b = readByte()) < 0);
+
+        if (b == 0 && count > 0)
+            return ~l;
+        return l | (b << count);
     }
 
     private void append1(@NotNull Appendable appendable, int utflen, int count) throws IOException {
@@ -328,42 +403,12 @@ public abstract class AbstractExcerpt implements Excerpt {
         } while (count < utflen);
     }
 
-    @Override
-    public long readStopBit() {
-        long b;
-        if ((b = readByte()) >= 0)
-            return b;
-
-        return readStopBit0(b);
-    }
-
-    private long readStopBit0(long b) {
-        long l = 0;
-        int count = 0;
-        do {
-            l |= (b & 0x7FL) << count;
-            count += 7;
-        } while ((b = readByte()) < 0);
-
-        if (b == 0 && count > 0)
-            return ~l;
-        return l | (b << count);
-    }
-
     @NotNull
     @Override
     public String parseUTF(@NotNull StopCharTester tester) {
         StringBuilder sb = acquireUtfReader();
         parseUTF(sb, tester);
         return sb.toString();
-    }
-
-    @NotNull
-    private StringBuilder acquireUtfReader() {
-        if (utfReader == null)
-            utfReader = new StringBuilder();
-        utfReader.setLength(0);
-        return utfReader;
     }
 
     @Override
@@ -390,11 +435,6 @@ public abstract class AbstractExcerpt implements Excerpt {
         if (remaining() > 0) {
             readUTF1(appendable, tester);
         }
-    }
-
-    @Override
-    public int remaining() {
-        return (int) (limit - position);
     }
 
     private void readUTF1(@NotNull Appendable appendable, @NotNull StopCharTester tester) throws IOException {
@@ -429,7 +469,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                     break;
                 }
                 case 14: {
-				/* 1110 xxxx 10xx xxxx 10xx xxxx */
+                /* 1110 xxxx 10xx xxxx 10xx xxxx */
 
                     int char2 = readUnsignedByte();
                     int char3 = readUnsignedByte();
@@ -451,6 +491,19 @@ public abstract class AbstractExcerpt implements Excerpt {
                             "malformed input around byte ");
             }
         } while (remaining() > 0);
+    }
+
+    @Override
+    public int remaining() {
+        return (int) (limit - position);
+    }
+
+    @NotNull
+    private StringBuilder acquireUtfReader() {
+        if (utfReader == null)
+            utfReader = new StringBuilder();
+        utfReader.setLength(0);
+        return utfReader;
     }
 
     @Override
@@ -550,13 +603,13 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public int readUnsignedByte(int offset) {
-        return readByte(offset) & 0xFF;
+    public int readUnsignedShort(int offset) {
+        return readShort(offset) & 0xFFFF;
     }
 
     @Override
-    public int readUnsignedShort(int offset) {
-        return readShort(offset) & 0xFFFF;
+    public int readUnsignedByte(int offset) {
+        return readByte(offset) & 0xFF;
     }
 
     @Override
@@ -587,6 +640,8 @@ public abstract class AbstractExcerpt implements Excerpt {
         return readInt() & 0xFFFFFFFFL;
     }
 
+    // RandomDataOutput
+
     @Override
     public long readInt48() {
         if (chronicle.byteOrder() == ByteOrder.BIG_ENDIAN)
@@ -594,8 +649,6 @@ public abstract class AbstractExcerpt implements Excerpt {
         // extra shifting to get sign extension.
         return (readUnsignedShort() << 16 + readUnsignedInt() << 32) >> 8;
     }
-
-    // RandomDataOutput
 
     @Override
     public long readInt48(int offset) {
@@ -921,13 +974,13 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
-    public void writeUnsignedByte(int offset, int v) {
-        write(offset, v);
+    public void writeUnsignedShort(int offset, int v) {
+        writeShort(offset, v);
     }
 
     @Override
-    public void writeUnsignedShort(int offset, int v) {
-        writeShort(offset, v);
+    public void writeUnsignedByte(int offset, int v) {
+        write(offset, v);
     }
 
     @Override
@@ -1009,6 +1062,8 @@ public abstract class AbstractExcerpt implements Excerpt {
         }
     }
 
+    // // ByteStringAppender
+
     @Override
     public void writeCompactDouble(double v) {
         float f = (float) v;
@@ -1019,8 +1074,6 @@ public abstract class AbstractExcerpt implements Excerpt {
             writeDouble(v);
         }
     }
-
-    // // ByteStringAppender
 
     @Override
     public void write(@NotNull ByteBuffer bb) {
@@ -1111,19 +1164,6 @@ public abstract class AbstractExcerpt implements Excerpt {
         return this;
     }
 
-    @NotNull
-    @Override
-    public ByteStringAppender append(@NotNull byte[] str) {
-        write(str);
-        return this;
-    }
-
-    // // RandomOutputStream
-    @Override
-    public void write(@NotNull byte[] b) {
-        write(b, 0, b.length);
-    }
-
     private void appendLong0(long num) {
         // Extract digits into the end of the numberBuffer
         int endIndex = appendLong1(num);
@@ -1208,27 +1248,23 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @NotNull
     @Override
-    public ByteStringAppender appendDateTime(long timeInMS) {
-        appendDate(timeInMS);
-        writeByte('T');
-        appendTime(timeInMS);
+    public ByteStringAppender append(@NotNull byte[] str) {
+        write(str);
         return this;
+    }
+
+    // // RandomOutputStream
+    @Override
+    public void write(@NotNull byte[] b) {
+        write(b, 0, b.length);
     }
 
     @NotNull
     @Override
-    public ByteStringAppender appendDate(long timeInMS) {
-        if (dateFormat == null) {
-            dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        }
-        long date = timeInMS / 86400000;
-        if (lastDay != date) {
-            lastDateStr = dateFormat.format(new Date(timeInMS)).getBytes(ISO_8859_1);
-            lastDay = date;
-        }
-        assert lastDateStr != null;
-        append(lastDateStr);
+    public ByteStringAppender appendDateTime(long timeInMS) {
+        appendDate(timeInMS);
+        writeByte('T');
+        appendTime(timeInMS);
         return this;
     }
 
@@ -1255,6 +1291,23 @@ public abstract class AbstractExcerpt implements Excerpt {
         writeByte((char) (millis / 100 + '0'));
         writeByte((char) (millis / 10 % 10 + '0'));
         writeByte((char) (millis % 10 + '0'));
+        return this;
+    }
+
+    @NotNull
+    @Override
+    public ByteStringAppender appendDate(long timeInMS) {
+        if (dateFormat == null) {
+            dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        }
+        long date = timeInMS / 86400000;
+        if (lastDay != date) {
+            lastDateStr = dateFormat.format(new Date(timeInMS)).getBytes(ISO_8859_1);
+            lastDay = date;
+        }
+        assert lastDateStr != null;
+        append(lastDateStr);
         return this;
     }
 
@@ -1405,59 +1458,6 @@ public abstract class AbstractExcerpt implements Excerpt {
         } while (true);
 
         return asDouble(value, exp, negative, decimalPlaces);
-    }
-
-    private static double asDouble(long value, int exp, boolean negative, int decimalPlaces) {
-        if (decimalPlaces > 0 && value < Long.MAX_VALUE / 2) {
-            if (value < Long.MAX_VALUE / (1L << 32)) {
-                exp -= 32;
-                value <<= 32;
-            }
-            if (value < Long.MAX_VALUE / (1L << 16)) {
-                exp -= 16;
-                value <<= 16;
-            }
-            if (value < Long.MAX_VALUE / (1L << 8)) {
-                exp -= 8;
-                value <<= 8;
-            }
-            if (value < Long.MAX_VALUE / (1L << 4)) {
-                exp -= 4;
-                value <<= 4;
-            }
-            if (value < Long.MAX_VALUE / (1L << 2)) {
-                exp -= 2;
-                value <<= 2;
-            }
-            if (value < Long.MAX_VALUE / (1L << 1)) {
-                exp -= 1;
-                value <<= 1;
-            }
-        }
-        for (; decimalPlaces > 0; decimalPlaces--) {
-            exp--;
-            long mod = value % 5;
-            value /= 5;
-            int modDiv = 1;
-            if (value < Long.MAX_VALUE / (1L << 4)) {
-                exp -= 4;
-                value <<= 4;
-                modDiv <<= 4;
-            }
-            if (value < Long.MAX_VALUE / (1L << 2)) {
-                exp -= 2;
-                value <<= 2;
-                modDiv <<= 2;
-            }
-            if (value < Long.MAX_VALUE / (1L << 1)) {
-                exp -= 1;
-                value <<= 1;
-                modDiv <<= 1;
-            }
-            value += modDiv * mod / 5;
-        }
-        final double d = Math.scalb((double) value, exp);
-        return negative ? -d : d;
     }
 
     @NotNull
@@ -1734,8 +1734,12 @@ public abstract class AbstractExcerpt implements Excerpt {
         checkEndOfBuffer();
     }
 
-    private boolean autoGenerateMarshaller(Object obj) {
-        return (obj instanceof Comparable && obj.getClass().getPackage().getName().startsWith("java")) || obj instanceof Externalizable;
+    @NotNull
+    @Override
+    public OutputStream outputStream() {
+        if (outputStream == null)
+            outputStream = new ExcerptOutputStream();
+        return outputStream;
     }
 
     private long checkEndOfBuffer() {
@@ -1749,12 +1753,8 @@ public abstract class AbstractExcerpt implements Excerpt {
         return length;
     }
 
-    @NotNull
-    @Override
-    public OutputStream outputStream() {
-        if (outputStream == null)
-            outputStream = new ExcerptOutputStream();
-        return outputStream;
+    private boolean autoGenerateMarshaller(Object obj) {
+        return (obj instanceof Comparable && obj.getClass().getPackage().getName().startsWith("java")) || obj instanceof Externalizable;
     }
 
     @Override
@@ -1826,6 +1826,15 @@ public abstract class AbstractExcerpt implements Excerpt {
         return inputStream;
     }
 
+    @Nullable
+    @Override
+    public <T> T readObject(Class<T> tClass) throws IllegalStateException {
+        Object o = readObject();
+        if (o == null || tClass.isInstance(o))
+            return (T) o;
+        throw new ClassCastException("Cannot convert " + o.getClass().getName() + " to " + tClass.getName() + " was " + o);
+    }
+
     @NotNull
     @Override
     public <K, V> Map<K, V> readMap(@NotNull Class<K> kClass, @NotNull Class<V> vClass) {
@@ -1881,6 +1890,11 @@ public abstract class AbstractExcerpt implements Excerpt {
     }
 
     @Override
+    public boolean isFinished() {
+        return buffer == null;
+    }
+
+    @Override
     public void finish() {
         assert chronicle.multiThreaded() || checkThread();
         long length = checkEndOfBuffer();
@@ -1899,6 +1913,10 @@ public abstract class AbstractExcerpt implements Excerpt {
         buffer = null;
     }
 
+    private void writeMemoryBarrier() {
+        barrier.lazySet(true);
+    }
+
     @SuppressWarnings("SameReturnValue")
     private boolean checkThread() {
         Thread thread = Thread.currentThread();
@@ -1907,15 +1925,6 @@ public abstract class AbstractExcerpt implements Excerpt {
         else if (lastThread != thread)
             throw new AssertionError("Excerpt used by two threads " + thread + " and " + lastThread);
         return true;
-    }
-
-    private void writeMemoryBarrier() {
-        barrier.lazySet(true);
-    }
-
-    @Override
-    public boolean isFinished() {
-        return buffer == null;
     }
 
     @Override
