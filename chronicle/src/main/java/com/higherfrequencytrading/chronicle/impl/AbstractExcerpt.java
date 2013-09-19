@@ -212,6 +212,7 @@ public abstract class AbstractExcerpt implements Excerpt {
         long endPosition = startPosition + capacity;
         index0(chronicle.size(), startPosition, endPosition);
         forWrite = true;
+        index = chronicle.size();
     }
 
     @Override
@@ -486,7 +487,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                     break;
                 }
                 default:
-				/* 10xx xxxx, 1111 xxxx */
+                /* 10xx xxxx, 1111 xxxx */
                     throw new UTFDataFormatException(
                             "malformed input around byte ");
             }

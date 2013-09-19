@@ -32,7 +32,8 @@ import java.util.Map;
 public abstract class AbstractChronicle implements DirectChronicle {
     private final String name;
     private final Map<Class, EnumeratedMarshaller> marshallerMap = new LinkedHashMap<Class, EnumeratedMarshaller>();
-    protected long size = 0;
+    // shouldn't need to be volatile, unless you have a bug in the calling code ;)
+    protected volatile long size = 0;
     private boolean multiThreaded = false;
 
     protected AbstractChronicle(String name) {

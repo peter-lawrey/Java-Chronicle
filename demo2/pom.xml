@@ -29,7 +29,7 @@
     <artifactId>chronicle-demo2</artifactId>
 
     <name>Chronicle Demo with three nodes</name>
-    <version>1.8-SNAPSHOT</version>
+    <version>1.8.1-SNAPSHOT</version>
     <description>Demo Processing Engine</description>
     <dependencies>
         <dependency>

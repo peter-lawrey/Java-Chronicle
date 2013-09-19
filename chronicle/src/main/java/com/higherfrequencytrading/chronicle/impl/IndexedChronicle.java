@@ -30,6 +30,7 @@ import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -112,6 +113,19 @@ public class IndexedChronicle extends AbstractChronicle {
         }
     }
 
+    private static String extractName(String basePath) {
+        File file = new File(basePath);
+        String name = file.getName();
+        if (name != null && name.length() > 0)
+            return name;
+        file = file.getParentFile();
+        if (file == null) return "chronicle";
+        name = file.getName();
+        if (name != null && name.length() > 0)
+            return name;
+        return "chronicle";
+    }
+
     @Override
     public long getIndexData(long indexId) {
         long indexOffset = indexId << indexBitSize();
@@ -176,19 +190,6 @@ public class IndexedChronicle extends AbstractChronicle {
 
     protected int indexBitSize() {
         return 3;
-    }
-
-    private static String extractName(String basePath) {
-        File file = new File(basePath);
-        String name = file.getName();
-        if (name != null && name.length() > 0)
-            return name;
-        file = file.getParentFile();
-        if (file == null) return "chronicle";
-        name = file.getName();
-        if (name != null && name.length() > 0)
-            return name;
-        return "chronicle";
     }
 
     @Override
@@ -273,7 +274,7 @@ public class IndexedChronicle extends AbstractChronicle {
     public long startExcerpt(int capacity) {
         final long size = this.size;
         long startPosition = getIndexData(size);
-        assert size == 0 || startPosition != 0;
+        assert size == 0 || startPosition != 0 : "size: " + size + " startPosition: " + startPosition + " is the chronicle corrupted?";
         // does it overlap a ByteBuffer barrier.
         if ((startPosition & ~dataLowMask) != ((startPosition + capacity) & ~dataLowMask)) {
             // resize the previous entry.
@@ -285,8 +286,11 @@ public class IndexedChronicle extends AbstractChronicle {
 
     @Override
     public void incrementSize(long expected) {
+        if (size + 1 != expected)
+            throw new ConcurrentModificationException("size: " + (size + 1) + ", expected: " + expected + ", Have you updated the chronicle without thread safety?");
+        assert size == 0 || getIndexData(size) > 0 : "Failed to set the index at " + size + " was 0.";
+
         size++;
-        assert size == expected : "size: " + size + ", expected: " + expected;
     }
 
     /**
