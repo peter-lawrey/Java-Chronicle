@@ -65,6 +65,8 @@ public class IndexedChronicle extends AbstractChronicle {
     @Nullable
     private MappedByteBuffer lastDataBuffer = null;
     private boolean useUnsafe = false;
+    private AbstractExcerpt lastAppender;
+    private Thread appendingThread;
 
     public IndexedChronicle(String basePath) throws IOException {
         this(basePath, ChronicleTools.is64Bit() ? DEFAULT_DATA_BITS_SIZE : DEFAULT_DATA_BITS_SIZE32);
@@ -271,7 +273,15 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     @Override
-    public long startExcerpt(int capacity) {
+    public long startExcerpt(AbstractExcerpt appender, int capacity) {
+        boolean debug = false;
+        assert debug = true;
+        if (debug) {
+            assert lastAppender == null || lastAppender == appender : "Chronicle cannot safely have more than one appender ";
+            assert appendingThread == null : "Chronicle is already being appended to in " + appendingThread;
+            lastAppender = appender;
+            appendingThread = Thread.currentThread();
+        }
         final long size = this.size;
         long startPosition = getIndexData(size);
         assert size == 0 || startPosition != 0 : "size: " + size + " startPosition: " + startPosition + " is the chronicle corrupted?";
@@ -291,6 +301,7 @@ public class IndexedChronicle extends AbstractChronicle {
         assert size == 0 || getIndexData(size) > 0 : "Failed to set the index at " + size + " was 0.";
 
         size++;
+        appendingThread = null;
     }
 
     /**

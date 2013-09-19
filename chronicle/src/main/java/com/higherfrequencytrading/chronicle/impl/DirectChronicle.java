@@ -36,7 +36,7 @@ public interface DirectChronicle extends Chronicle {
 
     void setIndexData(long indexId, long indexData);
 
-    long startExcerpt(int capacity);
+    long startExcerpt(AbstractExcerpt appender, int capacity);
 
     void incrementSize(long l);
 

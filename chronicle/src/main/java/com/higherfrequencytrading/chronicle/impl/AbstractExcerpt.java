@@ -208,7 +208,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     @Override
     public void startExcerpt(int capacity) {
         this.capacity = capacity < MIN_SIZE ? MIN_SIZE : capacity;
-        long startPosition = chronicle.startExcerpt(capacity);
+        long startPosition = chronicle.startExcerpt(this, capacity);
         long endPosition = startPosition + capacity;
         index0(chronicle.size(), startPosition, endPosition);
         forWrite = true;
