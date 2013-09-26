@@ -235,6 +235,12 @@ public class WrappedExcerpt implements Excerpt {
         return excerpt.readChars();
     }
 
+    @Nullable
+    @Override
+    public <T> T readObject(Class<T> tClass) throws IllegalStateException {
+        return excerpt.readObject(tClass);
+    }
+
     @NotNull
     public ByteOrder order() {
         return excerpt.order();
