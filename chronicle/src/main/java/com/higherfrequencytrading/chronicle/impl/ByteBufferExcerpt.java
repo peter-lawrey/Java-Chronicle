@@ -234,6 +234,7 @@ public class ByteBufferExcerpt extends AbstractExcerpt {
             assert buffer != null;
             b[i + off] = buffer.get((int) (i + position));
         }
+        position += len;
         return len;
     }
 }

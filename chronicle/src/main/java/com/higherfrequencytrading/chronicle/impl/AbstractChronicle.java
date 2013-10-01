@@ -35,15 +35,22 @@ public abstract class AbstractChronicle implements DirectChronicle {
     // shouldn't need to be volatile, unless you have a bug in the calling code ;)
     protected volatile long size = 0;
     private boolean multiThreaded = false;
+    protected final StringInterner stringInterner;
 
     protected AbstractChronicle(String name) {
         this.name = name;
-        StringMarshaller stringMarshaller = new StringMarshaller(16 * 1024);
+        stringInterner = new StringInterner(16 * 1024);
+        StringMarshaller stringMarshaller = new StringMarshaller(stringInterner);
         marshallerMap.put(String.class, stringMarshaller);
         marshallerMap.put(CharSequence.class, stringMarshaller);
         marshallerMap.put(Class.class, new ClassEnumMarshaller(Thread.currentThread().getContextClassLoader()));
         marshallerMap.put(Date.class, new DateMarshaller(10191));
         marshallerMap.put(byte[].class, new BytesMarshaller());
+    }
+
+    @Override
+    public StringInterner stringInterner() {
+        return stringInterner;
     }
 
     @Override

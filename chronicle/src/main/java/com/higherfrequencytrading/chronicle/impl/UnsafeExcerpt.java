@@ -32,7 +32,7 @@ public class UnsafeExcerpt extends AbstractExcerpt {
      */
     @NotNull
     @SuppressWarnings("ALL")
-    private static final Unsafe UNSAFE;
+    public static final Unsafe UNSAFE;
     private static final int BYTES_OFFSET;
 
     // RandomDataInput

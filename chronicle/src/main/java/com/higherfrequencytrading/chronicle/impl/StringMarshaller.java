@@ -26,14 +26,11 @@ import org.jetbrains.annotations.Nullable;
  * @author peter.lawrey
  */
 public class StringMarshaller implements EnumeratedMarshaller<CharSequence> {
-    private final int size1;
     private final StringBuilder reader = new StringBuilder();
-    private String[] interner;
+    private final StringInterner interner;
 
-    public StringMarshaller(int size) {
-        int size2 = 128;
-        while (size2 < size && size2 < (1 << 20)) size2 <<= 1;
-        this.size1 = size2 - 1;
+    public StringMarshaller(StringInterner interner) {
+        this.interner = interner;
     }
 
     @NotNull
@@ -56,32 +53,9 @@ public class StringMarshaller implements EnumeratedMarshaller<CharSequence> {
     }
 
     private String builderToString() {
-        int idx = hashFor(reader);
-        if (interner == null)
-            interner = new String[size1 + 1];
-
-        String s2 = interner[idx];
-        if (s2 != null && s2.length() == reader.length())
-            NOT_FOUND:{
-                for (int i = 0, len = s2.length(); i < len; i++) {
-                    if (s2.charAt(i) != reader.charAt(i))
-                        break NOT_FOUND;
-                }
-                return s2;
-            }
-        return interner[idx] = reader.toString();
+        return interner.intern(reader);
     }
 
-    private int hashFor(@NotNull CharSequence cs) {
-        long h = 0;
-
-        for (int i = 0, length = cs.length(); i < length; i++)
-            h = 31 * h + cs.charAt(i);
-
-        h ^= (h >>> 41) ^ (h >>> 20);
-        h ^= (h >>> 14) ^ (h >>> 7);
-        return (int) (h & size1);
-    }
 
     @Override
     public String parse(@NotNull Excerpt excerpt, @NotNull StopCharTester tester) {

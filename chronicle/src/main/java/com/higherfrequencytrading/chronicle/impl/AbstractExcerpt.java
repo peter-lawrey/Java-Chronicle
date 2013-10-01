@@ -268,7 +268,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     @NotNull
     @Override
     public String readLine() {
-        StringBuilder input = new StringBuilder();
+        StringBuilder input = acquireUtfReader();
         EOL:
         while (position() < capacity()) {
             int c = readUnsignedByte();
@@ -285,7 +285,7 @@ public abstract class AbstractExcerpt implements Excerpt {
                     break;
             }
         }
-        return input.toString();
+        return chronicle.stringInterner().intern(input);
     }
 
     @Override
@@ -430,7 +430,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     public String parseUTF(@NotNull StopCharTester tester) {
         StringBuilder sb = acquireUtfReader();
         parseUTF(sb, tester);
-        return sb.toString();
+        return chronicle.stringInterner().intern(sb);
     }
 
     @Override
@@ -565,7 +565,7 @@ public abstract class AbstractExcerpt implements Excerpt {
     public String readUTF() {
         StringBuilder sb = acquireUtfReader();
         if (readUTF(sb)) {
-            return sb.toString();
+            return chronicle.stringInterner().intern(sb);
         }
         return null;
     }
@@ -1752,6 +1752,8 @@ public abstract class AbstractExcerpt implements Excerpt {
             return;
         }
         writeByte(SERIALIZED);
+        int pos = position();
+        writeInt(0); // padding
         // TODO this is the lame implementation, but it works.
         try {
             ObjectOutputStream oos = new ObjectOutputStream(this.outputStream());
@@ -1759,6 +1761,8 @@ public abstract class AbstractExcerpt implements Excerpt {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+        // save the length for later.
+        writeInt(pos, position() - pos - 4);
         checkEndOfBuffer();
     }
 
@@ -1839,7 +1843,13 @@ public abstract class AbstractExcerpt implements Excerpt {
             }
             case SERIALIZED: {
                 try {
-                    return new ObjectInputStream(this.inputStream()).readObject();
+                    int length = readInt();
+                    if (length < 0 || length > 16 << 20)
+                        throw new IllegalStateException("Unexpected length: " + length);
+                    int end = position() + length;
+                    Object o = new ObjectInputStream(this.inputStream()).readObject();
+                    assert position() == end : "index: " + index + ", position: " + position() + ", end: " + end + " o: " + o;
+                    return o;
                 } catch (Exception e) {
                     throw new IllegalStateException(e);
                 }

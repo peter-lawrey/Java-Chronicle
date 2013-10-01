@@ -45,4 +45,6 @@ public interface DirectChronicle extends Chronicle {
     boolean synchronousMode();
 
     boolean multiThreaded();
+
+    StringInterner stringInterner();
 }
