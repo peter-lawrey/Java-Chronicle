@@ -23,7 +23,7 @@
 
     <groupId>com.higherfrequencytrading</groupId>
     <artifactId>chronicle</artifactId>
-    <version>1.9</version>
+    <version>1.9.1-SNAPSHOT</version>
     <name>Java-Chronicle</name>
     <description>High Performance Logging and Persisted Messaging</description>
     <packaging>bundle</packaging>
@@ -104,7 +104,7 @@
                 </configuration>
             </plugin>
 
-            <plugin>
+            <!-- plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>1.4</version>
@@ -120,7 +120,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin -->
 
             <plugin>
                 <groupId>org.apache.felix</groupId>
