@@ -23,7 +23,7 @@
 
     <groupId>com.higherfrequencytrading</groupId>
     <artifactId>chronicle-parent</artifactId>
-    <version>1.8.1-SNAPSHOT</version>
+    <version>1.8.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>chronicle-parent</name>
@@ -144,6 +144,5 @@
         <module>testing</module>
         <module>demo</module>
         <module>demo2</module>
-        <module>chronicle-fix</module>
     </modules>
 </project>

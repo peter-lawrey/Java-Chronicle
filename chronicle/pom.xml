@@ -23,7 +23,7 @@
 
     <groupId>com.higherfrequencytrading</groupId>
     <artifactId>chronicle</artifactId>
-    <version>1.8.2</version>
+    <version>1.8.3-SNAPSHOT</version>
     <name>Java-Chronicle</name>
     <description>High Performance Logging and Persisted Messaging</description>
     <packaging>bundle</packaging>

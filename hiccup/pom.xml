@@ -30,7 +30,7 @@
         <dependency>
             <groupId>com.higherfrequencytrading</groupId>
             <artifactId>chronicle</artifactId>
-            <version>1.8.1-SNAPSHOT</version>
+            <version>1.8.3-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

@@ -24,13 +24,13 @@
     <parent>
         <groupId>com.higherfrequencytrading</groupId>
         <artifactId>chronicle-parent</artifactId>
-        <version>1.8.1-SNAPSHOT</version>
+        <version>1.8.3-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.higherfrequencytrading</groupId>
     <artifactId>chronicle-testing</artifactId>
-    <version>1.8.1-SNAPSHOT</version>
+    <version>1.8.3-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
