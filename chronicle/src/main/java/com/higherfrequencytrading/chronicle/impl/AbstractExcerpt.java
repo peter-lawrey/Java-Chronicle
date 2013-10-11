@@ -1999,7 +1999,7 @@ public abstract class AbstractExcerpt implements Excerpt {
 
 
     @Override
-    public long findExact(ExcerptComparator comparator) {
+    public long findMatch(ExcerptComparator comparator) {
         long lo = 0, hi = size() - 1;
         while (lo <= hi) {
             long mid = (hi + lo) >>> 1;

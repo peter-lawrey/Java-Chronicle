@@ -335,7 +335,8 @@ public class IndexedChronicleTest {
         Excerpt appender = chronicle.createExcerpt();
         List<Integer> ints = new ArrayList<Integer>();
         for (int i = 0; i < 1000; i += 10) {
-            appender.startExcerpt(4);
+            appender.startExcerpt(8);
+            appender.writeInt(0xCAFEBABE);
             appender.writeInt(i);
             appender.finish();
             ints.add(i);
@@ -345,23 +346,23 @@ public class IndexedChronicleTest {
         // exact matches at a the start
 
         mec.lo = mec.hi = -1;
-        assertEquals(~0, excerpt.findExact(mec));
+        assertEquals(~0, excerpt.findMatch(mec));
         mec.lo = mec.hi = 0;
-        assertEquals(0, excerpt.findExact(mec));
+        assertEquals(0, excerpt.findMatch(mec));
         mec.lo = mec.hi = 9;
-        assertEquals(~1, excerpt.findExact(mec));
+        assertEquals(~1, excerpt.findMatch(mec));
         mec.lo = mec.hi = 10;
-        assertEquals(1, excerpt.findExact(mec));
+        assertEquals(1, excerpt.findMatch(mec));
 
         // exact matches at a the end
         mec.lo = mec.hi = 980;
-        assertEquals(98, excerpt.findExact(mec));
+        assertEquals(98, excerpt.findMatch(mec));
         mec.lo = mec.hi = 981;
-        assertEquals(~99, excerpt.findExact(mec));
+        assertEquals(~99, excerpt.findMatch(mec));
         mec.lo = mec.hi = 990;
-        assertEquals(99, excerpt.findExact(mec));
+        assertEquals(99, excerpt.findMatch(mec));
         mec.lo = mec.hi = 1000;
-        assertEquals(~100, excerpt.findExact(mec));
+        assertEquals(~100, excerpt.findMatch(mec));
 
 
         // range match near the start
@@ -414,7 +415,7 @@ public class IndexedChronicleTest {
 
         @Override
         public int compare(Excerpt excerpt) {
-            final int x = excerpt.readInt();
+            final int x = excerpt.readInt(4);
             return x < lo ? -1 : x > hi ? +1 : 0;
         }
     }

@@ -733,4 +733,14 @@ public class WrappedExcerpt implements Excerpt {
     public boolean isFinished() {
         return excerpt.isFinished();
     }
+
+    @Override
+    public long findMatch(ExcerptComparator comparator) {
+        return excerpt.findMatch(comparator);
+    }
+
+    @Override
+    public void findRange(long[] startEnd, ExcerptComparator comparator) {
+        excerpt.findRange(startEnd, comparator);
+    }
 }
