@@ -130,7 +130,7 @@ public class MappedFile {
                 count++;
             }
         }
-        if (count > 1)
+        if (count > 2)
             Logger.getLogger(MappedFile.class.getName()).info(basePath + " memory mappings left unreleased, num= " + count);
         maps.clear();
         fileChannel.close();
