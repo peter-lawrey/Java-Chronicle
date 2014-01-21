@@ -48,6 +48,8 @@ public class UnsafeExcerpt extends AbstractExcerpt {
         }
     }
 
+    private MappedMemory mappedMemory;
+
     protected UnsafeExcerpt(DirectChronicle chronicle) {
         super(chronicle);
     }
@@ -55,8 +57,9 @@ public class UnsafeExcerpt extends AbstractExcerpt {
     protected void index0(long index, long startPosition, long endPosition) {
         this.index = index;
         this.startPosition = startPosition;
-
-        buffer = chronicle.acquireDataBuffer(startPosition);
+        MappedMemory.release(mappedMemory);
+        mappedMemory = chronicle.acquireDataBuffer(startPosition);
+        buffer = mappedMemory.buffer();
 
         long address = ((DirectBuffer) buffer).address();
         start = position = address + chronicle.positionInBuffer(startPosition);

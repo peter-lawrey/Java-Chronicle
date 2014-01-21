@@ -22,6 +22,9 @@ import org.jetbrains.annotations.NotNull;
  * @author peter.lawrey
  */
 public class ByteBufferExcerpt extends AbstractExcerpt {
+
+    private MappedMemory mappedMemory;
+
     protected ByteBufferExcerpt(DirectChronicle chronicle) {
         super(chronicle);
     }
@@ -29,8 +32,9 @@ public class ByteBufferExcerpt extends AbstractExcerpt {
     protected void index0(long index, long startPosition, long endPosition) {
         this.index = index;
         this.startPosition = startPosition;
-
-        buffer = chronicle.acquireDataBuffer(startPosition);
+        MappedMemory.release(mappedMemory);
+        mappedMemory = chronicle.acquireDataBuffer(startPosition);
+        buffer = mappedMemory.buffer();
 
         start = position = chronicle.positionInBuffer(startPosition);
         limit = chronicle.positionInBuffer(endPosition - 1) + 1;

@@ -20,18 +20,12 @@ import com.higherfrequencytrading.chronicle.Excerpt;
 import com.higherfrequencytrading.chronicle.tools.ChronicleTools;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.nio.ch.DirectBuffer;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -45,25 +39,15 @@ public class IndexedChronicle extends AbstractChronicle {
     public static final int DEFAULT_DATA_BITS_SIZE32 = 22; // 1 << 22 or 4 MB.
     private static final Logger logger = Logger.getLogger(IndexedChronicle.class.getName());
     protected final int indexLowMask;
-    // used if minimiseByteBuffers is false.  This is faster but uses much more virtual memory.
-    private final List<MappedByteBuffer> indexBuffers = new ArrayList<MappedByteBuffer>();
-    private final List<MappedByteBuffer> dataBuffers = new ArrayList<MappedByteBuffer>();
-    // end of used.
+
     private final int indexBitSize;
     private final int dataBitSize;
     private final int dataLowMask;
-    private final FileChannel indexChannel;
-    private final FileChannel dataChannel;
+    private final MappedFile indexCache;
+    private final MappedFile dataCache;
     private final ByteOrder byteOrder;
-    private final boolean minimiseByteBuffers;
     private final boolean synchronousMode;
-    // used if minimiseByteBuffers is true;
-    private int lastIndexId = -1;
-    @Nullable
-    private MappedByteBuffer lastIndexBuffer = null;
-    private int lastDataId = -1;
-    @Nullable
-    private MappedByteBuffer lastDataBuffer = null;
+
     private boolean useUnsafe = false;
     private AbstractExcerpt lastAppender;
     private Thread appendingThread;
@@ -88,7 +72,6 @@ public class IndexedChronicle extends AbstractChronicle {
         super(extractName(basePath));
 
         this.byteOrder = byteOrder;
-        this.minimiseByteBuffers = minimiseByteBuffers;
         this.synchronousMode = synchronousMode;
         indexBitSize = Math.min(30, Math.max(12, dataBitSizeHint - 3));
         dataBitSize = Math.min(30, Math.max(12, dataBitSizeHint));
@@ -99,11 +82,11 @@ public class IndexedChronicle extends AbstractChronicle {
         if (parentFile != null)
             //noinspection ResultOfMethodCallIgnored
             parentFile.mkdirs();
-        indexChannel = new RandomAccessFile(basePath + ".index", synchronousMode ? "rwd" : "rw").getChannel();
-        dataChannel = new RandomAccessFile(basePath + ".data", synchronousMode ? "rwd" : "rw").getChannel();
+        indexCache = new MappedFile(basePath + ".index", 1L << indexBitSize);
+        dataCache = new MappedFile(basePath + ".data", 1L << dataBitSize);
 
         // find the last record.
-        long indexSize = indexChannel.size() >>> indexBitSize();
+        long indexSize = indexCache.size() >>> indexBitSize();
         if (indexSize > 0) {
             indexSize--;
             while (indexSize > 0 && getIndexData(indexSize) == 0)
@@ -131,63 +114,33 @@ public class IndexedChronicle extends AbstractChronicle {
     @Override
     public long getIndexData(long indexId) {
         long indexOffset = indexId << indexBitSize();
-        ByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
-        return indexBuffer.getLong((int) (indexOffset & indexLowMask));
+        MappedMemory mappedMemory = acquireIndexBuffer(indexOffset);
+        ByteBuffer indexBuffer = mappedMemory.buffer();
+        long num = indexBuffer.getLong((int) (indexOffset & indexLowMask));
+        mappedMemory.release();
+        return num;
     }
 
     @NotNull
-    protected MappedByteBuffer acquireIndexBuffer(long startPosition) {
+    protected MappedMemory acquireIndexBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
             throwByteOrderIsIncorrect();
-        int indexBufferId = (int) (startPosition >> indexBitSize);
-        if (minimiseByteBuffers) {
-            if (lastIndexId == indexBufferId) {
-                assert lastIndexBuffer != null;
-                return lastIndexBuffer;
-            }
-
-        } else {
-            if (indexBuffers.size() <= indexBufferId)
-                fillIndexBufferWithNulls(indexBufferId);
-            MappedByteBuffer buffer = indexBuffers.get(indexBufferId);
-            if (buffer != null)
-                return buffer;
-        }
-        return createIndexBuffer(startPosition, indexBufferId);
-    }
-
-    @NotNull
-    private MappedByteBuffer throwByteOrderIsIncorrect() {
-        throw new IllegalStateException("ByteOrder is incorrect.");
-    }
-
-    private MappedByteBuffer createIndexBuffer(long startPosition, int indexBufferId) {
         try {
 //            long start = System.nanoTime();
-            MappedByteBuffer mbb;
-            try {
-                mbb = indexChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~indexLowMask, 1 << indexBitSize);
-            } catch (OutOfMemoryError e) {
-                System.gc();
-                mbb = indexChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~indexLowMask, 1 << indexBitSize);
-            }
+            MappedMemory mbb = indexCache.acquire(startPosition >>> indexBitSize);
+
 //            long time = System.nanoTime() - start;
 //            System.out.println(Thread.currentThread().getName()+": map "+time);
-            mbb.order(byteOrder);
-            if (minimiseByteBuffers) {
-                lastIndexBuffer = mbb;
-                lastIndexId = indexBufferId;
-            } else {
-                indexBuffers.set(indexBufferId, mbb);
-            }
+            mbb.buffer().order(byteOrder);
             return mbb;
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private void fillIndexBufferWithNulls(int indexBufferId) {
-        while (indexBuffers.size() <= indexBufferId) indexBuffers.add(null);
+    @NotNull
+    private MappedMemory throwByteOrderIsIncorrect() {
+        throw new IllegalStateException("ByteOrder is incorrect.");
     }
 
     protected int indexBitSize() {
@@ -196,11 +149,7 @@ public class IndexedChronicle extends AbstractChronicle {
 
     @Override
     public long sizeInBytes() {
-        try {
-            return indexChannel.size() + dataChannel.size();
-        } catch (IOException ignored) {
-            return -1;
-        }
+        return indexCache.size() + dataCache.size();
     }
 
     public void useUnsafe(boolean useUnsafe) {
@@ -223,48 +172,17 @@ public class IndexedChronicle extends AbstractChronicle {
 
     @Nullable
     @Override
-    public MappedByteBuffer acquireDataBuffer(long startPosition) {
+    public MappedMemory acquireDataBuffer(long startPosition) {
         if (startPosition >= MAX_VIRTUAL_ADDRESS)
             return throwByteOrderIsIncorrect();
-        int dataBufferId = (int) (startPosition >> dataBitSize);
-        if (minimiseByteBuffers) {
-            if (lastDataId == dataBufferId) {
-                return lastDataBuffer;
-            }
-        } else {
-            if (dataBuffers.size() <= dataBufferId)
-                fillDataBuffersWithNulls(dataBufferId);
-            MappedByteBuffer buffer = dataBuffers.get(dataBufferId);
-            if (buffer != null)
-                return buffer;
-        }
-        return createDataBuffer(startPosition, dataBufferId);
-    }
-
-    private MappedByteBuffer createDataBuffer(long startPosition, int dataBufferId) {
         try {
-            MappedByteBuffer mbb;
-            try {
-                mbb = dataChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~dataLowMask, 1 << dataBitSize);
-            } catch (OutOfMemoryError e) {
-                System.gc();
-                mbb = dataChannel.map(FileChannel.MapMode.READ_WRITE, startPosition & ~dataLowMask, 1 << dataBitSize);
-            }
-            mbb.order(ByteOrder.nativeOrder());
-            if (minimiseByteBuffers) {
-                lastDataBuffer = mbb;
-                lastDataId = dataBufferId;
-            } else {
-                dataBuffers.set(dataBufferId, mbb);
-            }
+            MappedMemory mbb = dataCache.acquire(startPosition >>> dataBitSize);
+
+            mbb.buffer().order(ByteOrder.nativeOrder());
             return mbb;
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    private void fillDataBuffersWithNulls(int dataBufferId) {
-        while (dataBuffers.size() <= dataBufferId) dataBuffers.add(null);
     }
 
     @Override
@@ -317,10 +235,11 @@ public class IndexedChronicle extends AbstractChronicle {
     @Override
     public void setIndexData(long indexId, long indexData) {
         long indexOffset = indexId << indexBitSize();
-        MappedByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
-        indexBuffer.putLong((int) (indexOffset & indexLowMask), indexData);
+        MappedMemory indexBuffer = acquireIndexBuffer(indexOffset);
+        indexBuffer.buffer().putLong((int) (indexOffset & indexLowMask), indexData);
         if (synchronousMode())
             indexBuffer.force();
+        indexBuffer.release();
     }
 
     @Override
@@ -330,29 +249,10 @@ public class IndexedChronicle extends AbstractChronicle {
 
     public void close() {
         try {
-            clearAll(indexChannel, indexBuffers);
-        } finally {
-            clearAll(dataChannel, dataBuffers);
+            indexCache.close();
+            dataCache.close();
+        } catch (IOException e) {
+            throw new AssertionError(e);
         }
-    }
-
-    private void clearAll(@NotNull FileChannel channel, @NotNull List<MappedByteBuffer> buffers) {
-        try {
-            for (MappedByteBuffer buffer : buffers) {
-                if (buffer != null) {
-                    buffer.force();
-                }
-            }
-        } finally {
-            try {
-                channel.close();
-            } catch (IOException ignored) {
-            }
-            for (MappedByteBuffer buffer : buffers) {
-                if (buffer instanceof DirectBuffer)
-                    ((DirectBuffer) buffer).cleaner().clean();
-            }
-        }
-        buffers.clear();
     }
 }

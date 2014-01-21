@@ -43,8 +43,11 @@ public class IntIndexedChronicle extends IndexedChronicle {
     @Override
     public long getIndexData(long indexId) {
         long indexOffset = indexId << indexBitSize();
-        ByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
-        return indexBuffer.getInt((int) (indexOffset & indexLowMask)) & LONG_MASK;
+        MappedMemory mappedMemory = acquireIndexBuffer(indexOffset);
+        ByteBuffer indexBuffer = mappedMemory.buffer();
+        int num = indexBuffer.getInt((int) (indexOffset & indexLowMask));
+        mappedMemory.release();
+        return num & LONG_MASK;
     }
 
     @Override
@@ -57,8 +60,10 @@ public class IntIndexedChronicle extends IndexedChronicle {
         if (indexData >= (1L << 32))
             throw new IllegalStateException("Size of Chronicle too large > 4 GB");
         long indexOffset = indexId << indexBitSize();
-        ByteBuffer indexBuffer = acquireIndexBuffer(indexOffset);
+        MappedMemory mappedMemory = acquireIndexBuffer(indexOffset);
+        ByteBuffer indexBuffer = mappedMemory.buffer();
         assert indexData <= LONG_MASK;
         indexBuffer.putInt((int) (indexOffset & indexLowMask), (int) indexData);
+        mappedMemory.release();
     }
 }
