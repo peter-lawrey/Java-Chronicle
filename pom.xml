@@ -23,7 +23,7 @@
 
     <groupId>com.higherfrequencytrading</groupId>
     <artifactId>chronicle-parent</artifactId>
-    <version>1.9.1-SNAPSHOT</version>
+    <version>1.9.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>chronicle-parent</name>
