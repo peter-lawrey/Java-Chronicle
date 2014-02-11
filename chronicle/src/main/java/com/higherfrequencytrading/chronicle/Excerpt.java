@@ -55,8 +55,9 @@ public interface Excerpt extends RandomDataInput, RandomDataOutput, ByteStringAp
      * writing to this Chronicle.
      *
      * @return true if the index was set to a valid entry.
+     * @throws java.lang.IllegalStateException if the Chronicle has been closed
      */
-    boolean nextIndex();
+    boolean nextIndex() throws IllegalStateException;
 
     /**
      * Attempt to set the index to this number.  The method is re-tryable as another thread or process could be writing

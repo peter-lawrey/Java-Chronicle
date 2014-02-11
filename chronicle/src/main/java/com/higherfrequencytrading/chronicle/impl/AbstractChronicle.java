@@ -36,6 +36,7 @@ public abstract class AbstractChronicle implements DirectChronicle {
     protected volatile long size = 0;
     private boolean multiThreaded = false;
     protected final StringInterner stringInterner;
+    private volatile boolean closed;
 
     protected AbstractChronicle(String name) {
         this.name = name;
@@ -51,6 +52,11 @@ public abstract class AbstractChronicle implements DirectChronicle {
     @Override
     public StringInterner stringInterner() {
         return stringInterner;
+    }
+
+    @Override
+    public void checkNotClosed() throws IllegalStateException {
+        if (closed) throw new IllegalStateException(name + ": is closed");
     }
 
     @Override
@@ -101,5 +107,10 @@ public abstract class AbstractChronicle implements DirectChronicle {
     @Override
     public <E> EnumeratedMarshaller<E> getMarshaller(@NotNull Class<E> aClass) {
         return marshallerMap.get(aClass);
+    }
+
+    @Override
+    public void close() {
+        closed = true;
     }
 }

@@ -45,4 +45,6 @@ public interface DirectChronicle extends Chronicle {
     boolean multiThreaded();
 
     StringInterner stringInterner();
+
+    void checkNotClosed() throws IllegalStateException;
 }

@@ -192,6 +192,7 @@ public class IndexedChronicle extends AbstractChronicle {
 
     @Override
     public long startExcerpt(AbstractExcerpt appender, int capacity) {
+        checkNotClosed();
         boolean debug = false;
         assert debug = true;
         if (debug) {
@@ -248,6 +249,7 @@ public class IndexedChronicle extends AbstractChronicle {
     }
 
     public void close() {
+        super.close();
         try {
             indexCache.close();
             dataCache.close();

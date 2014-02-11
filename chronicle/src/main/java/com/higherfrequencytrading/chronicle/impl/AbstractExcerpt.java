@@ -161,6 +161,7 @@ public abstract class AbstractExcerpt implements Excerpt {
 
     @Override
     public boolean nextIndex() {
+        chronicle.checkNotClosed();
         return index(index() + 1);
     }
 
