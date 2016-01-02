@@ -1,3 +1,6 @@
+# NOTE
+This repo is old and out of date. I suggest you use version 3.x from https://github.com/OpenHFT/Chronicle-Queue
+
 #Chronicle
 This library is an ultra low latency, high throughput, persisted, messaging and event driven in memory database.  The typical latency is as low as 80 nano-seconds and supports throughputs of 5-20 million messages/record updates per second.
 
